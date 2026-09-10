@@ -1,13 +1,13 @@
 // locked.js — opens the password-protected pages under /work in the browser.
 //
 // Two modes, picked by ECLock.init({ mode }):
-//   'gate'  (/work/)            tries the password against every company in manifest.json
+//   'gate'  (/work/)            tries the password against every page in manifest.json
 //                               and redirects to the one that unlocks.
-//   'page'  (/work/<company>/)  fetches ./locked.json, decrypts it, and replaces the document.
+//   'page'  (/work/<page>/)     fetches ./locked.json, decrypts it, and replaces the document.
 //
 // Payloads are made by scripts/lock.js: PBKDF2-SHA256 -> AES-256-GCM. A wrong password
 // simply fails to decrypt (GCM is authenticated), which is how the gate knows which
-// company page a password belongs to. The working password is kept in sessionStorage so
+// page a password belongs to. The working password is kept in sessionStorage so
 // moving between /work pages in the same tab doesn't re-prompt.
 
 (function () {
@@ -88,7 +88,7 @@
                 return true;
             }
             var manifest = await fetchJSON(opts.manifest || 'manifest.json');
-            var companies = manifest.companies || [];
+            var companies = manifest.pages || [];
             for (var i = 0; i < companies.length; i++) {
                 var ok = await decrypt(await payloadFor(companies[i]), password);
                 if (ok !== null) {

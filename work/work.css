@@ -1,4 +1,4 @@
-/* erikacary.com — /work pages (gate + per-company pages)
+/* erikacary.com — /work pages (gate + locked audience pages)
    Same tokens as style.css, kept separate so these pages don't inherit the home layout. */
 :root {
     --paper: #F9F4F6;
@@ -168,7 +168,7 @@ img { max-width: 100%; display: block; }
 }
 
 /* ==========================================================
-   Company page
+   Locked page
    ========================================================== */
 .wk {
     max-width: var(--content-max);

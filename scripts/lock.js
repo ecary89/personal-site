@@ -3,32 +3,35 @@
  * lock.js — encrypts the password-protected pages under /work.
  *
  * How the gate works
- *   /work/               one password field. Tries the password against every company
+ *   /work/               one password field. Tries the password against every page
  *                        listed in work/manifest.json and opens the one that unlocks.
- *   /work/<company>/     a tiny shell page (index.html) that fetches locked.json and
+ *   /work/<page>/        a tiny shell page (index.html) that fetches locked.json and
  *                        decrypts it in the browser (PBKDF2 + AES-GCM via WebCrypto).
  *                        The password is remembered for the tab session only.
  *
+ * Pages are named by audience, not by company (b2b, consumer, ...), so one page can be
+ * shared with any company of that kind. Passwords are what get handed out per company.
+ *
  * Plaintext lives here and is NEVER committed (.gitignore):
- *   work/_src/passwords.json          { "ashby": "ashby-erika" }
- *   work/_src/<company>/index.html    the full page a company sees after the gate
+ *   work/_src/passwords.json          { "b2b": "<password>" }
+ *   work/_src/<page>/index.html       the full page a visitor sees after the gate
  *
  * Generated and committed:
- *   work/<company>/locked.json        the encrypted page
- *   work/<company>/index.html         the shell (written once if missing, then left alone)
- *   work/manifest.json                the list of companies the gate tries
+ *   work/<page>/locked.json           the encrypted page
+ *   work/<page>/index.html            the shell (written once if missing, then left alone)
+ *   work/manifest.json                the list of pages the gate tries
  *
  * Usage
- *   node scripts/lock.js              encrypt every company in passwords.json (skips unchanged pages)
+ *   node scripts/lock.js              encrypt every page in passwords.json (skips unchanged pages)
  *   node scripts/lock.js --unlock     recover plaintext into work/_src from locked.json (needs the passwords)
  *   node scripts/lock.js --stage      same as default, then `git add` whatever it wrote (used by the hook)
  *
  * Automatic re-encrypt on commit: install the hook once per clone
  *   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
- * After that, editing work/_src/<company>/index.html and committing is all Erika has to do.
+ * After that, editing work/_src/<page>/index.html and committing is all Erika has to do.
  *
- * Adding a company: add "<company>": "<password>" to passwords.json, create
- * work/_src/<company>/index.html, run this script (or just commit).
+ * Adding a page (e.g. "consumer"): add "<page>": "<password>" to passwords.json, create
+ * work/_src/<page>/index.html, run this script (or just commit).
  */
 'use strict';
 
@@ -96,7 +99,7 @@ async function decrypt(payload, password) {
     }
 }
 
-// The shell every company page uses. Same markup as work/index.html, page mode.
+// The shell every locked page uses. Same markup as work/index.html, page mode.
 function shellHtml(company) {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -178,7 +181,7 @@ async function lock() {
     }
 
     const manifestFile = path.join(WORK, 'manifest.json');
-    const manifest = JSON.stringify({ companies: companies.filter(c => fs.existsSync(path.join(WORK, c, 'locked.json'))) }, null, 2) + '\n';
+    const manifest = JSON.stringify({ pages: companies.filter(c => fs.existsSync(path.join(WORK, c, 'locked.json'))) }, null, 2) + '\n';
     if (!fs.existsSync(manifestFile) || fs.readFileSync(manifestFile, 'utf8') !== manifest) {
         fs.writeFileSync(manifestFile, manifest);
         written.push(manifestFile);
