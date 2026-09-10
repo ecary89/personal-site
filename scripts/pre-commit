@@ -1,0 +1,8 @@
+#!/bin/sh
+# Git pre-commit hook: re-encrypt the /work pages if their plaintext changed, and stage the output.
+# Install once per clone:  cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+set -e
+cd "$(git rev-parse --show-toplevel)"
+if [ -f work/_src/passwords.json ]; then
+    node scripts/lock.js --stage --quiet
+fi

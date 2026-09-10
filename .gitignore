@@ -2,3 +2,7 @@ ecary89.git/
 *.ecary89.git
 
 .DS_Store
+
+# Plaintext sources + passwords for the password-protected /work pages.
+# Only the encrypted output (work/<company>/locked.json) is committed. See scripts/lock.js.
+work/_src/

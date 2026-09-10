@@ -1,0 +1,463 @@
+/* erikacary.com — /work pages (gate + per-company pages)
+   Same tokens as style.css, kept separate so these pages don't inherit the home layout. */
+:root {
+    --paper: #F9F4F6;
+    --ink: #2B2130;
+    --rose: #B4547E;
+    --muted: #6E6072;
+    --subtle: #8D7E91;
+    --hairline: #E2D6DC;
+    --btn-border: #D5C4CD;
+    --btn-wash: #F2E8ED;
+
+    --font-display: 'Bricolage Grotesque', sans-serif;
+    --font-text: 'Schibsted Grotesk', system-ui, sans-serif;
+
+    --content-max: 1200px;
+    --reading-max: 720px;
+    --pad-x: clamp(24px, 6vw, 64px);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+}
+
+body {
+    font-family: var(--font-text);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* --- Buttons (same as the home page) --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 54px;
+    padding: 0 32px;
+    border-radius: 999px;
+    border: 0;
+    font: inherit;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 200ms ease, opacity 200ms ease;
+}
+
+.btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 600;
+}
+
+.btn-primary:hover { background: var(--rose); }
+.btn-primary:disabled { opacity: 0.55; cursor: default; }
+.btn-primary:disabled:hover { background: var(--ink); }
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--btn-border);
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.btn-ghost:hover { background: var(--btn-wash); }
+
+/* ==========================================================
+   Gate
+   ========================================================== */
+.lock-body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.lock {
+    margin: auto;
+    width: 100%;
+    max-width: 560px;
+    padding: 48px var(--pad-x);
+}
+
+.lock-home {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.lock-eyebrow {
+    margin: 56px 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rose);
+}
+
+.lock-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4.4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    text-wrap: balance;
+}
+
+.lock-sub {
+    margin: 16px 0 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.lock-form {
+    margin-top: 32px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.lock-input {
+    flex: 1 1 220px;
+    height: 54px;
+    padding: 0 22px;
+    border-radius: 999px;
+    border: 1px solid var(--btn-border);
+    background: #fff;
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 200ms ease;
+}
+
+.lock-input::placeholder { color: var(--subtle); }
+.lock-input:focus { border-color: var(--rose); }
+
+.lock-error {
+    min-height: 22px;
+    margin: 14px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--rose);
+}
+
+.lock-status {
+    margin: auto;
+    font-size: 15px;
+    color: var(--subtle);
+}
+
+/* ==========================================================
+   Company page
+   ========================================================== */
+.wk {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 var(--pad-x) 56px;
+}
+
+.wk-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+    padding-top: 40px;
+}
+
+.wk-brand {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.wk-links {
+    display: flex;
+    gap: 28px;
+    font-size: 15px;
+    color: var(--subtle);
+}
+
+.wk-links a { color: var(--subtle); transition: color 200ms ease; }
+.wk-links a:hover { color: var(--ink); }
+
+.wk-intro {
+    padding-top: clamp(64px, 10vh, 120px);
+    max-width: 860px;
+}
+
+.wk-eyebrow {
+    margin: 0 0 18px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rose);
+}
+
+.wk-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5.6vw, 64px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+}
+
+.wk-lede {
+    margin: 26px 0 0;
+    max-width: var(--reading-max);
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.5;
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.wk-lede em {
+    font-style: italic;
+    color: var(--rose);
+}
+
+/* --- Project tiles --- */
+.wk-tiles {
+    margin-top: clamp(64px, 10vh, 112px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(56px, 8vh, 96px);
+}
+
+.wk-tile {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(28px, 4vw, 56px);
+    align-items: start;
+    padding-top: 40px;
+    border-top: 1px solid var(--hairline);
+}
+
+.wk-hero {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--btn-wash);
+}
+
+.wk-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wk-hero--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.wk-hero-word {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 76px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: rgba(180, 84, 126, 0.32);
+    padding: 0 24px;
+    text-align: center;
+    line-height: 1;
+}
+
+.wk-hero-note {
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(249, 244, 246, 0.92);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--subtle);
+}
+
+.wk-meta {
+    margin: 0 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    line-height: 1.8;
+}
+
+.wk-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--btn-border);
+    color: var(--rose);
+    letter-spacing: 0.08em;
+    vertical-align: middle;
+}
+
+.wk-tile-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 2.8vw, 34px);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+.wk-facts {
+    margin: 28px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.wk-facts > div {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 16px;
+}
+
+.wk-facts dt {
+    padding-top: 2px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
+.wk-facts dd {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.wk-facts dd strong {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.wk-aside {
+    margin: 22px 0 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--subtle);
+}
+
+/* --- Quotes --- */
+.wk-quotes {
+    margin-top: clamp(80px, 12vh, 128px);
+    padding-top: 40px;
+    border-top: 1px solid var(--hairline);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 36px;
+}
+
+.wk-quotes .wk-eyebrow {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+}
+
+.wk-quote {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.wk-quote p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(18px, 1.7vw, 21px);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+}
+
+.wk-quote cite {
+    font-style: normal;
+    font-size: 14px;
+    color: var(--subtle);
+}
+
+/* --- Footer (same as the home page) --- */
+.site-footer {
+    margin-top: clamp(72px, 12vh, 120px);
+    padding: 44px 0 0;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.footer-lockup {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 560px;
+}
+
+.footer-headline {
+    font-family: var(--font-display);
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    text-wrap: pretty;
+}
+
+.footer-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.footer-copy {
+    font-size: 13px;
+    color: var(--subtle);
+}
+
+@media (max-width: 860px) {
+    .wk-tile { grid-template-columns: 1fr; }
+    .wk-quotes { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+    .wk-facts > div { grid-template-columns: 1fr; gap: 6px; }
+    .wk-links { gap: 20px; }
+}
