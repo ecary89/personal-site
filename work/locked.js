@@ -8,7 +8,7 @@
 // Payloads are made by scripts/lock.js: PBKDF2-SHA256 -> AES-256-GCM. A wrong password
 // simply fails to decrypt (GCM is authenticated), which is how the gate knows which
 // page a password belongs to. The working password is kept in sessionStorage so
-// moving between /work pages in the same tab doesn't re-prompt.
+// moving between /work pages in the same tab doesn't re-prompt. Visit /work/?lock to forget it.
 
 (function () {
     'use strict';
@@ -73,8 +73,12 @@
             error.textContent = '';
         }
 
+        // Everything is addressed from /work/ so the pages work with or without a trailing slash.
+        var BASE = '/work/';
+        var here = window.location.pathname.replace(/\/?$/, '/');
+
         async function payloadFor(name) {
-            if (!payloads[name]) payloads[name] = await fetchJSON(name === '.' ? opts.payload : name + '/locked.json');
+            if (!payloads[name]) payloads[name] = await fetchJSON((name === '.' ? here : BASE + name + '/') + 'locked.json');
             return payloads[name];
         }
 
@@ -87,13 +91,13 @@
                 render(html);
                 return true;
             }
-            var manifest = await fetchJSON(opts.manifest || 'manifest.json');
+            var manifest = await fetchJSON(BASE + 'manifest.json');
             var companies = manifest.pages || [];
             for (var i = 0; i < companies.length; i++) {
                 var ok = await decrypt(await payloadFor(companies[i]), password);
                 if (ok !== null) {
                     try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
-                    window.location.replace(companies[i] + '/');
+                    window.location.replace(BASE + companies[i] + '/');
                     return true;
                 }
             }
@@ -117,6 +121,12 @@
                 showForm('Something went wrong loading the page. Please refresh and try again.');
             }
         });
+
+        // /work/?lock forgets the remembered password (handy for testing the gate).
+        if (/(^|[?&])lock(=|&|$)/.test(window.location.search)) {
+            try { sessionStorage.removeItem(PW_KEY); } catch (e) {}
+            if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+        }
 
         // Remembered password from earlier in this tab? Try it quietly first.
         var saved = null;

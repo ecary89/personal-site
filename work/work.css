@@ -130,7 +130,7 @@ img { max-width: 100%; display: block; }
 }
 
 .lock-form {
-    margin-top: 32px;
+    margin-top: 28px;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
