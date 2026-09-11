@@ -461,3 +461,227 @@ img { max-width: 100%; display: block; }
     .wk-facts > div { grid-template-columns: 1fr; gap: 6px; }
     .wk-links { gap: 20px; }
 }
+
+/* ==========================================================
+   Hero variants (added with the shop page)
+   ========================================================== */
+/* Three phone screens fully visible on the rose wash */
+.wk-hero--screens {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4%;
+    padding: 5% 7%;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.wk-hero--screens img {
+    width: 26%;
+    height: auto;
+    object-fit: unset;
+    border-radius: 16px;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
+}
+
+/* A desktop page with a phone overlapping its corner */
+.wk-hero--desk {
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.wk-hero--desk .wk-desk {
+    position: absolute;
+    left: 6%;
+    top: 9%;
+    width: 78%;
+    height: 100%;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
+}
+
+.wk-hero--desk .wk-phone {
+    position: absolute;
+    right: 5%;
+    bottom: -7%;
+    width: 21%;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.22);
+}
+
+.wk-hero--desk .wk-phone img { height: auto; object-fit: unset; }
+
+/* A dark slide crop shown whole */
+.wk-hero--dark { background: #121212; }
+.wk-hero--dark img { object-fit: contain; object-position: center; padding: 3% 4%; }
+
+/* Tile link to the case study */
+.wk-hero a, .wk-tile-title a { display: block; color: inherit; }
+.wk-hero a { height: 100%; }
+
+.wk-more {
+    grid-column: 2;
+    margin: 4px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--rose);
+}
+
+.wk-more a { color: var(--rose); border-bottom: 1px solid transparent; transition: border-color 200ms ease; }
+.wk-more a:hover { border-color: var(--rose); }
+
+/* ==========================================================
+   Case-study pages
+   ========================================================== */
+.cs-back {
+    display: inline-block;
+    margin-top: clamp(40px, 6vh, 64px);
+    font-size: 14px;
+    color: var(--subtle);
+    transition: color 200ms ease;
+}
+
+.cs-back:hover { color: var(--ink); }
+
+.cs-head {
+    padding-top: clamp(24px, 4vh, 40px);
+    max-width: 860px;
+}
+
+.cs-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+}
+
+.cs-facts {
+    margin: 22px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 32px;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.cs-facts div { display: flex; gap: 8px; }
+.cs-facts dt { font-weight: 600; color: var(--ink); }
+.cs-facts dd { margin: 0; }
+
+.cs-hero { margin-top: clamp(36px, 5vw, 56px); }
+
+.cs-story {
+    margin: clamp(36px, 5vw, 56px) 0 0;
+    max-width: var(--reading-max);
+    font-size: clamp(17px, 1.6vw, 19px);
+    line-height: 1.6;
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.cs-story strong { font-weight: 600; color: var(--ink); }
+
+.cs-section {
+    margin-top: clamp(64px, 9vh, 104px);
+    padding-top: 32px;
+    border-top: 1px solid var(--hairline);
+}
+
+.cs-section-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    max-width: 760px;
+    text-wrap: balance;
+}
+
+.cs-figure { margin: 28px 0 0; }
+
+.cs-figure img,
+.cs-figure video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 14px;
+    background: var(--btn-wash);
+}
+
+.cs-figure figcaption,
+.cs-caption {
+    margin: 14px 0 0;
+    max-width: var(--reading-max);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+/* A row of phone screens */
+.cs-phones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.cs-phones img {
+    width: 100%;
+    aspect-ratio: 750 / 1300;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 14px;
+    background: var(--btn-wash);
+    box-shadow: 0 10px 30px rgba(43, 33, 48, 0.10);
+}
+
+.cs-phones--tall img { aspect-ratio: 375 / 812; }
+.cs-phones--3 { max-width: 760px; }
+.cs-phones--2 { max-width: 500px; }
+
+/* A tall page shown inside a scrollable frame */
+.cs-scroll {
+    max-height: 640px;
+    overflow-y: auto;
+    border-radius: 14px;
+    border: 1px solid var(--hairline);
+    background: #fff;
+}
+
+.cs-scroll img { border-radius: 0; }
+
+/* Portrait video on the wash */
+.cs-video--phone {
+    display: flex;
+    justify-content: center;
+    padding: 28px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.cs-video--phone video {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 22px;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
+}
+
+.cs-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 860px) {
+    .wk-more { grid-column: auto; }
+    .wk-hero--screens { padding: 6% 4%; gap: 3%; }
+    .wk-hero--screens img { width: 29%; }
+    .cs-two { grid-template-columns: 1fr; }
+    .cs-scroll { max-height: 480px; }
+}

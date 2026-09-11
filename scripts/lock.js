@@ -3,26 +3,41 @@
  * lock.js — encrypts the password-protected pages under /work.
  *
  * How the gate works
- *   /work/               one password field. Tries the password against every page
- *                        listed in work/manifest.json and opens the one that unlocks.
+ *   /work/               one password field. Tries the password against every entry
+ *                        page listed in work/manifest.json and opens the one that unlocks.
  *   /work/<page>/        a tiny shell page (index.html) that fetches locked.json and
  *                        decrypts it in the browser (PBKDF2 + AES-GCM via WebCrypto).
  *                        The password is remembered for the tab session only.
  *
- * Pages are named by audience, not by company (b2b, consumer, ...), so one page can be
- * shared with any company of that kind. Passwords are what get handed out per company.
+ * Two kinds of page share one mechanism:
+ *   entry pages   named by audience (b2b, shop, ...). One password each; the password is
+ *                 what gets handed out per company.
+ *   project pages (the-yes, pinterest-shopping, ...). Shared case studies. Each one is
+ *                 openable by every entry password that links to it, so a visitor who
+ *                 unlocked /work/shop/ can follow a tile to /work/the-yes/ without a prompt.
  *
  * Plaintext lives here and is NEVER committed (.gitignore):
- *   work/_src/passwords.json          { "b2b": "<password>" }
+ *   work/_src/passwords.json
+ *     {
+ *       "passwords": { "b2b": "<password>", "shop": "<password>" },
+ *       "pages":     { "b2b": ["b2b"], "shop": ["shop"], "the-yes": ["b2b", "shop"], ... }
+ *     }
+ *     "pages" maps every page to the entry passwords that open it. (The old flat
+ *     { "<page>": "<password>" } form still works: each page opens with its own password.)
  *   work/_src/<page>/index.html       the full page a visitor sees after the gate
  *
  * Generated and committed:
  *   work/<page>/locked.json           the encrypted page
  *   work/<page>/index.html            the shell (written once if missing, then left alone)
- *   work/manifest.json                the list of pages the gate tries
+ *   work/manifest.json                the entry pages the gate tries
+ *
+ * Payload format (v2): the page is encrypted once with a random content key. That key is
+ * then wrapped (encrypted) once per allowed password, each with its own PBKDF2 salt. The
+ * browser tries the entered password against each wrapped key; a wrong password simply
+ * fails to unwrap. So a page with two passwords is still one ciphertext.
  *
  * Usage
- *   node scripts/lock.js              encrypt every page in passwords.json (skips unchanged pages)
+ *   node scripts/lock.js              encrypt every page (skips pages whose payload is current)
  *   node scripts/lock.js --unlock     recover plaintext into work/_src from locked.json (needs the passwords)
  *   node scripts/lock.js --stage      same as default, then `git add` whatever it wrote (used by the hook)
  *
@@ -30,7 +45,7 @@
  *   cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
  * After that, editing work/_src/<page>/index.html and committing is all Erika has to do.
  *
- * Adding a page (e.g. "consumer"): add "<page>": "<password>" to passwords.json, create
+ * Adding a page: add it to "pages" (and to "passwords" if it is a new entry page), create
  * work/_src/<page>/index.html, run this script (or just commit).
  */
 'use strict';
@@ -51,15 +66,31 @@ const args = new Set(process.argv.slice(2));
 const quiet = args.has('--quiet');
 const log = (...m) => { if (!quiet) console.log(...m); };
 
-function readPasswords() {
+// Returns { passwords: {entry: password}, pages: {page: [entry, ...]} }
+function readConfig() {
     if (!fs.existsSync(PASSWORDS)) {
-        console.error(`Missing ${path.relative(ROOT, PASSWORDS)} — create it as {"<company>": "<password>"}.`);
+        console.error(`Missing ${path.relative(ROOT, PASSWORDS)} — see the header of scripts/lock.js for the format.`);
         process.exit(1);
     }
-    return JSON.parse(fs.readFileSync(PASSWORDS, 'utf8'));
+    const raw = JSON.parse(fs.readFileSync(PASSWORDS, 'utf8'));
+    if (raw.passwords && raw.pages) return raw;
+    // Old flat form: { "<page>": "<password>" }
+    const pages = {};
+    for (const name of Object.keys(raw)) pages[name] = [name];
+    return { passwords: raw, pages };
 }
 
-async function deriveKey(password, salt, usage) {
+function passwordsFor(config, page) {
+    const entries = config.pages[page] || [];
+    const list = [];
+    for (const entry of entries) {
+        if (!config.passwords[entry]) { console.error(`Page "${page}" refers to unknown entry "${entry}".`); process.exit(1); }
+        list.push(config.passwords[entry]);
+    }
+    return list;
+}
+
+async function kek(password, salt, usage) {
     const base = await subtle.importKey('raw', Buffer.from(password, 'utf8'), 'PBKDF2', false, ['deriveKey']);
     return subtle.deriveKey(
         { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
@@ -70,37 +101,64 @@ async function deriveKey(password, salt, usage) {
     );
 }
 
-async function encrypt(plaintext, password) {
-    const salt = randomBytes(16);
+async function encrypt(plaintext, passwords) {
+    const contentKey = randomBytes(32);
     const iv = randomBytes(12);
-    const key = await deriveKey(password, salt, 'encrypt');
+    const key = await subtle.importKey('raw', contentKey, { name: 'AES-GCM' }, false, ['encrypt']);
     const ct = await subtle.encrypt({ name: 'AES-GCM', iv }, key, Buffer.from(plaintext, 'utf8'));
+    const keys = [];
+    for (const password of passwords) {
+        const salt = randomBytes(16);
+        const wiv = randomBytes(12);
+        const wrapped = await subtle.encrypt({ name: 'AES-GCM', iv: wiv }, await kek(password, salt, 'encrypt'), contentKey);
+        keys.push({ salt: salt.toString('base64'), iv: wiv.toString('base64'), wk: Buffer.from(wrapped).toString('base64') });
+    }
     return {
-        v: 1,
+        v: 2,
         kdf: 'PBKDF2-SHA256',
         iter: ITERATIONS,
-        salt: salt.toString('base64'),
         iv: iv.toString('base64'),
-        ct: Buffer.from(ct).toString('base64')
+        ct: Buffer.from(ct).toString('base64'),
+        keys
     };
 }
 
+// Returns the plaintext, or null if the password doesn't open this payload.
 async function decrypt(payload, password) {
     try {
-        const key = await deriveKey(password, Buffer.from(payload.salt, 'base64'), 'decrypt');
-        const pt = await subtle.decrypt(
-            { name: 'AES-GCM', iv: Buffer.from(payload.iv, 'base64') },
-            key,
-            Buffer.from(payload.ct, 'base64')
-        );
+        if (payload.v === 2) {
+            for (const k of payload.keys) {
+                let contentKey;
+                try {
+                    contentKey = await subtle.decrypt({ name: 'AES-GCM', iv: Buffer.from(k.iv, 'base64') },
+                        await kek(password, Buffer.from(k.salt, 'base64'), 'decrypt'), Buffer.from(k.wk, 'base64'));
+                } catch (e) { continue; }
+                const key = await subtle.importKey('raw', contentKey, { name: 'AES-GCM' }, false, ['decrypt']);
+                const pt = await subtle.decrypt({ name: 'AES-GCM', iv: Buffer.from(payload.iv, 'base64') }, key, Buffer.from(payload.ct, 'base64'));
+                return Buffer.from(pt).toString('utf8');
+            }
+            return null;
+        }
+        // v1: page encrypted directly under one password
+        const key = await kek(password, Buffer.from(payload.salt, 'base64'), 'decrypt');
+        const pt = await subtle.decrypt({ name: 'AES-GCM', iv: Buffer.from(payload.iv, 'base64') }, key, Buffer.from(payload.ct, 'base64'));
         return Buffer.from(pt).toString('utf8');
     } catch (e) {
         return null;
     }
 }
 
+// True when the committed payload already holds this exact page for exactly these passwords.
+async function isCurrent(payload, plaintext, passwords) {
+    if (payload.v !== 2 || payload.keys.length !== passwords.length) return false;
+    for (const password of passwords) {
+        if ((await decrypt(payload, password)) !== plaintext) return false;
+    }
+    return true;
+}
+
 // The shell every locked page uses. Same markup as work/index.html, page mode.
-function shellHtml(company) {
+function shellHtml(page) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,7 +172,7 @@ function shellHtml(company) {
     <link rel="stylesheet" href="/work/work.css">
 </head>
 <body class="lock-body">
-<!-- Generated by scripts/lock.js for "${company}". The real page is in locked.json and is decrypted in the browser. -->
+<!-- Generated by scripts/lock.js for "${page}". The real page is in locked.json and is decrypted in the browser. -->
 
 <p class="lock-status" id="lock-status" hidden>Opening…</p>
 
@@ -145,42 +203,49 @@ function gitAdd(files) {
 }
 
 async function lock() {
-    const passwords = readPasswords();
-    const companies = Object.keys(passwords).sort();
+    const config = readConfig();
+    const pages = Object.keys(config.pages).sort();
     const written = [];
 
-    for (const company of companies) {
-        const srcFile = path.join(SRC, company, 'index.html');
+    for (const page of pages) {
+        const passwords = passwordsFor(config, page);
+        const srcFile = path.join(SRC, page, 'index.html');
         if (!fs.existsSync(srcFile)) {
-            console.error(`Skipping "${company}": no ${path.relative(ROOT, srcFile)}.`);
+            console.error(`Skipping "${page}": no ${path.relative(ROOT, srcFile)}.`);
+            continue;
+        }
+        if (!passwords.length) {
+            console.error(`Skipping "${page}": no passwords listed for it.`);
             continue;
         }
         const plaintext = fs.readFileSync(srcFile, 'utf8');
-        const outDir = path.join(WORK, company);
+        const outDir = path.join(WORK, page);
         const lockedFile = path.join(outDir, 'locked.json');
         const shellFile = path.join(outDir, 'index.html');
         fs.mkdirSync(outDir, { recursive: true });
 
-        // Skip when the committed payload already decrypts to the same page, so the
-        // pre-commit hook doesn't churn a fresh salt/iv into every commit.
+        // Skip when the committed payload is already current, so the pre-commit hook
+        // doesn't churn a fresh salt/iv into every commit.
         if (fs.existsSync(lockedFile)) {
             const existing = JSON.parse(fs.readFileSync(lockedFile, 'utf8'));
-            if ((await decrypt(existing, passwords[company])) === plaintext) {
-                log(`${company}: unchanged`);
-                if (!fs.existsSync(shellFile)) { fs.writeFileSync(shellFile, shellHtml(company)); written.push(shellFile); }
+            if (await isCurrent(existing, plaintext, passwords)) {
+                log(`${page}: unchanged`);
+                if (!fs.existsSync(shellFile)) { fs.writeFileSync(shellFile, shellHtml(page)); written.push(shellFile); }
                 continue;
             }
         }
 
-        const payload = await encrypt(plaintext, passwords[company]);
+        const payload = await encrypt(plaintext, passwords);
         fs.writeFileSync(lockedFile, JSON.stringify(payload) + '\n');
         written.push(lockedFile);
-        if (!fs.existsSync(shellFile)) { fs.writeFileSync(shellFile, shellHtml(company)); written.push(shellFile); }
-        log(`${company}: encrypted ${plaintext.length} chars -> ${path.relative(ROOT, lockedFile)}`);
+        if (!fs.existsSync(shellFile)) { fs.writeFileSync(shellFile, shellHtml(page)); written.push(shellFile); }
+        log(`${page}: encrypted ${plaintext.length} chars for ${passwords.length} password(s) -> ${path.relative(ROOT, lockedFile)}`);
     }
 
+    // The gate only tries entry pages (the ones that have their own password).
+    const entries = Object.keys(config.passwords).sort().filter(e => fs.existsSync(path.join(WORK, e, 'locked.json')));
     const manifestFile = path.join(WORK, 'manifest.json');
-    const manifest = JSON.stringify({ pages: companies.filter(c => fs.existsSync(path.join(WORK, c, 'locked.json'))) }, null, 2) + '\n';
+    const manifest = JSON.stringify({ pages: entries }, null, 2) + '\n';
     if (!fs.existsSync(manifestFile) || fs.readFileSync(manifestFile, 'utf8') !== manifest) {
         fs.writeFileSync(manifestFile, manifest);
         written.push(manifestFile);
@@ -191,17 +256,22 @@ async function lock() {
 }
 
 async function unlock() {
-    const passwords = readPasswords();
-    for (const company of Object.keys(passwords)) {
-        const lockedFile = path.join(WORK, company, 'locked.json');
-        if (!fs.existsSync(lockedFile)) { console.error(`${company}: no locked.json`); continue; }
-        const plaintext = await decrypt(JSON.parse(fs.readFileSync(lockedFile, 'utf8')), passwords[company]);
-        if (plaintext === null) { console.error(`${company}: wrong password`); continue; }
-        const srcFile = path.join(SRC, company, 'index.html');
-        if (fs.existsSync(srcFile) && !args.has('--force')) { log(`${company}: ${path.relative(ROOT, srcFile)} exists, use --force to overwrite`); continue; }
+    const config = readConfig();
+    for (const page of Object.keys(config.pages)) {
+        const lockedFile = path.join(WORK, page, 'locked.json');
+        if (!fs.existsSync(lockedFile)) { console.error(`${page}: no locked.json`); continue; }
+        const payload = JSON.parse(fs.readFileSync(lockedFile, 'utf8'));
+        let plaintext = null;
+        for (const password of passwordsFor(config, page)) {
+            plaintext = await decrypt(payload, password);
+            if (plaintext !== null) break;
+        }
+        if (plaintext === null) { console.error(`${page}: none of its passwords open locked.json`); continue; }
+        const srcFile = path.join(SRC, page, 'index.html');
+        if (fs.existsSync(srcFile) && !args.has('--force')) { log(`${page}: ${path.relative(ROOT, srcFile)} exists, use --force to overwrite`); continue; }
         fs.mkdirSync(path.dirname(srcFile), { recursive: true });
         fs.writeFileSync(srcFile, plaintext);
-        log(`${company}: recovered -> ${path.relative(ROOT, srcFile)}`);
+        log(`${page}: recovered -> ${path.relative(ROOT, srcFile)}`);
     }
 }
 

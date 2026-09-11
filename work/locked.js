@@ -1,14 +1,15 @@
 // locked.js — opens the password-protected pages under /work in the browser.
 //
 // Two modes, picked by ECLock.init({ mode }):
-//   'gate'  (/work/)            tries the password against every page in manifest.json
+//   'gate'  (/work/)            tries the password against every entry page in manifest.json
 //                               and redirects to the one that unlocks.
 //   'page'  (/work/<page>/)     fetches ./locked.json, decrypts it, and replaces the document.
 //
-// Payloads are made by scripts/lock.js: PBKDF2-SHA256 -> AES-256-GCM. A wrong password
-// simply fails to decrypt (GCM is authenticated), which is how the gate knows which
-// page a password belongs to. The working password is kept in sessionStorage so
-// moving between /work pages in the same tab doesn't re-prompt. Visit /work/?lock to forget it.
+// Payloads are made by scripts/lock.js. v2: the page is encrypted with a random content
+// key, and that key is wrapped once per allowed password (PBKDF2-SHA256 -> AES-256-GCM).
+// A wrong password simply fails to unwrap (GCM is authenticated), which is how the gate
+// knows which page a password belongs to. The working password is kept in sessionStorage
+// so moving between /work pages in the same tab doesn't re-prompt. Visit /work/?lock to forget it.
 
 (function () {
     'use strict';
@@ -21,15 +22,33 @@
         return out;
     }
 
+    async function kek(password, salt, iterations) {
+        var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: salt, iterations: iterations, hash: 'SHA-256' },
+            base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    }
+
+    // Resolves to the page HTML, or null when the password doesn't open this payload.
     async function decrypt(payload, password) {
         try {
-            var enc = new TextEncoder();
-            var base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-            var key = await crypto.subtle.deriveKey(
-                { name: 'PBKDF2', salt: b64(payload.salt), iterations: payload.iter, hash: 'SHA-256' },
-                base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-            var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(payload.iv) }, key, b64(payload.ct));
-            return new TextDecoder().decode(pt);
+            if (payload.v === 2) {
+                for (var i = 0; i < payload.keys.length; i++) {
+                    var k = payload.keys[i], raw;
+                    try {
+                        raw = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(k.iv) },
+                            await kek(password, b64(k.salt), payload.iter), b64(k.wk));
+                    } catch (e) { continue; }
+                    var key = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['decrypt']);
+                    var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(payload.iv) }, key, b64(payload.ct));
+                    return new TextDecoder().decode(pt);
+                }
+                return null;
+            }
+            // v1: page encrypted directly under one password
+            var key1 = await kek(password, b64(payload.salt), payload.iter);
+            var pt1 = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(payload.iv) }, key1, b64(payload.ct));
+            return new TextDecoder().decode(pt1);
         } catch (e) {
             return null;
         }
@@ -92,12 +111,12 @@
                 return true;
             }
             var manifest = await fetchJSON(BASE + 'manifest.json');
-            var companies = manifest.pages || [];
-            for (var i = 0; i < companies.length; i++) {
-                var ok = await decrypt(await payloadFor(companies[i]), password);
+            var pages = manifest.pages || [];
+            for (var i = 0; i < pages.length; i++) {
+                var ok = await decrypt(await payloadFor(pages[i]), password);
                 if (ok !== null) {
                     try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
-                    window.location.replace(BASE + companies[i] + '/');
+                    window.location.replace(BASE + pages[i] + '/');
                     return true;
                 }
             }
