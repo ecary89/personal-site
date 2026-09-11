@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Erika Cary — Work</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/work/work.css">
+</head>
+<body class="lock-body">
+<!-- The /work gate. One password field; the password decides which page opens.
+     Locked pages live at /work/<page>/ as encrypted payloads (see scripts/lock.js). -->
+
+<p class="lock-status" id="lock-status" hidden>Opening…</p>
+
+<div class="lock" id="lock" hidden>
+    <a class="lock-home" href="/">Erika Cary</a>
+    <p class="lock-eyebrow">Selected work</p>
+    <h1 class="lock-title">This work is shared by invitation.</h1>
+    <form class="lock-form" id="lock-form" autocomplete="off" novalidate>
+        <label class="visually-hidden" for="lock-input">Password</label>
+        <input class="lock-input" id="lock-input" type="password" placeholder="Password" autocomplete="current-password" required>
+        <button class="btn btn-primary" id="lock-submit" type="submit">Open</button>
+    </form>
+    <p class="lock-error" id="lock-error" role="alert" aria-live="polite"></p>
+</div>
+
+<noscript><p class="lock-status">This page needs JavaScript to open.</p></noscript>
+
+<script src="/work/locked.js"></script>
+<script>ECLock.init({ mode: 'gate' });</script>
+</body>
+</html>
