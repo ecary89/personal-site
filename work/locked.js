@@ -223,7 +223,7 @@
         if (copy) {
             copy.addEventListener('click', function () {
                 var email = copy.getAttribute('data-email');
-                var done = function () { copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy'; }, 1800); };
+                var done = function () { copy.classList.add('is-copied'); copy.setAttribute('aria-label', 'Copied'); setTimeout(function () { copy.classList.remove('is-copied'); copy.setAttribute('aria-label', 'Copy email address'); }, 1800); };
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(email).then(done, function () { window.prompt('Copy this address:', email); });
                 } else {
