@@ -873,7 +873,6 @@ img { max-width: 100%; display: block; }
     margin-top: clamp(28px, 4vw, 44px);
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    grid-template-rows: auto auto;
     column-gap: clamp(28px, 5vw, 72px);
     row-gap: 12px;
     align-items: center;
@@ -900,23 +899,10 @@ img { max-width: 100%; display: block; }
 .wk-bonus-quote cite a { border-bottom: 1px solid var(--btn-border); }
 .wk-bonus-quote cite a:hover { color: var(--ink); border-color: var(--ink); }
 
-.wk-bonus-caption {
-    grid-column: 1;
-    grid-row: 2;
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--subtle);
-}
-
 @media (max-width: 860px) {
     .wk-hero--card { padding: 8%; }
     .wk-bonus-media { grid-template-columns: 1fr; grid-template-rows: auto; }
-    .wk-bonus-media iframe, .wk-bonus-quote, .wk-bonus-caption { grid-column: 1; grid-row: auto; }
-    .wk-bonus-quote { margin-top: 16px; }
-}
-
-/* ==========================================================
+    .wk-bonus-media iframe, .wk-bonus-quote, /* ==========================================================
    Page entrance: each block fades in and rises a few pixels, one beat apart
    (runs when the gate paints, and again when a decrypted page is written)
    ========================================================== */
