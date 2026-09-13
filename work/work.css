@@ -344,7 +344,7 @@ img { max-width: 100%; display: block; }
 
 .wk-tile {
     padding-top: 40px;
-    border-top: 1px solid var(--hairline);
+    border-top: 0;
 }
 
 .wk-hero {
@@ -473,7 +473,7 @@ img { max-width: 100%; display: block; }
 .wk-quotes {
     margin-top: clamp(80px, 12vh, 128px);
     padding-top: 40px;
-    border-top: 1px solid var(--hairline);
+    border-top: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 36px;
@@ -520,7 +520,7 @@ img { max-width: 100%; display: block; }
 .site-footer {
     margin-top: clamp(72px, 12vh, 120px);
     padding: 44px 0 0;
-    border-top: 1px solid var(--hairline);
+    border-top: 0;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -696,7 +696,7 @@ img { max-width: 100%; display: block; }
 .cs-section {
     margin-top: clamp(64px, 9vh, 104px);
     padding-top: 32px;
-    border-top: 1px solid var(--hairline);
+    border-top: 0;
 }
 
 .cs-section-title {
@@ -1060,3 +1060,22 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 }
 
 .copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }
+
+/* --- Dividers: a row of soft dots instead of a straight hairline --- */
+.wk-tile, .wk-quotes, .cs-section, .site-footer {
+    border-top: 0;
+    position: relative;
+}
+.wk-tile::before, .wk-quotes::before, .cs-section::before, .site-footer::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background-image: radial-gradient(circle, var(--btn-border) 1.5px, transparent 1.7px);
+    background-size: 12px 3px;
+    background-repeat: repeat-x;
+    background-position: 0 0;
+    pointer-events: none;
+}
