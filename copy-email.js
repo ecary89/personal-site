@@ -4,19 +4,35 @@
     'use strict';
     var EMAIL = 'erika.mi.cary@gmail.com';
 
+    var HOLD = 2500; // how long the "copied" state shows
+    var CHECK = '<svg class="copy-check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+
     function feedback(el) {
+        if (el.dataset.copyHold !== undefined) return; // already showing
+        el.dataset.copyHold = '1';
         var toast = el.parentNode && el.parentNode.querySelector('.copy-toast');
         if (toast) {
+            // The icon button on the gate: icon becomes a check, "Copied" appears beside it
+            el.classList.add('is-copied');
+            el.setAttribute('aria-label', 'Copied');
             toast.classList.add('is-on');
-            setTimeout(function () { toast.classList.remove('is-on'); }, 1800);
+            setTimeout(function () {
+                el.classList.remove('is-copied');
+                el.setAttribute('aria-label', 'Copy email address');
+                toast.classList.remove('is-on');
+                delete el.dataset.copyHold;
+            }, HOLD);
             return;
         }
-        if (el.dataset.copyLabel !== undefined) return;
-        var label = el.textContent;
-        el.dataset.copyLabel = label;
-        el.textContent = 'Copied';
+        // A text link or button: label becomes a check plus "Email copied"
+        var original = el.innerHTML;
+        el.innerHTML = CHECK + ' Email copied';
         el.classList.add('is-copied');
-        setTimeout(function () { el.textContent = label; el.classList.remove('is-copied'); delete el.dataset.copyLabel; }, 1800);
+        setTimeout(function () {
+            el.innerHTML = original;
+            el.classList.remove('is-copied');
+            delete el.dataset.copyHold;
+        }, HOLD);
     }
 
     document.addEventListener('click', function (e) {

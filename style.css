@@ -389,3 +389,5 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
     .reveal { transform: none; transition: opacity 500ms ease; }
 }
+
+.copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }

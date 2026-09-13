@@ -1068,3 +1068,5 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
     .wk-tile.reveal .wk-tile-head, .wk-tile.reveal .wk-facts, .wk-tile.reveal .wk-aside, .wk-tile.reveal .wk-bonus-media { transform: none; }
 }
+
+.copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }
