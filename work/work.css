@@ -201,39 +201,6 @@ img { max-width: 100%; display: block; }
 
 .lock-copy:hover { background: var(--btn-wash); }
 
-.lock-status {
-    margin: auto;
-    font-size: 15px;
-    color: var(--subtle);
-    text-align: center;
-}
-
-/* Loader (reduced-motion fallback): the wordmark with a rose underline */
-.lock-status { display: none; }
-
-.lock-loader {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 8px;
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-}
-
-.lock-loader::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--rose);
-    opacity: 0.6;
-}
-
 /* ==========================================================
    Curtain: a rose panel with a curved top. It rises from the bottom while a page
    is decrypting, then lifts off the top and the page rises in behind it.
@@ -272,18 +239,9 @@ img { max-width: 100%; display: block; }
 @keyframes curtain-drop  { from { transform: translateY(var(--rest)); } to { transform: translateY(100%); } }
 @keyframes curtain-leave { from { transform: translateY(var(--rest)); } to { transform: translateY(-112%); } }
 
+/* Reduced motion: no curtain; the form simply fades and the page appears */
 @media (prefers-reduced-motion: reduce) {
     .lock-curtain { display: none !important; }
-    .lock-status:not([hidden]) {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        inset: 0;
-        background: var(--paper);
-        z-index: 50;
-    }
 }
 
 /* ==========================================================
