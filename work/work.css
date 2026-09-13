@@ -188,11 +188,12 @@ img { max-width: 100%; display: block; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     flex: none;
-    width: 28px;
+    min-width: 28px;
     height: 28px;
     margin: 0;
-    padding: 0;
+    padding: 0 5px;
     border-radius: 999px;
     border: 1px solid var(--btn-border);
     background: transparent;
@@ -214,6 +215,9 @@ img { max-width: 100%; display: block; }
 .lock-copy.is-copied { color: var(--rose); border-color: var(--rose); }
 .lock-copy.is-copied .lock-copy-icon { display: none; }
 .lock-copy.is-copied .lock-copy-check { display: block; }
+.lock-copy .copy-toast { display: none; }
+.lock-copy.is-copied { padding: 0 10px 0 7px; }
+.lock-copy.is-copied .copy-toast { display: inline; opacity: 1; transform: none; font-size: 13px; line-height: 1; }
 
 /* ==========================================================
    Curtain: a rose panel with a curved top. It rises from the bottom while a page

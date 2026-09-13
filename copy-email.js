@@ -10,7 +10,7 @@
     function feedback(el) {
         if (el.dataset.copyHold !== undefined) return; // already showing
         el.dataset.copyHold = '1';
-        var toast = el.parentNode && el.parentNode.querySelector('.copy-toast');
+        var toast = el.querySelector('.copy-toast') || (el.parentNode && el.parentNode.querySelector('.copy-toast'));
         if (toast) {
             // The icon button on the gate: icon becomes a check, "Copied" appears beside it
             el.classList.add('is-copied');
