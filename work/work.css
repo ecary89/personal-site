@@ -726,6 +726,12 @@ img { max-width: 100%; display: block; }
     .wk-hero--compare figure { width: 36%; }
 }
 
-/* Dates folded into the role line */
-.wk-when { color: var(--subtle); }
-.wk-when::after { content: " ·"; }
+/* Project + dates line under the tile title, role on the line after */
+.wk-tile-title + .wk-meta {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--muted);
+}
+
+.wk-meta + .wk-role { margin-top: 2px; }
