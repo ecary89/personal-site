@@ -234,9 +234,9 @@ img { max-width: 100%; display: block; }
     text-wrap: pretty;
 }
 
-.wk-lede em {
-    font-style: italic;
-    color: var(--rose);
+.wk-lede strong {
+    font-weight: 600;
+    color: var(--ink);
 }
 
 /* --- Project tiles --- */
