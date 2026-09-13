@@ -725,3 +725,7 @@ img { max-width: 100%; display: block; }
     .wk-hero--compare { padding: 6% 6% 0; gap: 5%; }
     .wk-hero--compare figure { width: 36%; }
 }
+
+/* Dates folded into the role line */
+.wk-when { color: var(--subtle); }
+.wk-when::after { content: " ·"; }
