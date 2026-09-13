@@ -75,7 +75,7 @@
     // The decrypted page is written with the curtain already covering it, so the
     // curtain can lift off the top and the page rises in behind it.
     var CURTAIN = '<style>html{background:#F9F4F6}.lock-curtain{position:fixed;left:-6vw;right:-6vw;top:0;height:112vh;z-index:50;' +
-        'background:#B4547E;border-radius:50% 50% 0 0/9vh 9vh 0 0;pointer-events:none}</style>' +
+        'background:#B4547E;border-radius:50% 50% 0 0/9vh 9vh 0 0;transform:translateY(62%);pointer-events:none}</style>' +
         '<div class="lock-curtain lock-curtain--leave" aria-hidden="true"></div>' +
         '<script>(function(c){function done(){if(c.parentNode)c.parentNode.removeChild(c);}' +
         'c.addEventListener("animationend",done);setTimeout(done,1400);})(document.currentScript.previousElementSibling)<\/script>';
@@ -118,7 +118,7 @@
                 curtainUp = new Promise(function (resolve) {
                     var done = function () { curtain.removeEventListener('animationend', done); resolve(); };
                     curtain.addEventListener('animationend', done);
-                    setTimeout(done, 1100);
+                    setTimeout(done, 1000);
                 });
             } else {
                 curtainUp = Promise.resolve();

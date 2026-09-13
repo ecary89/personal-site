@@ -232,6 +232,7 @@ img { max-width: 100%; display: block; }
    On a wrong password it drops back down to reveal the form.
    ========================================================== */
 .lock-curtain {
+    --rest: 62%;                /* where the curtain settles while loading: its top sits about a third up the page */
     position: fixed;
     left: -6vw;
     right: -6vw;
@@ -247,19 +248,21 @@ img { max-width: 100%; display: block; }
 
 .lock-curtain[hidden] { display: none; }
 
-.lock-curtain.is-rising   { animation: curtain-rise 950ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-.lock-curtain.is-covering { transform: translateY(0); }
-.lock-curtain.is-dropping { transform: translateY(0); animation: curtain-drop 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+/* Typed password: rise gently from the bottom and settle at the rest point */
+.lock-curtain.is-rising   { animation: curtain-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.lock-curtain.is-covering { transform: translateY(var(--rest)); }
+/* Wrong password: drop back down */
+.lock-curtain.is-dropping { transform: translateY(var(--rest)); animation: curtain-drop 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-/* On the decrypted page: start covering, then leave through the top */
+/* On the decrypted page: start at the rest point, then sweep up and off the top in one motion */
 .lock-curtain--leave {
-    transform: translateY(0);
-    animation: curtain-leave 620ms cubic-bezier(0.7, 0, 0.2, 1) 80ms forwards;
+    transform: translateY(var(--rest));
+    animation: curtain-leave 900ms cubic-bezier(0.65, 0, 0.2, 1) 60ms forwards;
 }
 
-@keyframes curtain-rise  { from { transform: translateY(100%); }  to { transform: translateY(0); } }
-@keyframes curtain-drop  { from { transform: translateY(0); }     to { transform: translateY(100%); } }
-@keyframes curtain-leave { from { transform: translateY(0); }     to { transform: translateY(-112%); } }
+@keyframes curtain-rise  { from { transform: translateY(100%); }        to { transform: translateY(var(--rest)); } }
+@keyframes curtain-drop  { from { transform: translateY(var(--rest)); } to { transform: translateY(100%); } }
+@keyframes curtain-leave { from { transform: translateY(var(--rest)); } to { transform: translateY(-112%); } }
 
 @media (prefers-reduced-motion: reduce) {
     .lock-curtain { display: none !important; }
@@ -948,14 +951,14 @@ img { max-width: 100%; display: block; }
     to   { opacity: 1; transform: none; }
 }
 
-.has-curtain .wk > * { animation: rise-far 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.has-curtain .wk > :nth-child(1) { animation-delay: 180ms; }
-.has-curtain .wk > :nth-child(2) { animation-delay: 240ms; }
-.has-curtain .wk > :nth-child(3) { animation-delay: 300ms; }
-.has-curtain .wk > :nth-child(4) { animation-delay: 360ms; }
-.has-curtain .wk > :nth-child(5) { animation-delay: 420ms; }
-.has-curtain .wk > :nth-child(6) { animation-delay: 480ms; }
-.has-curtain .wk > :nth-child(n + 7) { animation-delay: 540ms; }
+.has-curtain .wk > * { animation: rise-far 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.has-curtain .wk > :nth-child(1) { animation-delay: 380ms; }
+.has-curtain .wk > :nth-child(2) { animation-delay: 440ms; }
+.has-curtain .wk > :nth-child(3) { animation-delay: 500ms; }
+.has-curtain .wk > :nth-child(4) { animation-delay: 560ms; }
+.has-curtain .wk > :nth-child(5) { animation-delay: 620ms; }
+.has-curtain .wk > :nth-child(6) { animation-delay: 680ms; }
+.has-curtain .wk > :nth-child(n + 7) { animation-delay: 740ms; }
 
 @media (prefers-reduced-motion: reduce) {
     .lock, .wk > *, .has-curtain .wk > * { animation-name: fade-only; }
