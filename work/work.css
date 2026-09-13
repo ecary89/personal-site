@@ -94,6 +94,16 @@ img { max-width: 100%; display: block; }
     width: 100%;
     max-width: 560px;
     padding: 48px var(--pad-x);
+    transform-origin: 50% 60%;
+    transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+    /* the entrance animation must not keep a fill, or the recede transition below can't take over */
+    animation-fill-mode: backwards;
+}
+
+/* While the curtain rises, the form fades and settles back, as if making room for it */
+.lock.is-receding {
+    opacity: 0;
+    transform: scale(0.92) translateY(-10px);
 }
 
 .lock-home {

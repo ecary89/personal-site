@@ -128,6 +128,7 @@
         function showForm(message) {
             status.hidden = true;
             lock.hidden = false;
+            lock.classList.remove('is-receding');
             submit.disabled = false;
             submit.textContent = 'Open';
             error.textContent = message || '';
@@ -143,6 +144,7 @@
             submit.textContent = 'Opening…';
             error.textContent = '';
             status.hidden = false;
+            lock.classList.add('is-receding');
             curtainSet('is-rising');
         }
 
