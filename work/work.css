@@ -735,3 +735,101 @@ img { max-width: 100%; display: block; }
 }
 
 .wk-meta + .wk-role { margin-top: 2px; }
+
+/* ==========================================================
+   Bonus section (Polyvore): copy, embedded videos, and a strip of voices
+   ========================================================== */
+.wk-bonus {
+    margin-top: clamp(80px, 12vh, 128px);
+    padding-top: 40px;
+    border-top: 1px solid var(--hairline);
+}
+
+.wk-bonus-head {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+}
+
+.wk-bonus-head .wk-eyebrow { margin-bottom: 14px; }
+
+.wk-bonus-copy {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.wk-bonus-copy + .wk-bonus-copy { margin-top: 14px; }
+.wk-bonus-copy strong { font-weight: 600; color: var(--ink); }
+
+.wk-videos {
+    margin-top: clamp(32px, 4vw, 48px);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.wk-video {
+    margin: 0;
+}
+
+.wk-video iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    border-radius: 14px;
+    background: var(--btn-wash);
+}
+
+.wk-video figcaption {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--subtle);
+}
+
+.wk-voices {
+    margin: clamp(28px, 4vw, 40px) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.wk-voice {
+    padding: 22px 24px;
+    border-radius: 14px;
+    background: var(--btn-wash);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wk-voice p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+}
+
+.wk-voice cite {
+    font-style: normal;
+    font-size: 13px;
+    color: var(--subtle);
+}
+
+.wk-voice cite a { border-bottom: 1px solid var(--btn-border); }
+.wk-voice cite a:hover { color: var(--ink); border-color: var(--ink); }
+
+@media (max-width: 860px) {
+    .wk-bonus-head { grid-template-columns: 1fr; }
+    .wk-videos, .wk-voices { grid-template-columns: 1fr; }
+}
