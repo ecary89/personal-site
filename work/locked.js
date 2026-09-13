@@ -115,6 +115,7 @@
         var nodes = doc.body.childNodes;
         for (var n = 0; n < nodes.length; n++) body.appendChild(importNode(nodes[n]));
         window.scrollTo(0, 0);
+        if (window.ECCursor) window.ECCursor.mount();
 
         if (curtain) {
             curtain.hidden = false;

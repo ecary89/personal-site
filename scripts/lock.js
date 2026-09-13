@@ -194,6 +194,7 @@ function shellHtml(page) {
 
 <noscript><p class="lock-status">This page needs JavaScript to open.</p></noscript>
 
+<script src="/cursor.js"></script>
 <script src="/work/locked.js"></script>
 <script>ECLock.init({ mode: 'page' });</script>
 </body>
