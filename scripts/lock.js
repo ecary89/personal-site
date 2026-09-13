@@ -183,14 +183,16 @@ function shellHtml(page) {
 
 <div class="lock" id="lock" hidden>
     <a class="lock-home" href="/">Erika Cary</a>
-    <p class="lock-eyebrow">Selected work</p>
-    <h1 class="lock-title">This work is shared by invitation.</h1>
+    <h1 class="lock-title">Reach out to me to view selected work.</h1>
     <form class="lock-form" id="lock-form" autocomplete="off" novalidate>
         <label class="visually-hidden" for="lock-input">Password</label>
-        <input class="lock-input" id="lock-input" type="password" placeholder="Password" autocomplete="current-password" required>
+        <input class="lock-input" id="lock-input" type="password" placeholder="Password" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other" required>
         <button class="btn btn-primary" id="lock-submit" type="submit">Open</button>
     </form>
     <p class="lock-error" id="lock-error" role="alert" aria-live="polite"></p>
+    <p class="lock-contact">Need a password? Email <a href="mailto:erika.mi.cary@gmail.com">erika.mi.cary@gmail.com</a>
+        <button class="lock-copy" id="lock-copy" type="button" data-email="erika.mi.cary@gmail.com" aria-label="Copy email address">Copy</button>
+    </p>
 </div>
 
 <noscript><p class="lock-status">This page needs JavaScript to open.</p></noscript>

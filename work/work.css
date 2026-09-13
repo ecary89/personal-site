@@ -113,7 +113,7 @@ img { max-width: 100%; display: block; }
 }
 
 .lock-title {
-    margin: 0;
+    margin: 48px 0 0;
     font-family: var(--font-display);
     font-size: clamp(30px, 4.4vw, 42px);
     font-weight: 800;
@@ -160,6 +160,38 @@ img { max-width: 100%; display: block; }
     line-height: 1.5;
     color: var(--rose);
 }
+
+.lock-contact {
+    margin: 28px 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--subtle);
+}
+
+.lock-contact a {
+    color: var(--ink);
+    border-bottom: 1px solid var(--btn-border);
+    transition: border-color 200ms ease;
+}
+
+.lock-contact a:hover { border-color: var(--ink); }
+
+.lock-copy {
+    margin-left: 8px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--btn-border);
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 200ms ease;
+    vertical-align: 1px;
+}
+
+.lock-copy:hover { background: var(--btn-wash); }
 
 .lock-status {
     margin: auto;

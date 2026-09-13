@@ -167,6 +167,20 @@
             return false;
         }
 
+        // Copy the email address (the mailto link stays for people who prefer it)
+        var copy = document.getElementById('lock-copy');
+        if (copy) {
+            copy.addEventListener('click', function () {
+                var email = copy.getAttribute('data-email');
+                var done = function () { copy.textContent = 'Copied'; setTimeout(function () { copy.textContent = 'Copy'; }, 1800); };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(email).then(done, function () { window.prompt('Copy this address:', email); });
+                } else {
+                    window.prompt('Copy this address:', email);
+                }
+            });
+        }
+
         if (!(window.crypto && crypto.subtle)) {
             showForm('This page needs a secure (https) connection to open.');
             submit.disabled = true;
