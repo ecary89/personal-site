@@ -160,6 +160,17 @@
             }
         }
 
+        // Sweep from the rest point to full cover; resolves when the screen is covered.
+        function curtainCover() {
+            if (!curtain || curtain.hidden) return Promise.resolve();
+            return new Promise(function (resolve) {
+                var done = function () { curtain.removeEventListener('animationend', done); resolve(); };
+                curtain.addEventListener('animationend', done);
+                setTimeout(done, 520);
+                curtain.className = 'lock-curtain is-covering-up';
+            });
+        }
+
         function showForm(message) {
             status.hidden = true;
             lock.hidden = false;
@@ -199,6 +210,7 @@
                 if (html === null) return false;
                 try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
                 await curtainUp;
+                await curtainCover();
                 render(html, curtain);
                 return true;
             }
@@ -212,6 +224,7 @@
                     // so the curtain stays on screen and nothing flashes.
                     try { window.history.replaceState(null, '', BASE + pages[i] + '/'); } catch (e) {}
                     await curtainUp;
+                    await curtainCover();
                     render(html2, curtain);
                     return true;
                 }

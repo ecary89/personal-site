@@ -247,15 +247,19 @@ img { max-width: 100%; display: block; }
 /* Wrong password: drop back down */
 .lock-curtain.is-dropping { transform: translateY(var(--rest)); animation: curtain-drop 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-/* On the decrypted page: start at the rest point, then sweep up and off the top in one motion */
+/* Page ready: sweep up from the rest point to cover everything (the page is swapped in behind it) */
+.lock-curtain.is-covering-up { transform: translateY(var(--rest)); animation: curtain-cover 420ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+
+/* Then lift off the top, revealing the new page from the trailing edge */
 .lock-curtain--leave {
-    transform: translateY(var(--rest));
-    animation: curtain-leave 900ms cubic-bezier(0.65, 0, 0.2, 1) 60ms forwards;
+    transform: translateY(0);
+    animation: curtain-leave 680ms cubic-bezier(0.7, 0, 0.2, 1) 80ms forwards;
 }
 
 @keyframes curtain-rise  { from { transform: translateY(100%); }        to { transform: translateY(var(--rest)); } }
 @keyframes curtain-drop  { from { transform: translateY(var(--rest)); } to { transform: translateY(100%); } }
-@keyframes curtain-leave { from { transform: translateY(var(--rest)); } to { transform: translateY(-112%); } }
+@keyframes curtain-cover { from { transform: translateY(var(--rest)); } to { transform: translateY(0); } }
+@keyframes curtain-leave { from { transform: translateY(0); }           to { transform: translateY(-112%); } }
 
 /* Reduced motion: no curtain; the form simply fades and the page appears */
 @media (prefers-reduced-motion: reduce) {
@@ -935,14 +939,14 @@ img { max-width: 100%; display: block; }
     to   { opacity: 1; transform: none; }
 }
 
-.has-curtain .wk > * { animation: rise-far 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.has-curtain .wk > :nth-child(1) { animation-delay: 380ms; }
-.has-curtain .wk > :nth-child(2) { animation-delay: 440ms; }
-.has-curtain .wk > :nth-child(3) { animation-delay: 500ms; }
-.has-curtain .wk > :nth-child(4) { animation-delay: 560ms; }
-.has-curtain .wk > :nth-child(5) { animation-delay: 620ms; }
-.has-curtain .wk > :nth-child(6) { animation-delay: 680ms; }
-.has-curtain .wk > :nth-child(n + 7) { animation-delay: 740ms; }
+.has-curtain .wk > * { animation: rise-far 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.has-curtain .wk > :nth-child(1) { animation-delay: 260ms; }
+.has-curtain .wk > :nth-child(2) { animation-delay: 320ms; }
+.has-curtain .wk > :nth-child(3) { animation-delay: 380ms; }
+.has-curtain .wk > :nth-child(4) { animation-delay: 440ms; }
+.has-curtain .wk > :nth-child(5) { animation-delay: 500ms; }
+.has-curtain .wk > :nth-child(6) { animation-delay: 560ms; }
+.has-curtain .wk > :nth-child(n + 7) { animation-delay: 620ms; }
 
 @media (prefers-reduced-motion: reduce) {
     .lock, .wk > *, .has-curtain .wk > * { animation-name: fade-only; }
