@@ -685,3 +685,43 @@ img { max-width: 100%; display: block; }
     .cs-two { grid-template-columns: 1fr; }
     .cs-scroll { max-height: 480px; }
 }
+
+/* Two phones side by side with Before / After labels, rising from the bottom edge */
+.wk-hero--compare {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6%;
+    padding: 5% 10% 0;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.wk-hero--compare figure {
+    margin: 0;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.wk-hero--compare figcaption {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rose);
+}
+
+.wk-hero--compare img {
+    width: 100%;
+    height: auto;
+    object-fit: unset;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.22);
+}
+
+@media (max-width: 860px) {
+    .wk-hero--compare { padding: 6% 6% 0; gap: 5%; }
+    .wk-hero--compare figure { width: 36%; }
+}
