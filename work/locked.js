@@ -60,9 +60,21 @@
         return res.json();
     }
 
+    // The decrypted page is written with the curtain already covering it, so the
+    // curtain can lift off the top and the page rises in behind it.
+    var CURTAIN = '<div class="lock-curtain lock-curtain--leave" aria-hidden="true"></div>' +
+        '<script>(function(c){function done(){if(c.parentNode)c.parentNode.removeChild(c);}' +
+        'c.addEventListener("animationend",done);setTimeout(done,1400);})(document.currentScript.previousElementSibling)<\/script>';
+
     function render(html) {
+        var out = html.replace(/<body([^>]*)>/i, function (m, attrs) {
+            var a = /class="([^"]*)"/i.test(attrs)
+                ? attrs.replace(/class="([^"]*)"/i, 'class="$1 has-curtain"')
+                : attrs + ' class="has-curtain"';
+            return '<body' + a + '>' + CURTAIN;
+        });
         document.open();
-        document.write(html);
+        document.write(out);
         document.close();
     }
 
@@ -74,7 +86,17 @@
         var input = document.getElementById('lock-input');
         var submit = document.getElementById('lock-submit');
         var error = document.getElementById('lock-error');
+        var curtain = document.getElementById('lock-curtain');
         var payloads = {};
+        var dropTimer = null;
+
+        function curtainSet(state) {
+            if (!curtain) return;
+            clearTimeout(dropTimer);
+            curtain.className = 'lock-curtain' + (state ? ' ' + state : '');
+            curtain.hidden = !state;
+            if (state === 'is-dropping') dropTimer = setTimeout(function () { curtainSet(''); }, 700);
+        }
 
         function showForm(message) {
             status.hidden = true;
@@ -83,14 +105,18 @@
             submit.textContent = 'Open';
             error.textContent = message || '';
             if (message) { input.value = ''; }
+            // A wrong password: the curtain drops back down to reveal the form again.
+            if (curtain && !curtain.hidden) curtainSet('is-dropping'); else curtainSet('');
             input.focus();
         }
 
+        // Typed password: the curtain rises over the form while we try it.
         function busy() {
             submit.disabled = true;
+            submit.textContent = 'Opening…';
             error.textContent = '';
-            lock.hidden = true;
             status.hidden = false;
+            curtainSet('is-rising');
         }
 
         // Everything is addressed from /work/ so the pages work with or without a trailing slash.
@@ -153,6 +179,7 @@
         try { saved = sessionStorage.getItem(PW_KEY); } catch (e) {}
         if (saved) {
             status.hidden = false;
+            curtainSet('is-covering');
             tryPassword(saved).then(function (ok) { if (!ok) showForm(); }, function () { showForm(); });
         } else {
             showForm();
