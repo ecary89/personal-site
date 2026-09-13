@@ -311,6 +311,12 @@ a {
 .content > :nth-child(3) { animation-delay: 300ms; }
 .content > :nth-child(n + 4) { animation-delay: 380ms; }
 
+/* Reduced motion: keep the fade, drop the movement */
+@keyframes fade-only {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .nav-row, .hero-wrap, .content > * { animation: none; }
+    .nav-row, .hero-wrap, .content > * { animation-name: fade-only; }
 }
