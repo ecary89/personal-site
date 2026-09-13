@@ -104,12 +104,25 @@
         var payloads = {};
         var dropTimer = null;
 
+        var curtainUp = Promise.resolve();
+
         function curtainSet(state) {
             if (!curtain) return;
             clearTimeout(dropTimer);
             curtain.className = 'lock-curtain' + (state ? ' ' + state : '');
             curtain.hidden = !state;
             if (state === 'is-dropping') dropTimer = setTimeout(function () { curtainSet(''); }, 700);
+            // Resolves once the curtain has finished rising (or right away if it isn't animating),
+            // so the page is never written under a curtain that is still on its way up.
+            if (state === 'is-rising') {
+                curtainUp = new Promise(function (resolve) {
+                    var done = function () { curtain.removeEventListener('animationend', done); resolve(); };
+                    curtain.addEventListener('animationend', done);
+                    setTimeout(done, 1100);
+                });
+            } else {
+                curtainUp = Promise.resolve();
+            }
         }
 
         function showForm(message) {
@@ -148,6 +161,7 @@
                 var html = await decrypt(await payloadFor('.'), password);
                 if (html === null) return false;
                 try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
+                await curtainUp;
                 render(html);
                 return true;
             }
@@ -160,6 +174,7 @@
                     // Open the page right here and just update the address bar: no reload,
                     // so the curtain stays on screen and nothing flashes.
                     try { window.history.replaceState(null, '', BASE + pages[i] + '/'); } catch (e) {}
+                    await curtainUp;
                     render(html2);
                     return true;
                 }
@@ -212,7 +227,7 @@
         if (DEV) saved = null;
         if (saved) {
             status.hidden = false;
-            curtainSet('is-covering');
+            curtainSet('is-rising');
             tryPassword(saved).then(function (ok) { if (!ok) showForm(); }, function () { showForm(); });
         } else {
             showForm();
