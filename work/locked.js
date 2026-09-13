@@ -88,8 +88,9 @@
 
         function busy() {
             submit.disabled = true;
-            submit.textContent = 'Opening…';
             error.textContent = '';
+            lock.hidden = true;
+            status.hidden = false;
         }
 
         // Everything is addressed from /work/ so the pages work with or without a trailing slash.

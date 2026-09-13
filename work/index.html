@@ -14,7 +14,10 @@
 <!-- The /work gate. One password field; the password decides which page opens.
      Locked pages live at /work/<page>/ as encrypted payloads (see scripts/lock.js). -->
 
-<p class="lock-status" id="lock-status" hidden>Opening…</p>
+<div class="lock-status" id="lock-status" hidden role="status" aria-live="polite">
+    <span class="lock-loader" aria-hidden="true">Erika Cary</span>
+    <span class="visually-hidden">Opening…</span>
+</div>
 
 <div class="lock" id="lock" hidden>
     <a class="lock-home" href="/">Erika Cary</a>

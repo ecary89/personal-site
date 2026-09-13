@@ -165,6 +165,44 @@ img { max-width: 100%; display: block; }
     margin: auto;
     font-size: 15px;
     color: var(--subtle);
+    text-align: center;
+}
+
+/* Loader: the wordmark with a rose underline that sweeps across and back */
+.lock-loader {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 8px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+}
+
+.lock-loader::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--rose);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: lock-sweep 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes lock-sweep {
+    0%   { transform: scaleX(0); transform-origin: left; }
+    45%  { transform: scaleX(1); transform-origin: left; }
+    55%  { transform: scaleX(1); transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lock-loader::after { animation: none; transform: scaleX(1); opacity: 0.6; }
 }
 
 /* ==========================================================
