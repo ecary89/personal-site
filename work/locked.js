@@ -16,6 +16,18 @@
 
     var PW_KEY = 'ec_work_pw';
 
+    // Local testing only (npx serve): always show the form, and an empty Open uses the
+    // shopping password from work/_src/passwords.json, which only exists on Erika's laptop.
+    var DEV = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+    var DEV_ENTRY = 'shopping';
+
+    async function devPassword() {
+        try {
+            var cfg = await (await fetch('/work/_src/passwords.json', { cache: 'no-store' })).json();
+            return (cfg.passwords || cfg)[DEV_ENTRY] || '';
+        } catch (e) { return ''; }
+    }
+
     function b64(s) {
         var bin = atob(s), out = new Uint8Array(bin.length);
         for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -164,6 +176,7 @@
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             var password = input.value.trim();
+            if (!password && DEV) password = await devPassword();
             if (!password) { input.focus(); return; }
             busy();
             try {
@@ -182,6 +195,7 @@
         // Remembered password from earlier in this tab? Try it quietly first.
         var saved = null;
         try { saved = sessionStorage.getItem(PW_KEY); } catch (e) {}
+        if (DEV) saved = null;
         if (saved) {
             status.hidden = false;
             curtainSet('is-covering');
