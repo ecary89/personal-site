@@ -364,3 +364,28 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
     transition: background 200ms ease, color 200ms ease;
 }
 .nav a:hover { background: var(--btn-wash); color: var(--ink); }
+
+/* --- Scroll reveal (reveal.js adds .reveal below the fold, then .is-in when it scrolls into view) --- */
+.reveal {
+    animation: none !important;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+/* --- Copied feedback --- */
+.is-copied { color: var(--rose) !important; }
+.copy-toast {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--rose);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 200ms ease, transform 200ms ease;
+}
+.copy-toast.is-on { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal { transform: none; transition: opacity 500ms ease; }
+}

@@ -116,6 +116,7 @@
         for (var n = 0; n < nodes.length; n++) body.appendChild(importNode(nodes[n]));
         window.scrollTo(0, 0);
         if (window.ECCursor) window.ECCursor.mount();
+        if (window.ECReveal) window.ECReveal.init();
 
         if (curtain) {
             curtain.hidden = false;
@@ -216,20 +217,6 @@
                 }
             }
             return false;
-        }
-
-        // Copy the email address (the mailto link stays for people who prefer it)
-        var copy = document.getElementById('lock-copy');
-        if (copy) {
-            copy.addEventListener('click', function () {
-                var email = copy.getAttribute('data-email');
-                var done = function () { copy.classList.add('is-copied'); copy.setAttribute('aria-label', 'Copied'); setTimeout(function () { copy.classList.remove('is-copied'); copy.setAttribute('aria-label', 'Copy email address'); }, 1800); };
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(email).then(done, function () { window.prompt('Copy this address:', email); });
-                } else {
-                    window.prompt('Copy this address:', email);
-                }
-            });
         }
 
         if (!(window.crypto && crypto.subtle)) {
