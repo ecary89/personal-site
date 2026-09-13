@@ -16,19 +16,25 @@ const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const ASSETS = ['style.css', 'site.js', 'analytics.js', 'cursor.js', 'reveal.js', 'copy-email.js', 'work/work.css', 'work/locked.js'];
-const PAGES = ['index.html', 'work/index.html', 'scripts/lock.js']
-    .concat(glob('work/*/index.html'))
-    .concat(glob('work/_src/*/index.html'));
-
-function glob(pattern) {
-    const [dir, , name] = pattern.split('/');
-    const base = path.join(ROOT, dir);
-    if (!fs.existsSync(base)) return [];
-    return fs.readdirSync(base)
-        .filter(d => !d.startsWith('_') || dir === 'work' && d === '_src' ? false : true)
-        .map(d => path.join(dir, d, name))
-        .filter(p => fs.existsSync(path.join(ROOT, p)));
+function listPages() {
+    const pages = ['index.html', 'work/index.html', 'scripts/lock.js'];
+    const work = path.join(ROOT, 'work');
+    for (const d of fs.readdirSync(work)) {
+        if (d === '_src') continue;
+        const f = path.join('work', d, 'index.html');
+        if (fs.existsSync(path.join(ROOT, f))) pages.push(f);
+    }
+    const src = path.join(work, '_src');
+    if (fs.existsSync(src)) {
+        for (const d of fs.readdirSync(src)) {
+            if (d.startsWith('_')) continue; // _archive
+            const f = path.join('work', '_src', d, 'index.html');
+            if (fs.existsSync(path.join(ROOT, f))) pages.push(f);
+        }
+    }
+    return pages;
 }
+const PAGES = listPages();
 
 const versions = {};
 for (const a of ASSETS) {
