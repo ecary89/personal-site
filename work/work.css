@@ -637,7 +637,8 @@ img { max-width: 100%; display: block; }
     display: block;
     height: 88%;
     width: auto;
-    border-radius: 22px;
+    /* the recording has the phone's own black corners; round in proportion so they never peek out */
+    border-radius: 11.5% / 5.3%;
     background: #fff;
     box-shadow: 0 18px 48px rgba(43, 33, 48, 0.22);
 }
