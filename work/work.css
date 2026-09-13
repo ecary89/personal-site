@@ -861,6 +861,8 @@ img { max-width: 100%; display: block; }
    ========================================================== */
 .wk-bonus { margin-top: clamp(64px, 9vh, 112px); }
 
+.wk-tile-eyebrow { margin: 0 0 20px; }
+
 /* A finished graphic shown as a card on the wash, not stretched to fill */
 .wk-hero--card {
     display: flex;
