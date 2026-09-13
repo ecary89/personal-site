@@ -188,9 +188,10 @@ img { max-width: 100%; display: block; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: none;
     width: 28px;
     height: 28px;
-    margin-left: 6px;
+    margin: 0;
     padding: 0;
     border-radius: 999px;
     border: 1px solid var(--btn-border);
@@ -198,7 +199,13 @@ img { max-width: 100%; display: block; }
     color: var(--ink);
     cursor: pointer;
     transition: background 200ms ease, color 200ms ease;
-    vertical-align: -8px;
+}
+
+.lock-contact-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
 }
 
 .lock-copy:hover { background: var(--btn-wash); }
