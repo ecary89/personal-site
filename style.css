@@ -84,7 +84,7 @@ a {
     background: rgba(249, 244, 246, 0.94);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--hairline);
+    border-bottom: 0;
     padding: 14px var(--pad-x);
     opacity: 0;
     transform: translateY(-10px);
@@ -411,4 +411,18 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
         background-repeat: repeat-x;
         pointer-events: none;
     }
+}
+
+/* The sticky header bar's edge: the same fine row of dots, at every width */
+.header-bar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background-image: radial-gradient(circle, var(--btn-border) 1px, transparent 1.2px);
+    background-size: 9px 2px;
+    background-repeat: repeat-x;
+    pointer-events: none;
 }
