@@ -2,7 +2,7 @@
 //
 // Two modes, picked by ECLock.init({ mode }):
 //   'gate'  (/work/)            tries the password against every entry page in manifest.json
-//                               and redirects to the one that unlocks.
+//                               and opens the one that unlocks in place (the address bar is updated).
 //   'page'  (/work/<page>/)     fetches ./locked.json, decrypts it, and replaces the document.
 //
 // Payloads are made by scripts/lock.js. v2: the page is encrypted with a random content
@@ -62,12 +62,14 @@
 
     // The decrypted page is written with the curtain already covering it, so the
     // curtain can lift off the top and the page rises in behind it.
-    var CURTAIN = '<div class="lock-curtain lock-curtain--leave" aria-hidden="true"></div>' +
+    var CURTAIN = '<style>html{background:#F9F4F6}.lock-curtain{position:fixed;left:-6vw;right:-6vw;top:0;height:112vh;z-index:50;' +
+        'background:#B4547E;border-radius:50% 50% 0 0/9vh 9vh 0 0;pointer-events:none}</style>' +
+        '<div class="lock-curtain lock-curtain--leave" aria-hidden="true"></div>' +
         '<script>(function(c){function done(){if(c.parentNode)c.parentNode.removeChild(c);}' +
         'c.addEventListener("animationend",done);setTimeout(done,1400);})(document.currentScript.previousElementSibling)<\/script>';
 
     function render(html) {
-        var out = html.replace(/<body([^>]*)>/i, function (m, attrs) {
+        var out = html.replace(/<html(?![^>]*style=)/i, '<html style="background:#F9F4F6"').replace(/<body([^>]*)>/i, function (m, attrs) {
             var a = /class="([^"]*)"/i.test(attrs)
                 ? attrs.replace(/class="([^"]*)"/i, 'class="$1 has-curtain"')
                 : attrs + ' class="has-curtain"';
@@ -140,10 +142,13 @@
             var manifest = await fetchJSON(BASE + 'manifest.json');
             var pages = manifest.pages || [];
             for (var i = 0; i < pages.length; i++) {
-                var ok = await decrypt(await payloadFor(pages[i]), password);
-                if (ok !== null) {
+                var html2 = await decrypt(await payloadFor(pages[i]), password);
+                if (html2 !== null) {
                     try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
-                    window.location.replace(BASE + pages[i] + '/');
+                    // Open the page right here and just update the address bar: no reload,
+                    // so the curtain stays on screen and nothing flashes.
+                    try { window.history.replaceState(null, '', BASE + pages[i] + '/'); } catch (e) {}
+                    render(html2);
                     return true;
                 }
             }
