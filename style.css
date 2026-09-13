@@ -392,21 +392,23 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 
 .copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }
 
-/* --- Dividers: a row of soft dots instead of a straight hairline --- */
+/* --- Divider above the footer: none on wide screens; a fine row of dots where content stacks --- */
 .site-footer {
     border-top: 0;
     position: relative;
 }
-.site-footer::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 3px;
-    background-image: radial-gradient(circle, var(--btn-border) 1.5px, transparent 1.7px);
-    background-size: 12px 3px;
-    background-repeat: repeat-x;
-    background-position: 0 0;
-    pointer-events: none;
+
+@media (max-width: 860px) {
+    .site-footer::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 2px;
+        background-image: radial-gradient(circle, var(--btn-border) 1px, transparent 1.2px);
+        background-size: 9px 2px;
+        background-repeat: repeat-x;
+        pointer-events: none;
+    }
 }
