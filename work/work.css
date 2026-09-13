@@ -589,13 +589,13 @@ img { max-width: 100%; display: block; }
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 4%;
-    padding: 5% 7%;
+    gap: 3.5%;
+    padding: 4% 6%;
     background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
 }
 
 .wk-hero--screens img {
-    width: 26%;
+    width: 24.5%;
     height: auto;
     object-fit: unset;
     border-radius: 16px;
@@ -799,8 +799,8 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 860px) {
     .wk-more { grid-column: auto; }
-    .wk-hero--screens { padding: 6% 4%; gap: 3%; }
-    .wk-hero--screens img { width: 29%; }
+    .wk-hero--screens { padding: 5% 4%; gap: 3%; }
+    .wk-hero--screens img { width: 28%; }
     .cs-two { grid-template-columns: 1fr; }
     .cs-scroll { max-height: 480px; }
 }
