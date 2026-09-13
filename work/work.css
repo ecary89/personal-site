@@ -737,47 +737,42 @@ img { max-width: 100%; display: block; }
 .wk-meta + .wk-role { margin-top: 2px; }
 
 /* ==========================================================
-   Bonus section (Polyvore): copy, embedded videos, and a strip of voices
+   Bonus tile (Polyvore): same hierarchy as the project tiles,
+   plus one embedded video and one quote underneath
    ========================================================== */
-.wk-bonus {
-    margin-top: clamp(80px, 12vh, 128px);
-    padding-top: 40px;
-    border-top: 1px solid var(--hairline);
+.wk-bonus { margin-top: clamp(64px, 9vh, 112px); }
+
+/* A finished graphic shown as a card on the wash, not stretched to fill */
+.wk-hero--card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6%;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
 }
 
-.wk-bonus-head {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: clamp(28px, 5vw, 72px);
-    align-items: start;
+.wk-hero--card img {
+    width: 100%;
+    max-width: 780px;
+    height: auto;
+    object-fit: unset;
+    border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
 }
-
-.wk-bonus-head .wk-eyebrow { margin-bottom: 14px; }
-
-.wk-bonus-copy {
-    margin: 0;
-    font-size: 17px;
-    line-height: 1.55;
-    color: var(--muted);
-    text-wrap: pretty;
-}
-
-.wk-bonus-copy + .wk-bonus-copy { margin-top: 14px; }
-.wk-bonus-copy strong { font-weight: 600; color: var(--ink); }
 
 .wk-bonus-media {
-    margin-top: clamp(32px, 4vw, 48px);
+    margin-top: clamp(28px, 4vw, 44px);
     display: grid;
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: 16px;
-    align-items: stretch;
+    grid-template-rows: auto auto;
+    column-gap: clamp(28px, 5vw, 72px);
+    row-gap: 12px;
+    align-items: center;
 }
 
-.wk-video {
-    margin: 0;
-}
-
-.wk-video iframe {
+.wk-bonus-media iframe {
+    grid-column: 1;
+    grid-row: 1;
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -786,51 +781,28 @@ img { max-width: 100%; display: block; }
     background: var(--btn-wash);
 }
 
-.wk-video figcaption {
-    margin-top: 10px;
+.wk-bonus-quote {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+}
+
+.wk-bonus-quote p { font-size: clamp(19px, 1.8vw, 22px); }
+.wk-bonus-quote cite a { border-bottom: 1px solid var(--btn-border); }
+.wk-bonus-quote cite a:hover { color: var(--ink); border-color: var(--ink); }
+
+.wk-bonus-caption {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
     font-size: 13px;
     line-height: 1.45;
     color: var(--subtle);
 }
 
-.wk-voices {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-}
-
-.wk-voice {
-    flex: 1;
-    justify-content: center;
-    padding: 28px;
-    border-radius: 14px;
-    background: var(--btn-wash);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.wk-voice p {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: -0.01em;
-    text-wrap: pretty;
-}
-
-.wk-voice cite {
-    font-style: normal;
-    font-size: 13px;
-    color: var(--subtle);
-}
-
-.wk-voice cite a { border-bottom: 1px solid var(--btn-border); }
-.wk-voice cite a:hover { color: var(--ink); border-color: var(--ink); }
-
 @media (max-width: 860px) {
-    .wk-bonus-head { grid-template-columns: 1fr; }
-    .wk-bonus-media { grid-template-columns: 1fr; }
+    .wk-hero--card { padding: 8%; }
+    .wk-bonus-media { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .wk-bonus-media iframe, .wk-bonus-quote, .wk-bonus-caption { grid-column: 1; grid-row: auto; }
+    .wk-bonus-quote { margin-top: 16px; }
 }
