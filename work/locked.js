@@ -72,24 +72,57 @@
         return res.json();
     }
 
-    // The decrypted page is written with the curtain already covering it, so the
-    // curtain can lift off the top and the page rises in behind it.
-    var CURTAIN = '<style>html{background:#F9F4F6}.lock-curtain{position:fixed;left:-6vw;right:-6vw;top:0;height:112vh;z-index:50;' +
-        'background:#B4547E;border-radius:50% 50% 0 0/9vh 9vh 0 0;transform:translateY(62%);pointer-events:none}</style>' +
-        '<div class="lock-curtain lock-curtain--leave" aria-hidden="true"></div>' +
-        '<script>(function(c){function done(){if(c.parentNode)c.parentNode.removeChild(c);}' +
-        'c.addEventListener("animationend",done);setTimeout(done,1400);})(document.currentScript.previousElementSibling)<\/script>';
+    // Scripts only run if they are created fresh, so clone with that in mind.
+    function importNode(node) {
+        function fresh(old) {
+            var el = document.createElement('script');
+            for (var i = 0; i < old.attributes.length; i++) el.setAttribute(old.attributes[i].name, old.attributes[i].value);
+            el.text = old.text;
+            return el;
+        }
+        if (node.nodeType === 1 && node.tagName === 'SCRIPT') return fresh(node);
+        var copy = document.importNode(node, true);
+        if (copy.querySelectorAll) {
+            var scripts = copy.querySelectorAll('script');
+            for (var j = 0; j < scripts.length; j++) scripts[j].parentNode.replaceChild(fresh(scripts[j]), scripts[j]);
+        }
+        return copy;
+    }
 
-    function render(html) {
-        var out = html.replace(/<html(?![^>]*style=)/i, '<html style="background:#F9F4F6"').replace(/<body([^>]*)>/i, function (m, attrs) {
-            var a = /class="([^"]*)"/i.test(attrs)
-                ? attrs.replace(/class="([^"]*)"/i, 'class="$1 has-curtain"')
-                : attrs + ' class="has-curtain"';
-            return '<body' + a + '>' + CURTAIN;
-        });
-        document.open();
-        document.write(out);
-        document.close();
+    // Swap the decrypted page into the current document instead of writing a new one,
+    // so the curtain element stays on screen without a single blank frame. It then
+    // sweeps up and off, and the page's own entrance animation runs behind it.
+    function render(html, curtain) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+
+        document.title = doc.title;
+        var have = {};
+        var loaded = document.head.querySelectorAll('link[href], script[src]');
+        for (var i = 0; i < loaded.length; i++) have[loaded[i].getAttribute('href') || loaded[i].getAttribute('src')] = true;
+        var heads = doc.head.children;
+        for (var h = 0; h < heads.length; h++) {
+            var el = heads[h];
+            var key = el.getAttribute('href') || el.getAttribute('src');
+            if (key && have[key]) continue;
+            if (el.tagName === 'TITLE' || el.tagName === 'META') continue;
+            document.head.appendChild(importNode(el));
+        }
+
+        var body = document.body;
+        body.className = (doc.body.className ? doc.body.className + ' ' : '') + 'has-curtain';
+        while (body.firstChild) body.removeChild(body.firstChild);
+        if (curtain) body.appendChild(curtain);
+        var nodes = doc.body.childNodes;
+        for (var n = 0; n < nodes.length; n++) body.appendChild(importNode(nodes[n]));
+        window.scrollTo(0, 0);
+
+        if (curtain) {
+            curtain.hidden = false;
+            curtain.className = 'lock-curtain lock-curtain--leave';
+            var done = function () { if (curtain.parentNode) curtain.parentNode.removeChild(curtain); };
+            curtain.addEventListener('animationend', done);
+            setTimeout(done, 1400);
+        }
     }
 
     function init(opts) {
@@ -164,7 +197,7 @@
                 if (html === null) return false;
                 try { sessionStorage.setItem(PW_KEY, password); } catch (e) {}
                 await curtainUp;
-                render(html);
+                render(html, curtain);
                 return true;
             }
             var manifest = await fetchJSON(BASE + 'manifest.json');
@@ -177,7 +210,7 @@
                     // so the curtain stays on screen and nothing flashes.
                     try { window.history.replaceState(null, '', BASE + pages[i] + '/'); } catch (e) {}
                     await curtainUp;
-                    render(html2);
+                    render(html2, curtain);
                     return true;
                 }
             }
