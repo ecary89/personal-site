@@ -644,6 +644,51 @@ img { max-width: 100%; display: block; }
     box-shadow: 0 18px 48px rgba(43, 33, 48, 0.22);
 }
 
+/* A desktop recording framed on the wash: wider than the tile, so it floats whole instead of being cropped */
+.wk-hero--recording {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
+}
+
+.wk-hero--recording video {
+    display: block;
+    width: 90%;
+    height: auto;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
+}
+
+/* A set of screens that crossfade in place: every image is stacked and cropped like a single hero,
+   and each one fades in for its quarter of the cycle. A fade, not motion, so it also runs under Reduce Motion. */
+.wk-hero--cycle { background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%); }
+
+.wk-hero--cycle img {
+    position: absolute;
+    left: 5%;
+    top: 7%;
+    width: 90%;
+    height: auto;          /* the screen is taller than the tile, so its bottom runs off like the THE YES desktop */
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
+    opacity: 0;
+    animation: wk-cycle 20s infinite;
+}
+.wk-hero--cycle img:nth-child(1) { animation-delay: 0s; }
+.wk-hero--cycle img:nth-child(2) { animation-delay: 5s; }
+.wk-hero--cycle img:nth-child(3) { animation-delay: 10s; }
+.wk-hero--cycle img:nth-child(4) { animation-delay: 15s; }
+
+@keyframes wk-cycle {
+    0%   { opacity: 0; }
+    4%   { opacity: 1; }
+    25%  { opacity: 1; }
+    29%  { opacity: 0; }
+    100% { opacity: 0; }
+}
+
 /* A dark slide crop shown whole */
 .wk-hero--dark { background: #121212; }
 .wk-hero--dark img { object-fit: contain; object-position: center; padding: 3% 4%; }
@@ -858,7 +903,20 @@ img { max-width: 100%; display: block; }
 }
 
 /* Project + dates line under the tile title, role on the line after */
-.wk-tile-title + .wk-meta {
+/* Outcome line under the project name */
+.wk-tile-sub {
+    margin: 10px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(20px, 1.8vw, 24px);
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+}
+
+.wk-tile-title + .wk-meta,
+.wk-tile-sub + .wk-meta {
     margin: 14px 0 0;
     font-size: 16px;
     line-height: 1.5;
