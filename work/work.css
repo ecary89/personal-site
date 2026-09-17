@@ -981,20 +981,11 @@ img { max-width: 100%; display: block; }
 .wk-bonus-quote cite a { border-bottom: 1px solid var(--btn-border); }
 .wk-bonus-quote cite a:hover { color: var(--ink); border-color: var(--ink); }
 
-/* The same quote alone under a full tile (Polyvore on the play page): sits under the facts column */
-.wk-tile-quote {
-    grid-column: 2;
-    grid-row: auto;
-    margin-top: 4px;
-    padding-left: 126px;
-}
-
 @media (max-width: 860px) {
     .wk-hero--card { padding: 8%; }
     .wk-bonus-media { grid-template-columns: 1fr; }
     .wk-bonus-media iframe, .wk-bonus-quote { grid-column: 1; grid-row: auto; }
     .wk-bonus-quote { margin-top: 16px; }
-    .wk-tile-quote { grid-column: auto; margin-top: 4px; padding-left: 0; }
 }
 
 /* ==========================================================
@@ -1134,7 +1125,6 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 .wk-tile.reveal .wk-tile-head,
 .wk-tile.reveal .wk-facts,
 .wk-tile.reveal .wk-aside,
-.wk-tile.reveal .wk-tile-quote,
 .wk-tile.reveal .wk-bonus-media {
     opacity: 0;
     transform: translateY(16px);
@@ -1144,16 +1134,15 @@ html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
 .wk-tile.reveal.is-in .wk-tile-head,
 .wk-tile.reveal.is-in .wk-facts,
 .wk-tile.reveal.is-in .wk-aside,
-.wk-tile.reveal.is-in .wk-tile-quote,
 .wk-tile.reveal.is-in .wk-bonus-media { opacity: 1; transform: none; }
 .wk-tile.reveal.is-in .wk-tile-head { transition-delay: 140ms; }
 .wk-tile.reveal.is-in .wk-facts { transition-delay: 240ms; }
-.wk-tile.reveal.is-in .wk-aside, .wk-tile.reveal.is-in .wk-tile-quote { transition-delay: 320ms; }
+.wk-tile.reveal.is-in .wk-aside { transition-delay: 320ms; }
 .wk-tile.reveal.is-in .wk-bonus-media { transition-delay: 360ms; }
 .wk-tile.reveal .wk-hero { transition: none; opacity: 1; transform: none; } /* the tile itself carries the hero's motion */
 
 @media (prefers-reduced-motion: reduce) {
-    .wk-tile.reveal .wk-tile-head, .wk-tile.reveal .wk-facts, .wk-tile.reveal .wk-aside, .wk-tile.reveal .wk-tile-quote, .wk-tile.reveal .wk-bonus-media { transform: none; }
+    .wk-tile.reveal .wk-tile-head, .wk-tile.reveal .wk-facts, .wk-tile.reveal .wk-aside, .wk-tile.reveal .wk-bonus-media { transform: none; }
 }
 
 .copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }
