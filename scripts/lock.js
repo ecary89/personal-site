@@ -25,6 +25,13 @@
  *     "pages" maps every page to the entry passwords that open it. (The old flat
  *     { "<page>": "<password>" } form still works: each page opens with its own password.)
  *   work/_src/<page>/index.html       the full page a visitor sees after the gate
+ *   work/_src/_tiles/<tile>.html      a shared tile header (title, subheader, meta, role). A page
+ *                                     source says `<!-- @tile-head the-yes -->` where the header
+ *                                     goes, and this script pastes the file in before encrypting,
+ *                                     so one file feeds every page that shows that project.
+ *                                     A page can override one line for itself, which is the
+ *                                     exception, not the rule: `<!-- @tile-head polyvore
+ *                                     sub="I gamified ..." -->` (title, sub, meta, role).
  *
  * Generated and committed:
  *   work/<page>/locked.json           the encrypted page
@@ -47,6 +54,9 @@
  *
  * Adding a page: add it to "pages" (and to "passwords" if it is a new entry page), create
  * work/_src/<page>/index.html, run this script (or just commit).
+ *
+ * --unlock recovers the page as a visitor sees it (tile headers already pasted in), so a
+ * recovered source has no placeholders until you put them back.
  */
 'use strict';
 
@@ -60,6 +70,7 @@ const ROOT = path.resolve(__dirname, '..');
 const WORK = path.join(ROOT, 'work');
 const SRC = path.join(WORK, '_src');
 const PASSWORDS = path.join(SRC, 'passwords.json');
+const TILES = path.join(SRC, '_tiles');
 const ITERATIONS = 250000; // PBKDF2 rounds; ~0.2s per attempt in a browser
 
 const args = new Set(process.argv.slice(2));
@@ -88,6 +99,29 @@ function passwordsFor(config, page) {
         list.push(config.passwords[entry]);
     }
     return list;
+}
+
+// Pastes each `<!-- @tile-head <name> -->` in a page source with work/_src/_tiles/<name>.html,
+// keeping the placeholder's indentation so the output reads like hand-written HTML.
+const TILE_LINES = { title: 'wk-tile-title', sub: 'wk-tile-sub', meta: 'wk-meta', role: 'wk-role' };
+
+function expandTiles(html, page) {
+    return html.replace(/([ \t]*)<!--\s*@tile-head\s+([\w-]+)((?:\s+\w+="[^"]*")*)\s*-->/g, (match, indent, name, attrs) => {
+        const file = path.join(TILES, name + '.html');
+        if (!fs.existsSync(file)) {
+            console.error(`Page "${page}" uses tile head "${name}" but ${path.relative(ROOT, file)} is missing.`);
+            process.exit(1);
+        }
+        let body = fs.readFileSync(file, 'utf8').trim();
+        for (const [, key, value] of attrs.matchAll(/(\w+)="([^"]*)"/g)) {
+            const cls = TILE_LINES[key];
+            if (!cls) { console.error(`Page "${page}", tile head "${name}": unknown override "${key}".`); process.exit(1); }
+            const line = new RegExp(`(<(h2|p) class="${cls}">)[^<]*(</\\2>)`);
+            if (!line.test(body)) { console.error(`Page "${page}", tile head "${name}": no ${key} line to override.`); process.exit(1); }
+            body = body.replace(line, `$1${value}$3`);
+        }
+        return body.split('\n').map(line => indent + line).join('\n');
+    });
 }
 
 async function kek(password, salt, usage) {
@@ -230,7 +264,7 @@ async function lock() {
             console.error(`Skipping "${page}": no passwords listed for it.`);
             continue;
         }
-        const plaintext = fs.readFileSync(srcFile, 'utf8');
+        const plaintext = expandTiles(fs.readFileSync(srcFile, 'utf8'), page);
         const outDir = path.join(WORK, page);
         const lockedFile = path.join(outDir, 'locked.json');
         const shellFile = path.join(outDir, 'index.html');
