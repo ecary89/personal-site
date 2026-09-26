@@ -595,36 +595,24 @@ img { max-width: 100%; display: block; }
     box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
 }
 
-/* A desktop page with a phone overlapping its corner */
+/* A desktop screen recording, centred on the wash and running off the bottom edge */
 .wk-hero--desk {
     background: linear-gradient(135deg, #F2E8ED 0%, #E7D6DF 100%);
 }
 
 .wk-hero--desk .wk-desk {
     position: absolute;
-    left: 6%;
-    top: 9%;
-    width: 78%;
-    height: 100%;
+    left: 5%;
+    right: 5%;
+    top: 7%;
+    bottom: 0;                 /* the recording is cut to this box's shape, so nothing is cropped on desktop */
     border-radius: 10px 10px 0 0;
     overflow: hidden;
     background: #fff;
     box-shadow: 0 18px 48px rgba(43, 33, 48, 0.18);
 }
 
-.wk-hero--desk .wk-phone {
-    position: absolute;
-    right: 5%;
-    bottom: -7%;
-    width: 21%;
-    aspect-ratio: 375 / 812;   /* a phone-shaped window; tall captures show their top */
-    border-radius: 20px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 18px 48px rgba(43, 33, 48, 0.22);
-}
-
-.wk-hero--desk .wk-phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.wk-hero--desk .wk-desk video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
 /* A phone-shaped video, centred on the wash */
 .wk-hero--video {
