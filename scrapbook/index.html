@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Scrapbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9Y1BEF1E44"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-9Y1BEF1E44');</script>
+<!--
+  The scrapbook test app is encrypted in locked.bin (see scripts/lock-scrapbook.js).
+  This page asks for the password, decrypts it in the browser and opens it in place.
+-->
+<style>
+  :root{ --ink:#2C2A4A; --muted:#6E6982; --accent:#D9467F; --line:#E7E2EA; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{ font:16px/1.5 Figtree, system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--ink);
+    background:radial-gradient(circle at 15% 15%, #FCE3EC, transparent 45%), radial-gradient(circle at 85% 90%, #E9E2FB, transparent 45%), #FFF9F6;
+    display:grid; place-items:center; padding:24px 16px; }
+  main{ width:100%; max-width:380px; text-align:center; }
+  .mark{ font-family:Fraunces, Georgia, serif; font-style:italic; font-weight:600; font-size:44px; letter-spacing:-.02em; position:relative; display:inline-block; margin:0 0 6px; }
+  .mark::before{ content:""; position:absolute; left:-12px; top:6px; width:44px; height:44px; border-radius:50%; background:radial-gradient(circle at 40% 40%, #F7B6CB, #D9467F 70%); opacity:.35; z-index:-1; }
+  p.lede{ margin:0 0 26px; color:var(--muted); }
+  form{ display:flex; flex-direction:column; gap:10px; }
+  input[type=password]{ height:52px; border-radius:14px; border:1.5px solid var(--line); background:#fff; padding:0 16px; font:500 16px Figtree, system-ui, sans-serif; color:var(--ink); outline:none; text-align:center; }
+  input[type=password]:focus{ border-color:var(--accent); box-shadow:0 0 0 3px #FBE0EA; }
+  button{ height:52px; border-radius:14px; border:none; background:var(--ink); color:#fff; font:700 16px Figtree, system-ui, sans-serif; cursor:pointer; }
+  button:disabled{ opacity:.6; cursor:default; }
+  label.remember{ display:flex; align-items:center; justify-content:center; gap:8px; font-size:14px; color:var(--muted); margin-top:4px; }
+  .err{ min-height:22px; color:#B4245A; font-size:14px; font-weight:600; margin:10px 0 0; }
+  .help{ margin-top:22px; font-size:14px; color:var(--muted); }
+  .help a{ color:var(--accent); }
+  .opening{ display:none; color:var(--muted); }
+  body.busy .opening{ display:block; } body.busy form{ display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="mark">scrapbook</h1>
+  <p class="lede">A little story scrapbook, in early testing.<br>Enter the password you were given.</p>
+  <form id="f" autocomplete="off">
+    <label for="pw" style="position:absolute;left:-9999px">Password</label>
+    <input id="pw" type="password" placeholder="Password" required autocapitalize="off" spellcheck="false" autofocus>
+    <button id="go" type="submit">Open</button>
+    <label class="remember"><input type="checkbox" id="rem" checked> Remember me on this device</label>
+  </form>
+  <p class="opening" id="opening">Opening your scrapbook… The first time can take a few seconds.</p>
+  <p class="err" id="err" role="alert"></p>
+  <p class="help">Need the password? Email <a href="mailto:erika.mi.cary@gmail.com">erika.mi.cary@gmail.com</a></p>
+</main>
+<noscript><p>This page needs JavaScript to open.</p></noscript>
+<script>
+(function () {
+  'use strict';
+  var KEY = 'scrapbook_pw';
+  var store = { get: function(){ try { return localStorage.getItem(KEY) || sessionStorage.getItem(KEY); } catch (e){ return null; } },
+    set: function(pw, keep){ try { (keep ? localStorage : sessionStorage).setItem(KEY, pw); } catch (e){} },
+    clear: function(){ try { localStorage.removeItem(KEY); sessionStorage.removeItem(KEY); } catch (e){} } };
+  function track(n, p){ try { if (typeof gtag === 'function') gtag('event', n, p || {}); } catch (e){} }
+  function b64(s){ var bin = atob(s), out = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+  var $ = function(id){ return document.getElementById(id); };
+  // Start downloading right away so opening feels quick
+  var meta = fetch('locked.json', { cache:'no-cache' }).then(function(r){ if (!r.ok) throw 0; return r.json(); });
+  var data = fetch('locked.bin').then(function(r){ if (!r.ok) throw 0; return r.arrayBuffer(); });
+
+  async function unlock(pw){
+    var m = await meta;
+    var content = null;
+    for (var i = 0; i < m.keys.length && !content; i++){
+      var k = m.keys[i];
+      try {
+        var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+        var kek = await crypto.subtle.deriveKey({ name:'PBKDF2', salt:b64(k.salt), iterations:m.iter, hash:'SHA-256' }, base, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+        content = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b64(k.iv) }, kek, b64(k.wk));
+      } catch (e){ content = null; }
+    }
+    if (!content) return null;
+    var key = await crypto.subtle.importKey('raw', content, 'AES-GCM', false, ['decrypt']);
+    var gz = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b64(m.iv) }, key, await data);
+    var stream = new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(stream).text();
+  }
+  function open(html){
+    document.open(); document.write(html); document.close();
+  }
+  async function attempt(pw, keep, auto){
+    document.body.classList.add('busy'); $('err').textContent = '';
+    try {
+      if (!window.crypto || !crypto.subtle || typeof DecompressionStream === 'undefined') throw new Error('old');
+      var html = await unlock(pw);
+      if (html == null){
+        document.body.classList.remove('busy');
+        if (auto){ store.clear(); return; }
+        $('err').textContent = 'That password didn’t work. Check it and try again.';
+        track('scrapbook_wrong_password');
+        $('pw').select();
+        return;
+      }
+      store.set(pw, keep);
+      track('scrapbook_unlock', { remembered: keep, returning: !!auto });
+      setTimeout(function(){ open(html); }, 150);
+    } catch (e){
+      document.body.classList.remove('busy');
+      $('err').textContent = e && e.message === 'old' ? 'This browser is too old to open the scrapbook. Try the latest Chrome, Safari or Firefox.' : 'Something went wrong opening the scrapbook. Reload and try again.';
+    }
+  }
+  $('f').addEventListener('submit', function(e){ e.preventDefault(); var pw = $('pw').value.trim(); if (pw) attempt(pw, $('rem').checked, false); });
+  var saved = store.get();
+  if (saved) attempt(saved, true, true);
+})();
+</script>
+</body>
+</html>

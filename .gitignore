@@ -7,3 +7,7 @@ ecary89.git/
 # Only the encrypted output (work/<company>/locked.json) is committed. See scripts/lock.js.
 work/_src/
 work/img/polyvore/hero-source.jpg
+
+# Plaintext app + password for the password-protected /scrapbook test. Only the encrypted
+# output (scrapbook/locked.json + locked.bin) is committed. See scripts/lock-scrapbook.js.
+scrapbook/_src/

@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "iter": 250000,
+  "iv": "56C3EXbCyFhDarih",
+  "gzip": true,
+  "bytes": 2986350,
+  "keys": [
+    {
+      "salt": "hDo0JpwNYCO8iZxd7ajfIw==",
+      "iv": "r0oEDhIqL766+WAC",
+      "wk": "HrRAKPS4hlmaehVLiAvgzENvLkK95D/co696p/0eupIJmbo4RYDosDhAXtEY9Rfi"
+    }
+  ]
+}
