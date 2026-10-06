@@ -141,6 +141,8 @@ body{ display:flex; flex-direction:column; }
 .other-amount:focus-within{ border-color:var(--accent); }
 .pledge-note, .pledge-thanks{ margin:0; font-size:15px; line-height:1.45; color:var(--muted); }
 .pledge-thanks{ color:var(--ink); font-weight:600; }
+.maybe-btn{ border:1.5px solid var(--line); background:var(--bg); color:var(--ink); border-radius:14px; padding:12px 28px; font-weight:700; font-size:16px; }
+.support-actions.center{ justify-content:center; }
 .support-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
 .support-actions .btn{ padding:11px 16px; }
 .btn.primary svg{ width:16px; height:16px; }
@@ -1775,7 +1777,8 @@ function fillSupport(box){
   const row = el('div', 'amounts'); row.style.gridTemplateColumns = 'repeat(3, minmax(0,1fr))';
   row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Chip in an amount');
   const thanks = el('p', 'pledge-thanks'); thanks.setAttribute('aria-live', 'polite');
-  const ok = el('button', 'btn primary', 'Maybe later'); ok.onclick = closeSheet;
+  // Same look as the amount buttons, so skipping isn't the main action
+  const ok = el('button', 'maybe-btn', 'Maybe later'); ok.onclick = closeSheet;
   const pick = (amount, b) => {
     // Only the first pick each time the prompt opens is sent, so changing your mind doesn't count twice
     if (!supportAnswered) track('support_pledge', { amount, value:amount, currency:'USD', source:supportSource });
@@ -1785,7 +1788,7 @@ function fillSupport(box){
     ok.textContent = afterSupport ? 'Continue' : 'Got it';
   };
   SUPPORT_AMOUNTS.forEach(a => { const b = el('button', null, '$' + a); b.setAttribute('aria-pressed', 'false'); b.onclick = () => pick(a, b); row.append(b); });
-  const actions = el('div', 'support-actions'); actions.append(ok);
+  const actions = el('div', 'support-actions center'); actions.append(ok);
   box.append(row, thanks, actions);
 }
 
