@@ -94,6 +94,13 @@ body{ display:flex; flex-direction:column; }
 .pill-btn{ display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--ink); background:none; padding:8px 14px; border-radius:999px; font-weight:600; font-size:14px; }
 .pill-btn svg{ width:18px; height:18px; }
 .desk-only{ display:none !important; }
+/* ••• menu rows, shared by the desktop dropdown and the phone bottom sheet */
+.menu-row{ display:flex; align-items:center; gap:12px; width:100%; border:none; background:none; color:var(--ink); text-align:left; font-size:15px; font-weight:500; padding:12px 4px; border-radius:10px; }
+.menu-row svg{ width:22px; height:22px; flex:none; }
+.menu-row:hover{ background:var(--surface); }
+.menu-list{ display:flex; flex-direction:column; }
+.menu-pop{ position:fixed; z-index:75; min-width:240px; background:var(--bg); border-radius:14px; padding:8px; box-shadow:0 12px 32px rgba(17,17,17,.16), 0 0 0 1px rgba(17,17,17,.06); }
+.menu-pop .menu-row{ padding:10px 12px; }
 /* Alpha tag: sits over the top-right corner of the logo */
 .alpha-tag{ position:absolute; top:-7px; right:-30px; background:var(--pop); color:#fff; font-family:var(--ui); font-size:11px; font-weight:500; line-height:1; letter-spacing:.02em; padding:3px 6px 4px; border-radius:999px; transform:rotate(4deg); }
 .wordmark:has(.alpha-tag){ margin-right:24px; }
@@ -2885,21 +2892,36 @@ function clipperBtn(){
 }
 
 /* ---------- Menu ---------- */
-function fillMenu(box){
-  // Phones: the editor's top bar is too small for Share, so it lives here
-  if (!isDesk()){
-    const sh = el('div', 'sec'); sh.append(el('h3', null, onCover ? 'This cover' : 'This page'));
-    const shBtn = el('button', 'btn'); shBtn.innerHTML = icon('share') + 'Share';
-    shBtn.onclick = () => openView('share');
-    const shRow = el('div', 'row-end'); shRow.style.justifyContent = 'flex-start'; shRow.append(shBtn); sh.append(shRow); box.append(sh);
-  }
-  const cl = el('div', 'sec'); cl.append(el('h3', null, 'Save pictures from the web'));
-  const clBtn = el('button', 'btn'); clBtn.innerHTML = icon('download') + 'Get the Scrapbook Clipper'; clBtn.onclick = () => openView('clipper');
-  const clRow = el('div', 'row-end'); clRow.style.justifyContent = 'flex-start'; clRow.append(clBtn); cl.append(clRow); box.append(cl);
-  const del = el('div', 'sec');
-  const delBtn = el('button', 'btn'); delBtn.innerHTML = icon('trash') + 'Delete scrapbook'; delBtn.onclick = () => openView('deleteBook');
-  const delRow = el('div', 'row-end'); delRow.style.justifyContent = 'flex-start'; delRow.append(delBtn); del.append(delRow); box.append(del);
+// The ••• menu: a dropdown under the button on desktop, a bottom sheet of rows on phones
+function menuItems(){
+  const items = [];
+  if (!isDesk()) items.push({ icon:'share', label:'Share', run:() => openView('share') });
+  items.push({ icon:'trash', label:'Delete scrapbook', run:() => openView('deleteBook') });
+  items.push({ icon:'download', label:'Get the Scrapbook Clipper', run:() => openView('clipper') });
+  return items;
 }
+function menuRow(it, before){
+  const b = el('button', 'menu-row'); b.innerHTML = icon(it.icon) + '<span>' + it.label + '</span>';
+  b.onclick = () => { if (before) before(); it.run(); };
+  return b;
+}
+function fillMenu(box){
+  const list = el('div', 'menu-list'); menuItems().forEach(it => list.append(menuRow(it))); box.append(list);
+}
+const menuPop = el('div', 'menu-pop'); menuPop.hidden = true; menuPop.setAttribute('role', 'menu'); document.body.append(menuPop);
+function closeMenuPop(){ if (menuPop.hidden) return; menuPop.hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
+function toggleMenuPop(){
+  if (!menuPop.hidden){ closeMenuPop(); return; }
+  menuPop.innerHTML = '';
+  menuItems().forEach(it => { const r = menuRow(it, closeMenuPop); r.setAttribute('role', 'menuitem'); menuPop.append(r); });
+  const r = $('#menuBtn').getBoundingClientRect();
+  menuPop.style.top = (r.bottom + 6) + 'px'; menuPop.style.right = Math.max(12, innerWidth - r.right - 8) + 'px';
+  menuPop.hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true');
+  menuPop.querySelector('button').focus({ preventScroll:true });
+}
+addEventListener('pointerdown', e => { if (!menuPop.hidden && !menuPop.contains(e.target) && !$('#menuBtn').contains(e.target)) closeMenuPop(); }, true);
+addEventListener('keydown', e => { if (e.key === 'Escape' && !menuPop.hidden){ closeMenuPop(); $('#menuBtn').focus(); } });
+addEventListener('resize', closeMenuPop);
 function afterReset(){ selectedId = null; onCover = false; $('#bookTitle').textContent = book.title; renderAll(); commit(); }
 
 /* =========================================================
@@ -3572,7 +3594,7 @@ twApply();
    ========================================================= */
 $('#undoBtn').innerHTML = icon('undo'); $('#undoBtn').onclick = undo;
 $('#redoBtn').innerHTML = icon('redo'); $('#redoBtn').onclick = redo;
-$('#menuBtn').innerHTML = icon('more'); $('#menuBtn').onclick = () => openView('menu');
+$('#menuBtn').innerHTML = icon('more'); $('#menuBtn').setAttribute('aria-haspopup', 'menu'); $('#menuBtn').onclick = () => isDesk() ? toggleMenuPop() : openView('menu');
 $('#readBtn').innerHTML = icon('book') + 'Read';
 $('#chipBtn').onclick = () => { track('support_banner'); afterSupport = null; supportWhy = null; supportSource = 'banner'; openView('support'); };
 // The reading view sits just under the banner, whatever height the banner wraps to
