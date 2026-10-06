@@ -139,6 +139,8 @@ body{ display:flex; flex-direction:column; }
 .other-amount input{ flex:1; min-width:0; border:none; background:none; padding:11px 0; font-size:16px; font-variant-numeric:tabular-nums; }
 .other-amount input:focus{ outline:none; }
 .other-amount:focus-within{ border-color:var(--accent); }
+.pledge-note, .pledge-thanks{ margin:0; font-size:15px; line-height:1.45; color:var(--muted); }
+.pledge-thanks{ color:var(--ink); font-weight:600; }
 .support-actions{ display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
 .support-actions .btn{ padding:11px 16px; }
 .btn.primary svg{ width:16px; height:16px; }
@@ -1644,9 +1646,10 @@ let afterSupport = null, supportAmount = 3;
 // Run "next" right away for supporters; otherwise show the prompt first, then carry on
 let supportWhy = null;
 let supportSeen = false;
+let supportSource = 'banner'; // what opened the prompt: banner, pictures or export
 function gate(next, why){
   if (supporter || supportSeen){ next(); return; }
-  afterSupport = next; supportWhy = why || null;
+  afterSupport = next; supportWhy = why || null; supportSource = why ? 'export' : 'pictures';
   track('support_prompt', { reason:why ? 'export' : 'pictures' });
   openView('support');
 }
@@ -1762,11 +1765,27 @@ function addItem(props){
 
 /* ---------- Support prompt ---------- */
 function fillSupport(box){
-  // Chipping in isn't set up yet, so this just says it's coming
+  // We're not taking money yet, so we just ask what people WOULD chip in.
+  // Each answer is a "pledge": find it in Google Analytics under Events > support_pledge.
   supportSeen = true;
   const art = el('div', 'support-art'); art.innerHTML = icon('heart', 1.6);
   const tag = el('span', 'alpha-tag soon-tag', 'Coming soon');
-  box.append(art, tag, el('p', 'lede', (supportWhy || 'Scrapbook is free while this project is small.') + ' Soon you\'ll be able to chip in to help cover hosting as it grows.'));
+  box.append(art, tag, el('p', 'lede', supportWhy || 'Scrapbook is free while this project is small.'));
+  const ask = el('div', 'sec');
+  ask.append(el('h3', null, 'We\'re not taking donations yet'), el('p', 'pledge-note', 'But we\'d love to know: if you could, what would you chip in to help cover hosting?'));
+  const row = el('div', 'amounts'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'What would you chip in?');
+  const thanks = el('p', 'pledge-thanks'); thanks.setAttribute('aria-live', 'polite');
+  let answered = false;
+  const pick = (amount, b) => {
+    // Only the first answer each time the prompt opens is sent, so changing your mind doesn't count twice
+    if (!answered) track('support_pledge', { amount, value:amount, currency:'USD', source:supportSource });
+    answered = true;
+    row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    thanks.textContent = amount ? 'Thank you! Nothing is charged. This helps us see if fans can keep Scrapbook running.' : 'Thanks for telling us. Scrapbook stays free while it\'s small.';
+  };
+  SUPPORT_AMOUNTS.forEach(a => { const b = el('button', null, '$' + a); b.setAttribute('aria-pressed', 'false'); b.onclick = () => pick(a, b); row.append(b); });
+  const no = el('button', 'other', 'Not now'); no.setAttribute('aria-pressed', 'false'); no.onclick = () => pick(0, no); row.append(no);
+  ask.append(row, thanks); box.append(ask);
   const ok = el('button', 'btn primary', afterSupport ? 'Continue' : 'Got it'); ok.onclick = closeSheet;
   const actions = el('div', 'support-actions'); actions.append(ok);
   box.append(actions);
@@ -3554,7 +3573,7 @@ $('#undoBtn').innerHTML = icon('undo'); $('#undoBtn').onclick = undo;
 $('#redoBtn').innerHTML = icon('redo'); $('#redoBtn').onclick = redo;
 $('#menuBtn').innerHTML = icon('more'); $('#menuBtn').onclick = () => openView('menu');
 $('#readBtn').innerHTML = icon('book') + 'Read';
-$('#chipBtn').onclick = () => { track('support_banner'); afterSupport = null; openView('support'); };
+$('#chipBtn').onclick = () => { track('support_banner'); afterSupport = null; supportWhy = null; supportSource = 'banner'; openView('support'); };
 // The reading view sits just under the banner, whatever height the banner wraps to
 const syncNoteH = () => document.documentElement.style.setProperty('--note-h', $('#topNote').offsetHeight + 'px');
 syncNoteH(); addEventListener('resize', syncNoteH);
