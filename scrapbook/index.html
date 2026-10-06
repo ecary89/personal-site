@@ -802,8 +802,8 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 </style>
 
 <div class="topnote" id="topNote">
-  <span>Scrapbook is free while it's in alpha.</span>
-  <button class="topnote-btn" id="chipBtn">Chip in</button>
+  <span>Scrapbook is a passion project built with love.</span>
+  <button class="topnote-btn" id="chipBtn">Donate</button>
 </div>
 <div class="app">
   <header class="topbar">
@@ -1773,7 +1773,7 @@ function fillSupport(box){
   // Picks show up in Google Analytics under Events > support_pledge. Closing without picking is support_skip.
   supportSeen = true; supportAnswered = false;
   const art = el('div', 'support-art'); art.innerHTML = icon('heart', 1.6);
-  box.append(art, el('p', 'lede', (supportWhy || 'Scrapbook is free while this project is small.') + ' If you enjoy it, you can chip in to help cover hosting.'));
+  box.append(art, el('p', 'lede', (supportWhy || 'Scrapbook is a passion project built with love.') + ' If you enjoy it, you can chip in to help cover hosting.'));
   const row = el('div', 'amounts'); row.style.gridTemplateColumns = 'repeat(3, minmax(0,1fr))';
   row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Chip in an amount');
   const thanks = el('p', 'pledge-thanks'); thanks.setAttribute('aria-live', 'polite');
@@ -2862,7 +2862,7 @@ function fillShare(box){
   track('share_open', { where:onCover ? 'cover' : 'page' });
   const pg = el('div', 'sec');
   const ex = el('button', 'btn'); ex.innerHTML = icon('image') + (onCover ? 'Save cover as an image' : 'Save page as an image');
-  ex.onclick = () => { closeSheet(); gate(() => openView('export'), 'Saving pages as pictures is free while this project is small.'); };
+  ex.onclick = () => { closeSheet(); gate(() => openView('export'), 'Scrapbook is a passion project built with love.'); };
   ex.style.width = '100%'; ex.style.height = '46px';
   pg.append(ex); box.append(pg);
   const so = el('div', 'sec'); so.append(el('h3', null, 'Share with others'));
