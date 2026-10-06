@@ -246,6 +246,7 @@ body{ display:flex; flex-direction:column; }
   background:var(--bg); border-radius:22px 22px 0 0; padding:8px 16px calc(16px + env(safe-area-inset-bottom, 0px)); z-index:41;
   transform:translateY(105%); transition:transform .32s cubic-bezier(.3,.8,.25,1); box-shadow:0 -10px 30px rgba(21,18,36,.16); visibility:hidden; z-index:71; }
 .sheet.open{ transform:none; visibility:visible; }
+@media (max-width:1023px){ .sheet.tall{ height:calc(100% - 40px); max-height:calc(100% - 40px); } .sheet.tall .sheet-body{ flex:1; } }
 .grab{ width:40px; height:5px; border-radius:3px; background:var(--line); margin:0 auto 10px; flex:none; touch-action:none; }
 .sheet.dragging{ transition:none; }
 body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:auto; }
@@ -282,7 +283,7 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .add-search:focus-within{ box-shadow:0 0 0 2px var(--accent); }
 .add-results{ display:flex; flex-direction:column; gap:14px; flex:1 0 auto; }
 .add-foot{ position:sticky; bottom:-24px; z-index:3; background:var(--bg); margin:0 -20px -24px; padding:12px 20px 20px; }
-.sheet-body .add-foot{ bottom:0; margin:0; padding:10px 0 4px; }
+.sheet-body .add-foot{ bottom:-4px; margin:0 0 -4px; padding:10px 0 8px; }
 .scene-foot{ margin-top:auto !important; }
 .add-foot .btn{ width:100%; justify-content:center; height:48px; border-radius:12px; font-size:15px; }
 .acc{ display:flex; flex-direction:column; }
@@ -1649,6 +1650,7 @@ function gate(next, why){
 }
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
+const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile'];
 const TITLES = { support:'Support the project', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
@@ -1665,6 +1667,8 @@ function openView(kind){
   sheetKind = kind;
   sheet.classList.toggle('wide', kind === 'profile');
   sheet.classList.toggle('mid', kind === 'clipper');
+  // Tool panels open tall on phones and keep that height, even when a search finds nothing
+  sheet.classList.toggle('tall', TALL_SHEETS.includes(kind));
   sheetBody.innerHTML = '';
   $('#sheetTitle').textContent = kind === 'add' && onCover ? 'Add to your cover' : TITLES[kind];
   fill(kind, sheetBody);
