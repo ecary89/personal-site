@@ -958,7 +958,8 @@ const ICONS = {
   share:   '<path d="M12 15V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/><path d="M8 11H6a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-2"/>',
   link:    '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
   mail:    '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/>',
-  wand:    '<path d="m4 20 11-11"/><path d="m13 7 2-2 2 2-2 2"/><path d="M18 3v2M20 5h-2M19 11v2M21 12h-2M10 3v2M11 4H9"/>'
+  wand:    '<path d="m4 20 11-11"/><path d="m13 7 2-2 2 2-2 2"/><path d="M18 3v2M20 5h-2M19 11v2M21 12h-2M10 3v2M11 4H9"/>',
+  people:  '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M16.5 14.5c2.3 0 4 1.4 4.5 4"/>'
 };
 // Analytics: sends an event to Google Analytics when the page has it (the portfolio build does; Claude doesn't)
 const track = (name, params = {}) => { try { if (typeof window.gtag === 'function') window.gtag('event', name, params); } catch (e){} };
@@ -1137,6 +1138,7 @@ async function loadSaved(){
     else return false;
     USER.clear(); (s.user || []).forEach(u => USER.set(u.id, u));
     loadBookInto(library.find(b => b.id === s.active) || library[0]);
+    track('return_to_scrapbook', { scrapbooks:library.length, pages:library.reduce((t, b) => t + (b.pages ? b.pages.length : 0), 0) });
     return true;
   } catch (e){ return false; }
 }
@@ -1651,11 +1653,11 @@ function gate(next, why){
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile'];
-const TITLES = { support:'Support the project', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
-  ({ support:fillSupport, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, deleteBook:fillDeleteBook, profile:fillProfile })[kind](box);
+  ({ support:fillSupport, community:fillCommunity, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, deleteBook:fillDeleteBook, profile:fillProfile })[kind](box);
 }
 function openView(kind){
   if (kind === 'scene' && onCover) kind = 'cover';
@@ -1766,6 +1768,19 @@ function fillSupport(box){
   const tag = el('span', 'alpha-tag soon-tag', 'Coming soon');
   box.append(art, tag, el('p', 'lede', (supportWhy || 'Scrapbook is free while this project is small.') + ' Soon you\'ll be able to chip in to help cover hosting as it grows.'));
   const ok = el('button', 'btn primary', afterSupport ? 'Continue' : 'Got it'); ok.onclick = closeSheet;
+  const actions = el('div', 'support-actions'); actions.append(ok);
+  box.append(actions);
+}
+
+/* ---------- Community: "See what others made" is coming soon ----------
+   Each tap on the button at the end of the reader is a sign people want a community feed.
+   Find it in Google Analytics under Events > community_interest. */
+let communityTapped = false;
+function fillCommunity(box){
+  const art = el('div', 'support-art'); art.innerHTML = icon('people', 1.6);
+  const tag = el('span', 'alpha-tag soon-tag', 'Coming soon');
+  box.append(art, tag, el('p', 'lede', 'Soon you\'ll be able to read scrapbooks other people made, and share yours with them. Thanks for tapping. It tells us this is worth building.'));
+  const ok = el('button', 'btn primary', 'Got it'); ok.onclick = closeSheet;
   const actions = el('div', 'support-actions'); actions.append(ok);
   box.append(actions);
 }
@@ -3188,8 +3203,9 @@ function newLeaf(cls){
   bookEl.append(l); leaves.push(l);
   return sc;
 }
+let endTracked = false;
 function openReader(){
-  track('open_reader', { pages:book.pages.length });
+  track('open_reader', { pages:book.pages.length }); endTracked = false;
   $('#readerTitle').textContent = book.title || 'Untitled scrapbook';
   select(null);
   bookEl.innerHTML = ''; leaves = []; leafAt = 0; turning = false;
@@ -3239,8 +3255,12 @@ function openReader(){
   const heart = el('button', 'heart-btn');
   heart.innerHTML = icon('share', 2) + 'Share';
   heart.onclick = () => { track('share_open_end'); onCover = false; book.current = book.pages.length - 1; openView('share'); };
+  // "See what others made": a coming-soon button that measures interest in a community feed
+  const others = el('button', 'heart-btn');
+  others.innerHTML = icon('people', 2) + 'See what others made';
+  others.onclick = () => { track('community_interest', { first:!communityTapped, pages:book.pages.length }); communityTapped = true; openView('community'); };
   const back = el('button', 'ghost-btn', 'Keep editing'); back.onclick = closeReader;
-  box.append(el('h2', null, 'The end.'), el('p', null, 'For now. Add another page whenever the story keeps going.'), heart, back);
+  box.append(el('h2', null, 'The end.'), el('p', null, 'For now. Add another page whenever the story keeps going.'), heart, others, back);
   end.append(box);
   leaves[0].hidden = false;
   reader.hidden = false;
@@ -3285,6 +3305,8 @@ function updateReader(){
   $('#readerCount').textContent = i === 0 ? 'Cover' : i === n - 1 ? 'The end' : `Page ${i} of ${n - 2}`;
   $('#prevSlide').disabled = i === 0;
   $('#nextSlide').disabled = i === n - 1;
+  // Fires once each time someone reaches "The end." page
+  if (n > 1 && i === n - 1 && !endTracked){ endTracked = true; track('reader_finished', { pages:book.pages.length }); }
 }
 // Swipe left or right on phones. Touch events keep reporting even after the page
 // starts scrolling (pointer events get cancelled then, which is why swipes used to fail).
