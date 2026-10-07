@@ -3086,7 +3086,7 @@ function fillShare(box){
   asSeg.append(asBtn('image', 'Image'), asBtn('text', 'Text'));
   const ctrls = el('div', 'share-ctrls'); ctrls.append(el('h3', null, 'Include the following in the export'), inc, asSeg);
 
-  const copy = el('button', 'btn'), save = el('button', 'btn primary');
+  const copy = el('button', 'btn'), save = el('button', 'btn');
   const acts = el('div', 'share-acts'); acts.append(copy, save);
   copy.onclick = () => shareAct('copy', copy); save.onclick = () => shareAct('save', save);
 
