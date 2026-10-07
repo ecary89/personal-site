@@ -4113,8 +4113,7 @@ addEventListener('message', e => {
       let site = it.siteName || 'unknown'; try { if (it.pageUrl) site = new URL(it.pageUrl).hostname.replace(/^www\./, ''); } catch (err){}
       track('clipper_save', { site:site.slice(0, 60), cut_out:!!it.cut });
       toast('Saved from the web. Find it in Add → Your cutouts.');
-      shelf = 'Your cutouts'; addQuery = '';
-      refreshViews();
+      showCutouts();
     }
     window.postMessage({ source:'daydream-page', type:'ack', id:it.id }, '*');
   }
@@ -4601,7 +4600,20 @@ renderAll();
 fitCard();
 const seen = (() => { try { return localStorage.getItem('daydream-welcomed') === '1'; } catch (e){ return false; } })();
 resetHistory();
-loadSaved().then(found => { if (found){ renderAll(); resetHistory(); } else if (!seen) openView('welcome'); });
+// Coming back from the Clipper ("Open Kamira" links here with ?open=cutouts): show what was just clipped
+const openCutouts = new URLSearchParams(location.search).get('open') === 'cutouts';
+if (openCutouts) try { history.replaceState(null, '', location.pathname + location.hash); } catch (e){}
+// (On phones a picture arriving in the background doesn't pop the Add sheet open; only the link does.)
+function showCutouts(fromLink){
+  shelf = 'Your cutouts'; addQuery = '';
+  if (isDesk()) setTab('add');
+  else if (fromLink && !sheetKind) openView('add');
+  else refreshViews();
+}
+loadSaved().then(found => {
+  if (found){ renderAll(); resetHistory(); } else if (!seen && !openCutouts) openView('welcome');
+  if (openCutouts) showCutouts(true);
+});
 // Say hello to the Kamira Clipper extension, if it's installed
 window.postMessage({ source:'daydream-page', type:'hello' }, '*');
 </script>
