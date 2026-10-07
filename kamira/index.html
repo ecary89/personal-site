@@ -3100,25 +3100,28 @@ function fillShare(box){
     post.innerHTML = icon('reddit') + `Post to r/${SUBREDDIT}`;
     // One click: the picture goes on the clipboard and Reddit opens with the title and words filled in.
     // On phones, the share sheet opens with the picture attached instead, so it can go straight to the Reddit app.
-    post.addEventListener('click', e => {
+    post.addEventListener('click', async e => {
+      e.preventDefault();
       const out = shareOut, title = ((p.title || '').trim() || (book.title || '').trim() || 'My Kamira page').slice(0, 300);
-      const body = (asText() ? out && out.text : redditBody()) || '';
-      post.href = `https://www.reddit.com/r/${SUBREDDIT}/submit?title=${encodeURIComponent(title)}&text=${encodeURIComponent(body.slice(0, 3000))}`;
-      const img = out && out.kind === 'image' && out.png;
-      track('share_reddit', { what:shareWhat(), how:img && phoneShare(img) ? 'share_sheet' : img ? 'copy_and_open' : 'open' });
-      if (!img) return;
-      const file = new File([img], `${title.replace(/[\\/:*?"<>|]+/g, '')}.png`, { type:'image/png' });
-      if (phoneShare(img)){
-        e.preventDefault();
-        navigator.share({ files:[file], title, text:`r/${SUBREDDIT}` }).catch(() => {});
+      const body = ((asText() ? out && out.text : redditBody()) || '').replace(/\n*Made with Kamira\s*$/, '');
+      const url = `https://www.reddit.com/r/${SUBREDDIT}/submit?title=${encodeURIComponent(title)}&text=${encodeURIComponent(body.slice(0, 3000))}`;
+      const isImg = out && out.kind === 'image';
+      const pngP = isImg ? (out.png ? Promise.resolve(out.png) : new Promise(res => out.canvas.toBlob(res, 'image/png'))) : null;
+      // Phones: the share sheet, with the picture attached, so it can go straight to the Reddit app
+      if (isImg && out.png && phoneShare(out.png)){
+        track('share_reddit', { what:shareWhat(), how:'share_sheet' });
+        const file = new File([out.png], `${title.replace(/[\\/:*?"<>|]+/g, '')}.png`, { type:'image/png' });
+        navigator.share({ files:[file], title }).catch(() => {});
         return;
       }
-      // Start the copy while this tab still has focus; the link then opens Reddit in a new tab
-      try {
-        navigator.clipboard.write([new ClipboardItem({ 'image/png':img })])
-          .then(() => toast('Picture copied. Paste it into your Reddit post.', null, 6000))
-          .catch(() => toast('Couldn\'t copy the picture. Use Download, then add it to your post.', null, 6000));
-      } catch (err){ toast('Couldn\'t copy the picture. Use Download, then add it to your post.', null, 6000); }
+      // Computers: copy the picture first (the copy fails if Reddit takes focus too soon), then open Reddit
+      let copied = false;
+      if (pngP){ try { await navigator.clipboard.write([new ClipboardItem({ 'image/png':pngP })]); copied = true; } catch (err){} }
+      track('share_reddit', { what:shareWhat(), how:copied ? 'copy_and_open' : 'open' });
+      const openReddit = () => { const w = window.open(url, '_blank'); if (w) w.opener = null; return w; };
+      const msg = copied ? 'Picture copied. Paste it into your Reddit post.' : isImg ? 'Couldn\'t copy the picture. Use Download, then add it to your post.' : '';
+      if (openReddit()){ if (msg) toast(msg); }
+      else toast(msg || 'Ready to post.', { label:'Open Reddit', run:openReddit });
     });
     const postWrap = el('div', 'share-post'); postWrap.append(post, el('p', null, 'Our alpha product community'));
     so.append(el('h3', null, 'Share with others'), acts, postWrap);
