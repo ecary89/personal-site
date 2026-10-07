@@ -323,6 +323,18 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .scene-opt .mini{ border:2.5px solid transparent; }
 .scene-opt[aria-pressed="true"] .mini{ border-color:var(--accent); }
 .bg-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.bg-bar{ flex-direction:column; align-items:stretch; gap:12px; padding:10px 12px 12px; }
+.bg-bar .bg-row{ display:grid; grid-template-columns:repeat(4, 24px); gap:7px; }
+.bg-bar .bg-sw{ width:24px; height:24px; }
+.bg-bar .bg-sw.any svg{ width:12px; height:12px; }
+.bg-bar h4{ margin:0 0 7px; font-size:12px; font-weight:600; color:var(--muted); }
+.bg-bar .bg-strength{ width:132px; padding:2px 2px; font-size:13px; }
+#card.page-sel{ outline:1.5px dashed var(--ink); outline-offset:6px; }
+.dock.bg .scroller{ align-items:center; gap:10px; padding:0 10px; }
+.dock.bg .bg-row{ flex-wrap:nowrap; gap:10px; padding:5px; }
+.dock.bg .bg-sw{ width:32px; height:32px; }
+.dock.bg .bg-div{ flex:none; width:1px; height:28px; background:var(--line); }
+.dock.bg .bg-strength{ flex:1; min-width:0; padding:0 6px; }
 .bg-sw{ position:relative; width:36px; height:36px; border-radius:50%; padding:0; border:none; box-shadow:inset 0 0 0 1px rgba(17,17,17,.14); cursor:pointer; display:grid; place-items:center; flex:none; }
 .bg-sw[aria-pressed="true"], .bg-sw.on{ outline:2.5px solid var(--accent); outline-offset:2px; }
 .bg-sw:focus-visible, .bg-sw.any:focus-within{ outline:2.5px solid var(--accent); outline-offset:2px; }
@@ -1088,10 +1100,12 @@ const sceneSrc = id => { if (SCENES[id]) return SCENES[id].src || null; const u 
 // Each page can turn the color up or down (1 = as painted, 0 = no color, 1.8 = extra rich).
 const SCENE_OPACITY = .85;
 const satOf = p => p && p.sat != null ? p.sat : 1;
-/* Plain colors and gradients for the page. A page that uses one has scene:'color' and bg set to
-   a color (#rrggbb) or a gradient name. */
+/* The blank page can be any color or gradient. A blank page has scene:'blank' and bg set to a
+   color (#rrggbb) or a gradient name; no bg means "default", the soft pink and blue glow.
+   (Pages saved for a short while with scene:'color' are treated as blank pages.) */
 const BG_COLORS = ['#FFFFFF', '#FFFCF7', '#FBE3EA', '#FFE6D8', '#FFF3D2', '#E3F0E1', '#E2EDF8', '#ECE5F7', '#1F1D24'];
 const BG_GRADIENTS = {
+  default:{ name:'Default' },
   blush:  { name:'Blush',  stops:[['#FCDDE7', 0], ['#FFF4EE', .55], ['#FFFCF7', 1]] },
   peach:  { name:'Peach',  stops:[['#FFDCCB', 0], ['#FFEFE3', .55], ['#FFFCF7', 1]] },
   sky:    { name:'Sky',    stops:[['#D9E8F7', 0], ['#F3EEF9', .6], ['#FFFCF7', 1]] },
@@ -1102,17 +1116,26 @@ const BG_GRADIENTS = {
   night:  { name:'Night',  stops:[['#2C2846', 0], ['#4A3A64', .55], ['#7B5A7C', 1]] }
 };
 const BG_ANGLE = 165;
-const cleanBg = bg => BG_GRADIENTS[bg] ? bg : /^#[0-9a-f]{6}$/i.test(bg || '') ? bg.toUpperCase() : '#FFFFFF';
-const bgCss = bg => { bg = cleanBg(bg); const g = BG_GRADIENTS[bg]; return g ? `linear-gradient(${BG_ANGLE}deg, ${g.stops.map(([c, o]) => c + ' ' + o * 100 + '%').join(', ')})` : bg; };
+const isBlank = p => p && (p.scene === 'blank' || p.scene === 'color');
+const cleanBg = bg => BG_GRADIENTS[bg] ? bg : /^#[0-9a-f]{6}$/i.test(bg || '') ? bg.toUpperCase() : 'default';
+const GLOW = 'radial-gradient(circle at 28% 18%, rgba(244,182,201,.16), transparent 52%), radial-gradient(circle at 78% 82%, rgba(182,213,238,.2), transparent 50%), #FFFCF7';
+const bgCss = bg => { bg = cleanBg(bg); if (bg === 'default') return GLOW; const g = BG_GRADIENTS[bg]; return g ? `linear-gradient(${BG_ANGLE}deg, ${g.stops.map(([c, o]) => c + ' ' + o * 100 + '%').join(', ')})` : bg; };
 // The same background drawn into a picture (for saving as an image)
 function paintBg(x, bg, W, H){
   bg = cleanBg(bg); const g = BG_GRADIENTS[bg];
+  if (bg === 'default'){
+    x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, H);
+    [[.28, .18, .52, 'rgba(244,182,201,.16)'], [.78, .82, .5, 'rgba(182,213,238,.2)']].forEach(([cx, cy, r, c]) => {
+      const R = r * Math.hypot(Math.max(cx, 1 - cx) * W, Math.max(cy, 1 - cy) * H), rg = x.createRadialGradient(cx * W, cy * H, 0, cx * W, cy * H, R);
+      rg.addColorStop(0, c); rg.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = rg; x.fillRect(0, 0, W, H); });
+    return;
+  }
   if (!g){ x.fillStyle = bg; x.fillRect(0, 0, W, H); return; }
   const a = BG_ANGLE * Math.PI / 180, vx = Math.sin(a), vy = -Math.cos(a), L = Math.abs(W * vx) + Math.abs(H * vy);
   const lg = x.createLinearGradient(W / 2 - vx * L / 2, H / 2 - vy * L / 2, W / 2 + vx * L / 2, H / 2 + vy * L / 2);
   g.stops.forEach(([c, o]) => lg.addColorStop(o, c)); x.fillStyle = lg; x.fillRect(0, 0, W, H);
 }
-const sceneMarkup = (id, sat = 1, bg) => { if (id === 'color') return `<div class="scene" style="background:${bgCss(bg)}"></div>`; const src = sceneSrc(id); return src ? `<img class="scene" src="${src}" alt="" draggable="false" style="opacity:${SCENE_OPACITY};filter:saturate(${sat})">` : `<div class="scene blank"></div>`; };
+const sceneMarkup = (id, sat = 1, bg) => { if (id === 'blank' || id === 'color') return `<div class="scene" style="background:${bgCss(bg)}"></div>`; const src = sceneSrc(id); return src ? `<img class="scene" src="${src}" alt="" draggable="false" style="opacity:${SCENE_OPACITY};filter:saturate(${sat})">` : `<div class="scene blank"></div>`; };
 
 // Real products: a cut-out photo plus where to buy it
 const PRODUCTS = [{"id": "fp-bow-scrunchie", "brand": "Free People", "name": "Pirouette Bow Scrunchie", "price": "$16", "url": "https://www.freepeople.com/shop/pirouette-bow-scrunchie/", "shelf": "Extras", "scene": "cafe", "w": 491, "h": 720, "src": "products/fp-bow-scrunchie.webp"}, {"id": "mw-cardigan-cream", "brand": "Madewell", "name": "Textured-Stitch Cardigan in Cozy Cotton", "price": "$88", "url": "https://www.madewell.com/p/womens/clothing/sweaters/cardigans/textured-stitch-cardigan-in-cozy-cotton/OB236/", "shelf": "Clothes", "scene": "cafe", "w": 720, "h": 686, "src": "products/mw-cardigan-cream.webp"}, {"id": "mw-maryjane-flats", "brand": "Madewell", "name": "The Greta Mary Jane Flat", "price": "$98", "url": "https://www.madewell.com/p/womens/shoes/ballet-flats/the-greta-mary-jane-flat/NN044/", "shelf": "Shoes & bags", "scene": "cafe", "w": 467, "h": 720, "src": "products/mw-maryjane-flats.webp"}, {"id": "ref-bag-crescent", "brand": "Reformation", "name": "Medium Rosetta Shoulder Bag", "price": "$448", "url": "https://www.thereformation.com/products/medium-rosetta-shoulder-bag/1312936XBD.html", "shelf": "Shoes & bags", "scene": "cafe", "w": 468, "h": 720, "src": "products/ref-bag-crescent.webp"}, {"id": "stories-dress-yellow", "brand": "& Other Stories", "name": "Satin Slip Midi Dress", "price": "$129", "url": "https://www.stories.com/en-us/product/satin-slip-midi-dress-yellow-1289204006/", "shelf": "Clothes", "scene": "cafe", "w": 290, "h": 720, "src": "products/stories-dress-yellow.webp"}, {"id": "fp-scarf-cable", "brand": "Free People", "name": "Cozy Cable Triangle Scarf", "price": "$30", "url": "https://www.freepeople.com/shop/cozy-cable-triangle-scarf/", "shelf": "Extras", "scene": "rain", "w": 720, "h": 598, "src": "products/fp-scarf-cable.webp"}, {"id": "mw-boots-knee", "brand": "Madewell", "name": "The Calli Knee-High Boot", "price": "$298", "url": "https://www.madewell.com/p/womens/shoes/boots/the-calli-knee-high-boot/OB468/", "shelf": "Shoes & bags", "scene": "rain", "w": 576, "h": 720, "src": "products/mw-boots-knee.webp"}, {"id": "mw-sweater-stripe", "brand": "Madewell", "name": "The Holland Sweater in Alpaca Blend", "price": "$128", "url": "https://www.madewell.com/p/womens/clothing/sweaters/pullovers/the-holland-sweater-in-alpaca-blend/OB339/", "shelf": "Clothes", "scene": "rain", "w": 573, "h": 720, "src": "products/mw-sweater-stripe.webp"}, {"id": "ref-tote-bucket", "brand": "Reformation", "name": "Beatrice Bucket Tote", "price": "$598", "url": "https://www.thereformation.com/products/beatrice-bucket-tote/1320008BCL.html", "shelf": "Shoes & bags", "scene": "rain", "w": 343, "h": 720, "src": "products/ref-tote-bucket.webp"}, {"id": "stories-trench-short", "brand": "& Other Stories", "name": "Short Trench Coat", "price": "$199", "url": "https://www.stories.com/en-us/product/short-trench-coat-beige-1355129001/", "shelf": "Clothes", "scene": "rain", "w": 505, "h": 720, "src": "products/stories-trench-short.webp"}, {"id": "fp-earrings-drop", "brand": "Free People", "name": "Raye Hoop & Drop Earrings", "price": "$48", "url": "https://www.freepeople.com/shop/raye-hoop-and-drop-earrings/", "shelf": "Extras", "scene": "rooftop", "w": 535, "h": 661, "src": "products/fp-earrings-drop.webp"}, {"id": "ref-bag-beaded", "brand": "Reformation", "name": "Valentina Mini Beaded Bag", "price": "$268", "url": "https://www.thereformation.com/products/valentina-mini-beaded-bag/1318702SVD.html", "shelf": "Shoes & bags", "scene": "rooftop", "w": 569, "h": 720, "src": "products/ref-bag-beaded.webp"}, {"id": "ref-slingback-black", "brand": "Reformation", "name": "Calista Slingback Heel", "price": "$278", "url": "https://www.thereformation.com/products/calista-slingback-heel/1319641BCL.html", "shelf": "Shoes & bags", "scene": "rooftop", "w": 720, "h": 316, "src": "products/ref-slingback-black.webp"}, {"id": "stories-jacket-leather", "brand": "& Other Stories", "name": "Leather Biker Jacket", "price": "$349", "url": "https://www.stories.com/en-us/product/leather-biker-jacket-black-1324091001/", "shelf": "Clothes", "scene": "rooftop", "w": 699, "h": 720, "src": "products/stories-jacket-leather.webp"}, {"id": "stories-slipdress-lace", "brand": "& Other Stories", "name": "Lace Trim Slip Dress", "price": "$119", "url": "https://www.stories.com/en-us/product/lace-trim-slip-dress-dark-red-1345013001/", "shelf": "Clothes", "scene": "rooftop", "w": 366, "h": 720, "src": "products/stories-slipdress-lace.webp"}, {"id": "ref-molly-maude-clutch", "brand": "Reformation", "name": "Molly Maude Clutch", "price": "$298", "url": "https://www.thereformation.com/products/molly-maude-clutch/1320286UPN.html", "shelf": "Shoes & bags", "scene": "rooftop", "w": 705, "h": 422, "src": "products/ref-molly-maude-clutch.webp"}, {"id": "ref-velvet-magic-bag", "brand": "Reformation", "name": "Velvet Magic Bag", "price": "$298", "url": "https://www.thereformation.com/products/velvet-magic-bag/1321065BUV.html", "shelf": "Shoes & bags", "scene": "rooftop", "w": 474, "h": 720, "src": "products/ref-velvet-magic-bag.webp"}, {"id": "ref-paloma-tote", "brand": "Reformation", "name": "Paloma North South Tote", "price": "$598", "url": "https://www.thereformation.com/products/paloma-north-south-tote/1320377OEL.html", "shelf": "Shoes & bags", "scene": "rain", "w": 576, "h": 720, "src": "products/ref-paloma-tote.webp"}, {"id": "ref-lara-frame-bag", "brand": "Reformation", "name": "Lara Frame Bag", "price": "$548", "url": "https://www.thereformation.com/products/lara-frame-bag/1321052WKL.html", "shelf": "Shoes & bags", "scene": "cafe", "w": 654, "h": 720, "src": "products/ref-lara-frame-bag.webp"}, {"id": "ref-blaine-flat", "brand": "Reformation", "name": "Blaine Flat", "price": "$298", "url": "https://www.thereformation.com/products/blaine-flat/1319516ALR.html", "shelf": "Shoes & bags", "scene": "cafe", "w": 500, "h": 720, "src": "products/ref-blaine-flat.webp"}, {"id": "ref-dominique-knee-boot", "brand": "Reformation", "name": "Dominique Knee Boot", "price": "$498", "url": "https://www.thereformation.com/products/dominique-knee-boot/1318913WBH.html", "shelf": "Shoes & bags", "scene": "rain", "w": 498, "h": 720, "src": "products/ref-dominique-knee-boot.webp"}, {"id": "ref-event-pump", "brand": "Reformation", "name": "Event Pump", "price": "$298", "url": "https://www.thereformation.com/products/event-pump/1321094KAS.html", "shelf": "Shoes & bags", "scene": "rooftop", "w": 720, "h": 521, "src": "products/ref-event-pump.webp"}, {"id": "ref-phenomenal-boot", "brand": "Reformation", "name": "Phenomenal Boot", "price": "$548", "url": "https://www.thereformation.com/products/phenomenal-boot/1321091KSP.html", "shelf": "Shoes & bags", "scene": "rain", "w": 416, "h": 720, "src": "products/ref-phenomenal-boot.webp"}, {"id": "ref-rosa-earrings", "brand": "Reformation", "name": "Rosa Earrings", "price": "$198", "url": "https://www.thereformation.com/products/rosa-earrings/1319130GOL.html", "shelf": "Extras", "scene": "rooftop", "w": 565, "h": 720, "src": "products/ref-rosa-earrings.webp"}, {"id": "ref-dolores-tassel-earrings", "brand": "Reformation", "name": "Dolores Tassel Earrings", "price": "$168", "url": "https://www.thereformation.com/products/dolores-tassel-earrings/1319341GOL.html", "shelf": "Extras", "scene": "rooftop", "w": 315, "h": 720, "src": "products/ref-dolores-tassel-earrings.webp"}, {"id": "ref-mini-coco-necklace", "brand": "Reformation", "name": "Mini Coco Necklace", "price": "$198", "url": "https://www.thereformation.com/products/mini-coco-necklace/1319269GOL.html", "shelf": "Extras", "scene": "cafe", "w": 622, "h": 720, "src": "products/ref-mini-coco-necklace.webp"}, {"id": "ref-carmel-drop-earrings", "brand": "Reformation", "name": "Carmel Drop Earrings", "price": "$198", "url": "https://www.thereformation.com/products/carmel-drop-earrings/1319165GOL.html", "shelf": "Extras", "scene": "cafe", "w": 536, "h": 720, "src": "products/ref-carmel-drop-earrings.webp"}, {"id": "stories-floral-mini-dress", "brand": "& Other Stories", "name": "Drawstring Mini Dress", "price": "$99", "url": "https://www.stories.com/en-us/product/drawstring-mini-dress-yellowflorals-1341238001/", "shelf": "Clothes", "scene": "cafe", "w": 366, "h": 720, "src": "products/stories-floral-mini-dress.webp"}, {"id": "stories-smocked-midi-dress", "brand": "& Other Stories", "name": "Cotton Smocked Midi Dress", "price": "$119", "url": "https://www.stories.com/en-us/product/cotton-smocked-midi-dress-lilac-1340053003/", "shelf": "Clothes", "scene": "cafe", "w": 337, "h": 720, "src": "products/stories-smocked-midi-dress.webp"}, {"id": "stories-dot-dress", "brand": "& Other Stories", "name": "V-Neck Gathered Dress", "price": "$129", "url": "https://www.stories.com/en-us/product/v-neck-gathered-dress-dark-bluedots-1351717001/", "shelf": "Clothes", "scene": "cafe", "w": 361, "h": 720, "src": "products/stories-dot-dress.webp"}, {"id": "stories-vneck-top", "brand": "& Other Stories", "name": "Ribbed Wool V-Neck Top", "price": "$99", "url": "https://www.stories.com/en-us/product/ribbed-wool-v-neck-top-light-blue-1352801006/", "shelf": "Clothes", "scene": "cafe", "w": 500, "h": 720, "src": "products/stories-vneck-top.webp"}, {"id": "stories-long-trench", "brand": "& Other Stories", "name": "Oversized Double-Breasted Trench Coat", "price": "$259", "url": "https://www.stories.com/en-us/product/double-breasted-trench-coat-beige-1333461002/", "shelf": "Clothes", "scene": "rain", "w": 444, "h": 720, "src": "products/stories-long-trench.webp"}, {"id": "stories-peacoat", "brand": "& Other Stories", "name": "Wide-Collar Peacoat", "price": "$299", "url": "https://www.stories.com/en-us/product/wide-collar-peacoat-lilac-1357741001/", "shelf": "Clothes", "scene": "rain", "w": 608, "h": 720, "src": "products/stories-peacoat.webp"}, {"id": "stories-pink-jumper", "brand": "& Other Stories", "name": "Oversized Wool Jumper", "price": "$139", "url": "https://www.stories.com/en-us/product/oversized-wool-jumper-pink-1354407003/", "shelf": "Clothes", "scene": "rain", "w": 665, "h": 720, "src": "products/stories-pink-jumper.webp"}, {"id": "stories-velvet-mini-dress", "brand": "& Other Stories", "name": "Velvet Mini Dress", "price": "$129", "url": "https://www.stories.com/en-us/product/velvet-mini-dress-black-1347547001/", "shelf": "Clothes", "scene": "rooftop", "w": 489, "h": 720, "src": "products/stories-velvet-mini-dress.webp"}, {"id": "stories-tie-neck-dress", "brand": "& Other Stories", "name": "Tie-Neck Midi Dress", "price": "$169", "url": "https://www.stories.com/en-us/product/tie-neck-midi-dress-red-1365992001/", "shelf": "Clothes", "scene": "rooftop", "w": 359, "h": 720, "src": "products/stories-tie-neck-dress.webp"}, {"id": "stories-lace-turtleneck", "brand": "& Other Stories", "name": "Lace Turtleneck Top", "price": "$69", "url": "https://www.stories.com/en-us/product/lace-turtleneck-top-lilac-1344113004/", "shelf": "Clothes", "scene": "rooftop", "w": 425, "h": 720, "src": "products/stories-lace-turtleneck.webp"}, {"id": "stories-knit-scarf", "brand": "& Other Stories", "name": "Garter Knit Wool Scarf", "price": "$59", "url": "https://www.stories.com/en-us/product/garter-knit-wool-scarf-light-blue-1309745006/", "shelf": "Extras", "scene": "rain", "w": 241, "h": 720, "src": "products/stories-knit-scarf.webp"}, {"id": "stories-hair-claw", "brand": "& Other Stories", "name": "Medium Hair Claw", "price": "$35", "url": "https://www.stories.com/en-us/product/medium-hair-claw-blacktortoise-1326280003/", "shelf": "Extras", "scene": "cafe", "w": 720, "h": 674, "src": "products/stories-hair-claw.webp"}, {"id": "stories-cashmere-beanie", "brand": "& Other Stories", "name": "Cashmere Beanie", "price": "$69", "url": "https://www.stories.com/en-us/product/cashmere-beanie-red-1193325026/", "shelf": "Extras", "scene": "rain", "w": 720, "h": 688, "src": "products/stories-cashmere-beanie.webp"}, {"id": "mw-swan-sweater", "brand": "Madewell", "name": "The Mila Sweater in 100% SoftWool", "price": "$118", "url": "https://www.madewell.com/p/womens/clothing/sweaters/pullovers/the-mila-crewneck-in-100-softwool/OB334/", "shelf": "Clothes", "scene": "rain", "w": 561, "h": 720, "src": "products/mw-swan-sweater.webp"}, {"id": "mw-mauve-cardigan", "brand": "Madewell", "name": "The Sophia Cardigan in 100% SoftWool", "price": "$98", "url": "https://www.madewell.com/p/womens/clothing/sweaters/cardigans/the-sophia-cardigan-in-100-softwool/OB192/", "shelf": "Clothes", "scene": "cafe", "w": 545, "h": 720, "src": "products/mw-mauve-cardigan.webp"}, {"id": "mw-slip-skirt", "brand": "Madewell", "name": "Satin Maxi Slip Skirt", "price": "$118", "url": "https://www.madewell.com/p/womens/clothing/skirts/slip-skirts/satin-maxi-slip-skirt/OB239/", "shelf": "Clothes", "scene": "rooftop", "w": 372, "h": 720, "src": "products/mw-slip-skirt.webp"}, {"id": "mw-leather-bomber", "brand": "Madewell", "name": "Utility Bomber Jacket in Leather", "price": "$598", "url": "https://www.madewell.com/p/womens/clothing/jackets/leather-suede/utility-bomber-jacket-in-leather/OB109/", "shelf": "Clothes", "scene": "rooftop", "w": 716, "h": 720, "src": "products/mw-leather-bomber.webp"}, {"id": "mw-cocoon-coat", "brand": "Madewell", "name": "The Simone Cocoon Coat", "price": "$348", "url": "https://www.madewell.com/p/womens/clothing/jackets/coats/the-simone-cocoon-coat-in-boiled-wool/OB110/", "shelf": "Clothes", "scene": "rain", "w": 403, "h": 720, "src": "products/mw-cocoon-coat.webp"}, {"id": "mw-elena-dress", "brand": "Madewell", "name": "The Elena Midi Dress", "price": "$158", "url": "https://www.madewell.com/p/womens/clothing/dresses/occasion-dresses/the-elena-midi-dress/OB244/", "shelf": "Clothes", "scene": "rooftop", "w": 249, "h": 720, "src": "products/mw-elena-dress.webp"}, {"id": "mw-lace-midi", "brand": "Madewell", "name": "Lace-Insert Tie-Front Midi Dress", "price": "$178", "url": "https://www.madewell.com/p/womens/clothing/dresses/occasion-dresses/lace-insert-tie-front-midi-dress/OA949/", "shelf": "Clothes", "scene": "rooftop", "w": 299, "h": 720, "src": "products/mw-lace-midi.webp"}, {"id": "mw-boucle-cardigan", "brand": "Madewell", "name": "Oversized Bouclé Cardigan", "price": "$148", "url": "https://www.madewell.com/p/womens/clothing/sweaters/cardigans/oversized-boucleacute-cardigan/OB335/", "shelf": "Clothes", "scene": "rain", "w": 598, "h": 720, "src": "products/mw-boucle-cardigan.webp"}, {"id": "mw-red-pumps", "brand": "Madewell", "name": "The Edie Pump", "price": "$148", "url": "https://www.madewell.com/p/womens/shoes/heels/the-edie-pump/OB545/", "shelf": "Shoes & bags", "scene": "rooftop", "w": 720, "h": 644, "src": "products/mw-red-pumps.webp"}, {"id": "mw-glove-flats", "brand": "Madewell", "name": "The Freja Glove Ballet Flat", "price": "$128", "url": "https://www.madewell.com/p/womens/shoes/ballet-flats/the-freja-glove-ballet-flat/OB415/", "shelf": "Shoes & bags", "scene": "cafe", "w": 656, "h": 720, "src": "products/mw-glove-flats.webp"}, {"id": "mw-wristlet-bag", "brand": "Madewell", "name": "The Sculpted Metal Wristlet Bag", "price": "$128", "url": "https://www.madewell.com/p/womens/accessories/bags/mini-bags/the-sculpted-metal-wristlet-bag-in-suede/NW366/", "shelf": "Shoes & bags", "scene": "rooftop", "w": 456, "h": 720, "src": "products/mw-wristlet-bag.webp"}, {"id": "mw-oval-sunglasses", "brand": "Madewell", "name": "The Solina Oval Sunglasses", "price": "$75", "url": "https://www.madewell.com/p/womens/accessories/sunglasses/the-solina-oval-sunglasses/NZ918/", "shelf": "Extras", "scene": "cafe", "w": 720, "h": 241, "src": "products/mw-oval-sunglasses.webp"}, {"id": "fp-pintuck-blouse", "brand": "Free People", "name": "Thousand Pintucks Blouse", "price": "$198", "url": "https://www.freepeople.com/shop/thousand-pintucks-blouse/", "shelf": "Clothes", "scene": "cafe", "w": 720, "h": 698, "src": "products/fp-pintuck-blouse.webp"}, {"id": "fp-ruby-cardi", "brand": "Free People", "name": "Ruby Cotton Cardi", "price": "$148", "url": "https://www.freepeople.com/shop/ruby-cotton-cardi/", "shelf": "Clothes", "scene": "rain", "w": 505, "h": 720, "src": "products/fp-ruby-cardi.webp"}, {"id": "fp-mini-emerson", "brand": "Free People", "name": "We The Free Micro Emerson Mini Bag", "price": "$38", "url": "https://www.freepeople.com/shop/we-the-free-micro-emerson-mini-bag/", "shelf": "Shoes & bags", "scene": "cafe", "w": 620, "h": 720, "src": "products/fp-mini-emerson.webp"}, {"id": "fp-clogs", "brand": "Free People", "name": "Calli Clogs", "price": "$228", "url": "https://www.freepeople.com/shop/calli-clogs/", "shelf": "Shoes & bags", "scene": "cafe", "w": 720, "h": 380, "src": "products/fp-clogs.webp"}, {"id": "fp-lace-up-boots", "brand": "Free People", "name": "We The Free Bodhi Back-Lace Boots", "price": "$378", "url": "https://www.freepeople.com/shop/we-the-free-bodhi-back-lace-boots/", "shelf": "Shoes & bags", "scene": "rain", "w": 643, "h": 720, "src": "products/fp-lace-up-boots.webp"}, {"id": "fp-heeled-boots", "brand": "Free People", "name": "Sweet Talker Snip Toe Boots", "price": "$298", "url": "https://www.freepeople.com/shop/sweet-talker-snip-toe-boots/", "shelf": "Shoes & bags", "scene": "rooftop", "w": 567, "h": 720, "src": "products/fp-heeled-boots.webp"}, {"id": "fp-quilted-bag", "brand": "Free People", "name": "Quilted Carryall Bag", "price": "$78", "url": "https://www.freepeople.com/shop/quilted-carryall-bag/", "shelf": "Shoes & bags", "scene": "rain", "w": 541, "h": 720, "src": "products/fp-quilted-bag.webp"}, {"id": "fp-knit-bandana", "brand": "Free People", "name": "Carmen Knitted Triangle Bandana", "price": "$38", "url": "https://www.freepeople.com/shop/carmen-knitted-triangle-bandana/", "shelf": "Extras", "scene": "rain", "w": 445, "h": 720, "src": "products/fp-knit-bandana.webp"}, {"id": "fp-silk-bandana", "brand": "Free People", "name": "So Silk Printed Bandana", "price": "$48", "url": "https://www.freepeople.com/shop/so-silk-printed-bandana/", "shelf": "Extras", "scene": "cafe", "w": 713, "h": 720, "src": "products/fp-silk-bandana.webp"}, {"id": "fp-lace-headband", "brand": "Free People", "name": "Solana Lace Headband", "price": "$18", "url": "https://www.freepeople.com/shop/solana-lace-headband/", "shelf": "Extras", "scene": "cafe", "w": 720, "h": 313, "src": "products/fp-lace-headband.webp"}, {"id": "fp-rosette-clip", "brand": "Free People", "name": "Belle Rosette Claw Clip", "price": "$18", "url": "https://www.freepeople.com/shop/belle-rosette-claw-clip/", "shelf": "Extras", "scene": "cafe", "w": 720, "h": 657, "src": "products/fp-rosette-clip.webp"}, {"id": "fp-layered-necklace", "brand": "Free People", "name": "Isolde Layer Necklace", "price": "$48", "url": "https://www.freepeople.com/shop/isolde-layer-necklace/", "shelf": "Extras", "scene": "rooftop", "w": 602, "h": 720, "src": "products/fp-layered-necklace.webp"}, {"id": "fp-suede-hobo", "brand": "Free People", "name": "Serena Cinched Shoulder Bag", "price": "$148", "url": "https://www.freepeople.com/shop/serena-cinched-shoulder-bag/", "shelf": "Shoes & bags", "scene": "rain", "w": 577, "h": 720, "src": "products/fp-suede-hobo.webp"}];
@@ -1429,6 +1452,7 @@ function markSelection(){
   if (c) c.classList.add('sel');
   renderDock();
   renderItemBar();
+  renderBgBar();
   positionHandle();
 }
 // The pink resize dot sits above the page (not inside it), so page edges never cut it off
@@ -1459,7 +1483,12 @@ function positionHandle(){
   handle.querySelector('.rot-hint').style.transform = `rotate(${Math.atan2(hy - cy, hx - cx) * 180 / Math.PI}deg)`;
   handle.hidden = false;
 }
-function select(id){ if (selectedId === id) return; selectedId = id; markSelection(); }
+function select(id){ if (id && pageSel){ pageSel = false; selectedId = id; markSelection(); return; } if (selectedId === id) return; selectedId = id; markSelection(); }
+/* The page itself can be selected too: click an empty spot while the Background tab is open
+   (or tap one on a phone). Its own settings then sit beside it, like a selected piece's actions:
+   colors and gradients for a blank page, color strength for a painted or photo background. */
+let pageSel = false;
+function selectPage(on){ on = !!on && !onCover; if (on === pageSel && !(on && selectedId)) return; pageSel = on; if (on) selectedId = null; markSelection(); }
 
 /* =========================================================
    Gestures: one finger moves, two fingers pinch and turn,
@@ -1499,7 +1528,7 @@ function onHandleDown(e){
   moved = false;
   beginGesture('handle');
 }
-// On phones, a quick tap on the empty painting (nothing selected) opens the Background settings.
+// On phones, a quick tap on the empty painting (nothing selected) selects the page, and its background settings fill the dock.
 // If a piece is selected, the first tap just deselects it.
 let sceneTap = null;
 canvas.addEventListener('pointerdown', e => {
@@ -1507,8 +1536,10 @@ canvas.addEventListener('pointerdown', e => {
   sceneTap = null;
   if (selectedId && pointers.size >= 1){ pointers.set(e.pointerId, { x:e.clientX, y:e.clientY }); beginGesture(); }
   else if (!pointers.size){
-    if (!selectedId && !isDesk() && e.isPrimary) sceneTap = { x:e.clientX, y:e.clientY, t:Date.now() };
+    const hadItem = !!selectedId;
+    if (!hadItem && !isDesk() && e.isPrimary) sceneTap = { x:e.clientX, y:e.clientY, t:Date.now() };
     select(null);
+    if (isDesk() && !hadItem && panelTab === 'scene') selectPage(true);
   }
 });
 // Open on "click" (not pointerup) so the tap's own click can't land on the new overlay and close it
@@ -1516,10 +1547,10 @@ canvas.addEventListener('click', e => {
   const tap = sceneTap; sceneTap = null;
   if (!tap || isDesk()) return;
   if (Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 10 || Date.now() - tap.t > 500) return;
-  openView('scene');
+  selectPage(true);
 });
 canvas.addEventListener('pointercancel', () => { sceneTap = null; });
-stage.addEventListener('pointerdown', e => { if (e.target === stage) select(null); });
+stage.addEventListener('pointerdown', e => { if (e.target === stage){ select(null); selectPage(false); } });
 
 addEventListener('pointermove', e => {
   if (!pointers.has(e.pointerId)) return;
@@ -1614,6 +1645,13 @@ const isFlipped = () => card.classList.contains('flipped');
 function renderDock(){
   const dock = $('#dock'); dock.innerHTML = ''; dock.className = 'dock';
   if (isDesk()) return;
+  if (pageSel && !onCover){
+    dock.classList.add('items', 'bg');
+    const sc = el('div', 'scroller'); sc.append(bgControls('dock'));
+    const done = el('button', 'done'); done.innerHTML = icon('check', 2.2); done.setAttribute('aria-label', 'Done'); done.onclick = () => selectPage(false);
+    dock.append(sc, done);
+    return;
+  }
   if (isFlipped()){
     dock.append(dockBtn('Nudge', 'spark', nudge), dockBtn('Collage', 'flipback', () => flip(false), { main:true }), el('span', 'dock-btn spacer'));
     return;
@@ -1667,7 +1705,7 @@ function renderItemBar(){
   positionItemBar();
 }
 function positionItemBar(){
-  positionHandle();
+  positionHandle(); if (typeof positionBgBar === 'function') positionBgBar();
   if (itemBar.hidden) return;
   const c = els.get(selectedId); if (!c) return;
   const r = c.getBoundingClientRect(), sr = stage.getBoundingClientRect();
@@ -1681,6 +1719,81 @@ function positionItemBar(){
 }
 addEventListener('resize', positionItemBar);
 stage.addEventListener('scroll', positionItemBar);
+
+// The selected page's background settings (desktop: a bar beside the page; phones: the dock)
+const bgBar = el('div', 'item-bar bg-bar'); bgBar.id = 'bgBar'; bgBar.hidden = true;
+bgBar.setAttribute('role', 'toolbar'); bgBar.setAttribute('aria-label', 'Page background');
+itemBar.after(bgBar);
+const BG_NAMES = ['White', 'Cream', 'Blush', 'Peach', 'Butter', 'Sage', 'Sky', 'Lilac', 'Ink'];
+function setBg(bg, live){
+  const p = page(); p.scene = 'blank'; p.bg = cleanBg(bg);
+  const sc = canvas.querySelector('.scene'); if (sc) sc.style.background = bgCss(p.bg);
+  if (live) return;
+  track('pick_background_color', { bg:BG_GRADIENTS[p.bg] ? p.bg : 'color' });
+  commit(); renderRail(); markSelection(); if (isDesk() && panelTab === 'scene') renderPanel();
+}
+function bgControls(where){
+  const f = document.createDocumentFragment(), p = page();
+  if (!isBlank(p)){
+    // Painted or photo backgrounds: how much color they show
+    const strength = el('label', 'slider bg-strength');
+    const range = el('input'); range.type = 'range'; range.min = 0; range.max = 180; range.step = 5; range.value = Math.round(satOf(p) * 100);
+    const ends = el('span', 'ends'); ends.append(el('span', null, 'Less color'), el('span', null, 'More color'));
+    strength.append(el('span', null, 'Color'), range, ends);
+    let t;
+    range.oninput = () => {
+      p.sat = +range.value / 100;
+      const sc = canvas.querySelector('img.scene'); if (sc) sc.style.filter = `saturate(${p.sat})`;
+      clearTimeout(t); t = setTimeout(() => { commit(); renderRail(); }, 400);
+    };
+    f.append(strength); return f;
+  }
+  const cur = cleanBg(p.bg);
+  const swatch = (bg, label) => {
+    const b = el('button', 'bg-sw'); b.style.background = bgCss(bg); b.setAttribute('aria-label', label); b.title = label;
+    b.setAttribute('aria-pressed', String(cur === bg)); b.onclick = () => setBg(bg); return b;
+  };
+  const group = (title, label, items) => {
+    const row = el('div', 'bg-row'); row.setAttribute('role', 'group'); row.setAttribute('aria-label', label); row.append(...items);
+    if (where === 'dock') return row;
+    const g = el('div', 'bg-group'); g.append(el('h4', null, title), row); return g;
+  };
+  const colors = BG_COLORS.map((c, i) => swatch(c, BG_NAMES[i]));
+  // Any color: the + opens the color picker
+  const custom = !BG_GRADIENTS[cur] && !BG_COLORS.includes(cur);
+  const any = el('label', 'bg-sw any'); any.title = 'Pick any color';
+  if (custom){ any.style.background = cur; any.classList.add('on'); }
+  any.innerHTML = icon('plus', 2);
+  const inp = el('input'); inp.type = 'color'; inp.value = custom ? cur.toLowerCase() : '#f6d9e3'; inp.setAttribute('aria-label', 'Pick any color');
+  inp.oninput = () => { setBg(inp.value, true); any.style.background = inp.value; };
+  inp.onchange = () => setBg(inp.value);
+  any.append(inp); colors.push(any);
+  const grads = Object.entries(BG_GRADIENTS).map(([k, g]) => swatch(k, g.name));
+  f.append(group('Gradients', 'Page gradients', grads));
+  if (where === 'dock') f.append(el('span', 'bg-div'));
+  f.append(group('Colors', 'Page colors', colors));
+  return f;
+}
+function renderBgBar(){
+  card.classList.toggle('page-sel', pageSel && !onCover);
+  bgBar.innerHTML = '';
+  if (!isDesk() || !pageSel || onCover){ bgBar.hidden = true; return; }
+  bgBar.append(bgControls('bar'));
+  bgBar.hidden = false;
+  positionBgBar();
+}
+function positionBgBar(){
+  if (bgBar.hidden) return;
+  const r = card.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+  const st = stage.scrollTop, sl = stage.scrollLeft, bw = bgBar.offsetWidth, bh = bgBar.offsetHeight;
+  let left = r.right - sr.left + sl + 12;
+  if (left + bw > sl + stage.clientWidth - 4) left = r.left - sr.left + sl - bw - 12; // no room on the right? go left
+  left = clamp(left, sl + 4, sl + stage.clientWidth - bw - 4);
+  const top = clamp(r.top - sr.top + st, st + 8, st + stage.clientHeight - bh - 8);
+  bgBar.style.left = left + 'px'; bgBar.style.top = top + 'px';
+}
+addEventListener('resize', positionBgBar);
+stage.addEventListener('scroll', positionBgBar);
 
 /* Desktop zoom: "Fit" makes the whole page fit the window; zoom in for detail work */
 let zoom = 1;
@@ -1868,6 +1981,7 @@ $('#sheetClose').innerHTML = icon('close'); $('#sheetClose').onclick = closeShee
 
 function setTab(kind){
   panelTab = kind;
+  if (kind !== 'scene' && pageSel) selectPage(false);
   renderTabs();
   renderPanel();
 }
@@ -1883,7 +1997,7 @@ function renderTabs(){
   });
 }
 function enterCover(){
-  onCover = true; selectedId = null; card.classList.remove('flipped');
+  onCover = true; selectedId = null; pageSel = false; card.classList.remove('flipped');
   shelf = 'Cover pieces';
   if (isDesk()) panelTab = 'add';
   renderAll();
@@ -2238,58 +2352,27 @@ function fillStory(box){ box.append($('#storyBlock')); renderStory(); }
 
 /* ---------- Scenes ---------- */
 function fillScenes(box){
-  const strength = el('label', 'slider');
-  const range = el('input'); range.type = 'range'; range.id = 'sceneColor'; range.min = 0; range.max = 180; range.step = 5; range.value = Math.round(satOf(page()) * 100);
-  const ends = el('span', 'ends'); ends.append(el('span', null, 'Less color'), el('span', null, 'More color'));
-  strength.append(el('span', null, 'Color'), range, ends);
-  let t;
-  range.oninput = () => {
-    page().sat = +range.value / 100;
-    const f = `saturate(${page().sat})`;
-    const sc = canvas.querySelector('img.scene'); if (sc) sc.style.filter = f;
-    box.querySelectorAll('.scene-opt img.scene').forEach(i => i.style.filter = f);
-    clearTimeout(t); t = setTimeout(() => { commit(); renderRail(); }, 400);
-  };
   const grid = el('div', 'scene-grid');
-  const pickScene = id => { track('pick_scene', { scene:SCENES[id] ? id : 'yours' }); page().scene = id; if (!isDesk()) closeSheet(); renderFront(); commit(); renderRail(); refreshViews(); };
+  const pickScene = id => {
+    track('pick_scene', { scene:SCENES[id] ? id : 'yours' });
+    const p = page();
+    if (id === 'blank'){ if (!isBlank(p)) p.bg = 'default'; } // a page that was already blank keeps its color
+    p.scene = id;
+    if (!isDesk()) closeSheet();
+    selectPage(true); renderFront(); commit(); renderRail(); refreshViews();
+  };
   const opt = (id, name) => {
     const b = el('button', 'scene-opt');
-    b.setAttribute('aria-pressed', String(page().scene === id));
-    const m = el('div', 'mini'); m.innerHTML = sceneMarkup(id, satOf(page()));
+    const on = id === 'blank' ? isBlank(page()) : page().scene === id;
+    b.setAttribute('aria-pressed', String(on));
+    const m = el('div', 'mini'); m.innerHTML = sceneMarkup(id, satOf(page()), id === 'blank' && on ? page().bg : 'default');
     b.append(m, el('span', null, name));
     b.onclick = () => pickScene(id);
     grid.append(b);
   };
   SCENE_LIST.forEach(sc => opt(sc.id, sc.name));
   [...USER.values()].filter(u => u.kind === 'scene').forEach(u => opt(u.id, u.name || 'Your background'));
-  box.append(strength, grid);
-  // Plain colors and gradients
-  const cur = page().scene === 'color' ? cleanBg(page().bg) : null;
-  const pickBg = (bg, keepOpen) => { track('pick_scene', { scene:'color' }); page().scene = 'color'; page().bg = cleanBg(bg); if (!isDesk() && !keepOpen) closeSheet(); renderFront(); commit(); renderRail(); refreshViews(); };
-  const swatch = (bg, label) => {
-    const b = el('button', 'bg-sw'); b.style.background = bgCss(bg); b.setAttribute('aria-label', label); b.title = label;
-    b.setAttribute('aria-pressed', String(cur === bg)); b.onclick = () => pickBg(bg); return b;
-  };
-  const colors = el('div', 'sec'); colors.append(el('h3', null, 'Colors'));
-  const crow = el('div', 'bg-row'); crow.setAttribute('role', 'group'); crow.setAttribute('aria-label', 'Page colors');
-  const NAMES = ['White', 'Cream', 'Blush', 'Peach', 'Butter', 'Sage', 'Sky', 'Lilac', 'Ink'];
-  BG_COLORS.forEach((c, i) => crow.append(swatch(c, NAMES[i])));
-  // Any color: the + opens the color picker
-  const custom = !!cur && !BG_GRADIENTS[cur] && !BG_COLORS.includes(cur);
-  const any = el('label', 'bg-sw any'); any.title = 'Pick any color';
-  if (custom){ any.style.background = cur; any.classList.add('on'); }
-  any.innerHTML = icon('plus', 2);
-  const inp = el('input'); inp.type = 'color'; inp.value = custom ? cur.toLowerCase() : '#f6d9e3'; inp.setAttribute('aria-label', 'Pick any color');
-  let live;
-  inp.oninput = () => { page().scene = 'color'; page().bg = cleanBg(inp.value); const sc = canvas.querySelector('.scene'); if (sc) sc.style.background = page().bg; any.style.background = page().bg; clearTimeout(live); live = setTimeout(() => { commit(); renderRail(); }, 300); };
-  inp.onchange = () => pickBg(inp.value, true);
-  any.append(inp); crow.append(any);
-  colors.append(crow);
-  const grads = el('div', 'sec'); grads.append(el('h3', null, 'Gradients'));
-  const grow = el('div', 'bg-row'); grow.setAttribute('role', 'group'); grow.setAttribute('aria-label', 'Page gradients');
-  Object.entries(BG_GRADIENTS).forEach(([k, g]) => grow.append(swatch(k, g.name)));
-  grads.append(grow);
-  box.append(colors, grads);
+  box.append(grid);
   // Pictures saved with the Kamira Clipper can be a whole scene too
   const clips = [...USER.values()].filter(clipOriginal).reverse();
   const sec = el('div', 'sec'); sec.append(el('h3', null, 'From the Kamira Clipper'));
@@ -2650,7 +2733,7 @@ function fillPages(box){
   box.append(grid);
 }
 function goToPage(i){
-  book.current = clamp(i, 0, book.pages.length - 1); selectedId = null;
+  book.current = clamp(i, 0, book.pages.length - 1); selectedId = null; pageSel = false;
   if (onCover){ onCover = false; if (shelf === 'Cover pieces') shelf = null; }
   card.classList.remove('flipped');
   renderAll();
@@ -2834,8 +2917,8 @@ async function renderPageImage(p, cover){
     x.save(); x.setLineDash([U * .8, U * .6]); x.strokeStyle = LIGHT_MATS.includes(book.cover.material) ? 'rgba(60,40,24,.32)' : 'rgba(255,255,255,.3)'; x.lineWidth = Math.max(2, U * .12);
     x.strokeRect(W * .095, H * .036, W * (1 - .095 - .036), H * (1 - .072)); x.restore();
   } else {
-    if (p.scene === 'color') paintBg(x, p.bg, W, H); else { x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, H); }
-    const src = p.scene === 'color' ? null : sceneSrc(p.scene);
+    if (isBlank(p)) paintBg(x, p.bg, W, H); else { x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, H); }
+    const src = isBlank(p) ? null : sceneSrc(p.scene);
     if (src){
       const im = await loadImage(src).catch(() => null);
       if (im){
@@ -4154,7 +4237,7 @@ addEventListener('keydown', e => {
     if (e.key === 'Escape') closeReader();
     return;
   }
-  if (e.key === 'Escape'){ if (sheetKind) closeSheet(); else select(null); return; }
+  if (e.key === 'Escape'){ if (sheetKind) closeSheet(); else { select(null); selectPage(false); } return; }
   if (!reader.hidden) return;
   if (mod && e.key.toLowerCase() === 'z' && !typing){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && e.key.toLowerCase() === 'y' && !typing){ e.preventDefault(); redo(); return; }
