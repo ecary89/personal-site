@@ -64,7 +64,7 @@ body{ display:flex; flex-direction:column; }
 .topnote-btn:focus-visible{ outline-color:#FFFFFF; }
 .app{ flex:1; min-height:0; width:100%; display:flex; flex-direction:column; max-width:480px; margin:0 auto; padding-inline:16px; }
 .topbar{ display:flex; align-items:center; gap:10px; padding-block:12px 4px; }
-.wordmark{ isolation:isolate; display:none; align-items:center; gap:2px; font-family:var(--logo); font-weight:400; font-size:26px; letter-spacing:-.01em; text-decoration:none; color:var(--ink); position:relative; padding-left:6px; }
+.wordmark{ -webkit-text-stroke:.025em currentColor; isolation:isolate; display:none; align-items:center; gap:2px; font-family:var(--logo); font-weight:400; font-size:26px; letter-spacing:-.01em; text-decoration:none; color:var(--ink); position:relative; padding-left:6px; }
 /* The logo's torn paper dot: the same soft pink-to-blue glow as a blank page, kept faint for depth */
 .wordmark{ --logo-dot:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2054%2054%22%3E%3Cdefs%3E%3CradialGradient%20id=%22p%22%20cx=%2228%25%22%20cy=%2218%25%22%20r=%2280%25%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%23FCDCE6%22/%3E%3Cstop%20offset=%22.55%22%20stop-color=%22%23F7C7D7%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23F1C2D3%22/%3E%3C/radialGradient%3E%3CradialGradient%20id=%22b%22%20cx=%2278%25%22%20cy=%2282%25%22%20r=%2255%25%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%23C9D9F0%22%20stop-opacity=%22.55%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%23C9D9F0%22%20stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath%20id=%22t%22%20d=%22M27%202%20L33%204%20L38%203%20L43%208%20L48%2011%20L49%2017%20L52%2023%20L50%2029%20L52%2035%20L47%2041%20L45%2047%20L38%2049%20L32%2052%20L26%2050%20L19%2052%20L14%2047%20L8%2045%20L6%2038%20L2%2032%20L4%2026%20L2%2019%20L7%2014%20L9%208%20L16%206%20L21%202%20Z%22%20fill=%22url%28%23p%29%22/%3E%3Cpath%20d=%22M27%202%20L33%204%20L38%203%20L43%208%20L48%2011%20L49%2017%20L52%2023%20L50%2029%20L52%2035%20L47%2041%20L45%2047%20L38%2049%20L32%2052%20L26%2050%20L19%2052%20L14%2047%20L8%2045%20L6%2038%20L2%2032%20L4%2026%20L2%2019%20L7%2014%20L9%208%20L16%206%20L21%202%20Z%22%20fill=%22url%28%23b%29%22/%3E%3C/svg%3E"); }
 .wordmark::before{ content:""; position:absolute; left:-6px; top:2px; width:32px; height:32px;
@@ -104,7 +104,7 @@ body{ display:flex; flex-direction:column; }
 .menu-pop{ position:fixed; z-index:75; min-width:240px; background:var(--bg); border-radius:14px; padding:8px; box-shadow:0 12px 32px rgba(17,17,17,.16), 0 0 0 1px rgba(17,17,17,.06); }
 .menu-pop .menu-row{ padding:10px 12px; }
 /* Alpha tag: sits over the top-right corner of the logo */
-.alpha-tag{ position:absolute; top:-7px; right:-30px; background:var(--pop); color:#fff; font-family:var(--ui); font-size:11px; font-weight:500; line-height:1; letter-spacing:.02em; padding:3px 6px 4px; border-radius:999px; transform:rotate(4deg); }
+.alpha-tag{ -webkit-text-stroke:0; position:absolute; top:-7px; right:-30px; background:var(--pop); color:#fff; font-family:var(--ui); font-size:11px; font-weight:500; line-height:1; letter-spacing:.02em; padding:3px 6px 4px; border-radius:999px; transform:rotate(4deg); }
 .wordmark:has(.alpha-tag){ margin-right:24px; }
 .alpha-note{ display:flex; gap:10px; align-items:flex-start; background:var(--surface); border-radius:12px; padding:12px 14px; }
 .soon-tag{ position:static; transform:none; align-self:center; font-size:12px; padding:4px 9px 5px; }
