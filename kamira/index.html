@@ -1209,12 +1209,24 @@ function loadBookInto(b){
   book.cover = migrateCover(b.cover);
   onCover = false;
 }
+/* Kamira open in more than one tab? Your pictures stay the same in all of them:
+   a tab tells the others when one changes, and saving keeps whichever copy is newer. */
+const tabs = (() => { try { return new BroadcastChannel('kamira'); } catch (e){ return null; } })();
+const newer = (a, b) => !b || (a.t || 0) > (b.t || 0);
+function shareUser(u){ try { tabs && tabs.postMessage({ type:'user', u }); } catch (e){} }
+if (tabs) tabs.onmessage = e => {
+  const m = e.data; if (!m || m.type !== 'user' || !m.u || !m.u.id) return;
+  if (!newer(m.u, USER.get(m.u.id))) return;
+  USER.set(m.u.id, m.u);
+  renderFront(); refreshViews();
+};
 let saveTimer;
 function scheduleSave(){
   clearTimeout(saveTimer);
   $('#saveState').textContent = 'Saving…';
-  saveTimer = setTimeout(() => {
+  saveTimer = setTimeout(async () => {
     syncLibrary();
+    try { const s = await DB.get('state'); (s && s.user || []).forEach(u => { if (u && u.id && newer(u, USER.get(u.id))) USER.set(u.id, u); }); } catch (e){}
     DB.set('state', { v:2, active:book.id, books:library, user:[...USER.values()] })
       .then(() => { $('#saveState').textContent = 'Saved'; })
       .catch(() => { $('#saveState').textContent = ''; });
@@ -1536,11 +1548,15 @@ function itemActions(it){
   if (it.type === 'word') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
   if (it.type === 'wood') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
   if (it.type === 'title') acts.push({ id:'edit', label:'Title style', icon:'pen', view:'titleStyle' });
+  const mine = it.type === 'photo' && USER.get(it.value);
+  if (mine && mine.cut && mine.orig && !mine.kind) acts.push({ id:'recut', label:'Edit cutout', icon:'wand',
+    open:() => gate(() => openCutter(mine.orig, mine, mine.id, { edit:true, state:mine.cutState })) });
   acts.push({ id:'remove', label:'Remove', icon:'trash', key:'Delete', danger:true, run:() => { items.splice(i, 1); selectedId = null; } });
   return acts;
 }
 function doAction(a){
   if (a.view){ openView(a.view); return; }
+  if (a.open){ a.open(); return; }
   const newId = a.run();
   renderFront(typeof newId === 'number' ? newId : undefined);
   commit();
@@ -1568,7 +1584,7 @@ function renderDock(){
   if (it){
     dock.classList.add('items');
     const sc = el('div', 'scroller');
-    const order = ['shop', 'remove', 'copy', 'mirror', 'shadow', 'edit', 'forward', 'back'];
+    const order = ['shop', 'remove', 'copy', 'recut', 'mirror', 'shadow', 'edit', 'forward', 'back'];
     itemActions(it).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
       .forEach(a => sc.append(dockBtn(a.label, a.icon, () => doAction(a), { disabled:a.disabled, danger:a.danger, pressed:a.pressed })));
     const done = el('button', 'done'); done.innerHTML = icon('check', 2.2); done.setAttribute('aria-label', 'Done'); done.onclick = () => select(null);
@@ -1594,7 +1610,7 @@ function renderItemBar(){
   if (!isDesk() || !it){ itemBar.hidden = true; return; }
   itemActions(it).forEach((a, k, all) => {
     const prev = all[k - 1];
-    if (a.id === 'remove' || ((a.id === 'edit' || a.id === 'shop') && prev && prev.id === 'copy')) itemBar.append(el('span', 'bar-sep'));
+    if (a.id === 'remove' || ((a.id === 'edit' || a.id === 'recut' || a.id === 'shop') && prev && prev.id === 'copy')) itemBar.append(el('span', 'bar-sep'));
     const b = el('button', 'bar-btn' + (a.danger ? ' danger' : '') + (a.id === 'shop' ? ' wide' : ''));
     b.innerHTML = a.id === 'shop' ? icon('bag') + 'Shop' + (shopInfo(it).price ? ' ' + shopInfo(it).price : '')
       : icon(a.icon) + `<span class="tip">${a.label}${a.key ? ' (' + a.key + ')' : ''}</span>`;
@@ -2240,7 +2256,7 @@ function openSceneFile(file){
       const x = cv.getContext('2d'); x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, H); x.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
       let src = cv.toDataURL('image/webp', .86); if (!src.startsWith('data:image/webp')) src = cv.toDataURL('image/jpeg', .86);
       const id = 's_' + uid();
-      USER.set(id, { id, src, kind:'scene', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your scene', source:'upload', cut:true });
+      USER.set(id, { id, src, kind:'scene', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your scene', source:'upload', cut:true, t:Date.now() }); shareUser(USER.get(id));
       page().scene = id;
       renderFront(); commit(); renderRail(); refreshViews(); scheduleSave();
       toast('Scene added');
@@ -2436,7 +2452,7 @@ printInput.onchange = e => {
       cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
       let src = cv.toDataURL('image/webp', .86); if (!src.startsWith('data:image/webp')) src = cv.toDataURL('image/jpeg', .86);
       const id = 'p_' + uid();
-      USER.set(id, { id, src, kind:'print', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your photo', source:'upload', cut:true });
+      USER.set(id, { id, src, kind:'print', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your photo', source:'upload', cut:true, t:Date.now() }); shareUser(USER.get(id));
       addItem({ type:'polaroid', value:id, size:30 });
       scheduleSave();
     };
@@ -3244,7 +3260,7 @@ let cutJob = null;           // the picture being cut out right now
 const queue = [];            // more pictures waiting their turn
 const loadImg = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
 
-async function openCutter(src, meta = {}, existingId = null){
+async function openCutter(src, meta = {}, existingId = null, opts = {}){
   try {
     const img = await loadImg(src);
     const max = 1100, k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
@@ -3253,7 +3269,13 @@ async function openCutter(src, meta = {}, existingId = null){
     const ctx = work.getContext('2d', { willReadFrequently:true });
     ctx.drawImage(img, 0, 0, w, h);
     const original = ctx.getImageData(0, 0, w, h);
-    cutJob = { src, meta, existingId, original, w, h, mode:hasClearEdges(original) ? 'keep' : 'remove', tol:34, out:null };
+    cutJob = { src, meta, existingId, original, w, h, mode:hasClearEdges(original) ? 'keep' : 'remove', tol:34, out:null, edit:!!opts.edit };
+    // Editing a cutout? Start from how it was made last time.
+    const s = opts.state;
+    if (s){
+      cutJob.mode = s.mode || cutJob.mode; cutJob.tol = s.tol || 34; if (s.q) cutJob.q = s.q;
+      if (s.path && s.path.length > 5){ cutJob.path = s.path.map(([x, y]) => ({ x:x * w, y:y * h })); cutJob.pathId = 1; cutJob.paint = null; cutJob.tool = 'add'; cutJob.brush = 22; cutJob.history = []; }
+    }
     openView('cutter');
   } catch (e){ toast("That picture couldn't be opened. Try a JPG or PNG."); nextQueued(); }
 }
@@ -3435,6 +3457,7 @@ async function loadAI(onProgress){
     if (!window.ort) await loadScript('ai/ort.wasm.min.js');
     ort.env.wasm.wasmPaths = new URL('ai/', location.href).href;
     ort.env.wasm.numThreads = 1;
+    ort.env.wasm.proxy = true; // do the heavy work off to the side, so the page never freezes
     const url = new URL('ai/silueta.onnx', location.href).href;
     let cache = null, bytes = null;
     try { cache = await caches.open('kamira-ai-1'); const hit = await cache.match(url); if (hit) bytes = new Uint8Array(await hit.arrayBuffer()); } catch (e){}
@@ -3676,7 +3699,15 @@ function fillCutter(box){
   row.append(cancel, add);
   if (desk){ const side = el('div', 'cut-side'); side.append(opts); wrap.append(prev, side); box.append(wrap, row); }
   else { box.append(prev, opts, row); }
-  sync(); runCut(cv);
+  sync();
+  // Show the photo right away, then work out the cutout a beat later
+  cv.width = j.w; cv.height = j.h; cv.getContext('2d').putImageData(j.original, 0, 0);
+  requestAnimationFrame(() => setTimeout(() => { if (cutJob === j) runCut(cv); }, 0));
+}
+// The photo a cutout was made from (kept small), so it can be edited again later
+function keepOriginal(j){
+  const c = document.createElement('canvas'); c.width = j.w; c.height = j.h; c.getContext('2d').putImageData(j.original, 0, 0);
+  const s = c.toDataURL('image/webp', .88); return s.startsWith('data:image/webp') ? s : c.toDataURL('image/png');
 }
 function finishCut(){
   track('make_cutout', { mode:cutJob && cutJob.mode });
@@ -3690,10 +3721,15 @@ function finishCut(){
   if (!src.startsWith('data:image/webp')) src = j.out.toDataURL('image/png');
   const id = j.existingId || 'u_' + uid();
   const prev = USER.get(id) || {};
-  USER.set(id, { ...prev, ...pickMeta(j.meta), id, src, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload' });
+  const cutState = { mode:j.mode, q:j.q, tol:j.tol, path:j.path ? j.path.filter((p, i) => i % Math.ceil(j.path.length / 300) === 0).map(p => [+(p.x / j.w).toFixed(4), +(p.y / j.h).toFixed(4)]) : null };
+  const u = { ...prev, ...pickMeta(j.meta), id, src, orig:prev.orig || keepOriginal(j), cutState, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload', t:Date.now() };
+  if (prev.name && !j.meta.name) u.name = prev.name;
+  USER.set(id, u); shareUser(u);
   const ratio = j.out.height / j.out.width;
   closeSheet();
-  addItem({ type:'photo', value:id, size:clamp(Math.round(30 / Math.max(1, ratio * .8)), 12, 40) });
+  refreshViews(); // so Your cutouts shows the new cutout, not the old photo
+  if (j.edit){ renderFront(); toast('Cutout updated'); }
+  else addItem({ type:'photo', value:id, size:clamp(Math.round(30 / Math.max(1, ratio * .8)), 12, 40) });
   scheduleSave();
 }
 const pickMeta = m => ({ name:m.name || null, brand:m.brand || null, price:m.price || null, url:m.url || null });
@@ -3746,8 +3782,8 @@ addEventListener('message', e => {
     const it = m.item, id = 'w_' + it.id;
     if (!USER.has(id)){
       USER.set(id, { id, src:it.dataUrl, orig:it.dataUrl, w:it.width, h:it.height, cut:!!it.cut, source:'web',
-        name:it.name || it.pageTitle || null, brand:it.brand || it.siteName || null, price:it.price && it.price.text || null, url:it.pageUrl || null });
-      scheduleSave();
+        name:it.name || it.pageTitle || null, brand:it.brand || it.siteName || null, price:it.price && it.price.text || null, url:it.pageUrl || null, t:Date.now() });
+      shareUser(USER.get(id)); scheduleSave();
       // A picture saved with the Clipper arrived. "site" is just the website's name (like reformation.com), never the full link.
       // Find it in Google Analytics under Events > clipper_save.
       let site = it.siteName || 'unknown'; try { if (it.pageUrl) site = new URL(it.pageUrl).hostname.replace(/^www\./, ''); } catch (err){}
