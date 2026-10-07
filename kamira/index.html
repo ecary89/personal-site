@@ -2438,7 +2438,7 @@ let shelf = null, textFont = 'hand', textInk = 'ink', addQuery = '';
 const SHELVES = ['For this background', 'Objects', 'People', 'Decorations', 'Text', 'Your cutouts'];
 const COVER_SHELVES = ['Cover pieces', 'Objects', 'People', 'Decorations', 'Text', 'Your cutouts'];
 const SHELF_ORDER = { 'Clothes':0, 'Shoes & bags':1, 'Extras':2 };
-const closedSecs = new Set(); // accordion sections the person folded away
+const closedSecs = new Set(['decor']); // accordion sections that are folded away (Home decor starts folded, under Fashion)
 function shopTile(p){ const props = { type:'photo', value:p.id, size:START_SIZE[p.shelf] || 20 }; const t = tile(p.src, p.brand, p.price, null, props); t.setAttribute('aria-label', `Add ${p.name} from ${p.brand}`); t.onclick = () => addItem(props); return t; }
 function figTile(f){ const size = f.kind === 'stickers' ? 10 : f.kind === 'flowers' ? 9 : f.style === 'croquis' ? 12 : 22; const props = { type:'photo', value:f.id, size }; const t = tile(f.src, f.name, '', null, props); t.setAttribute('aria-label', 'Add ' + f.name); t.onclick = () => addItem(props); return t; }
 function mineTile(u){
@@ -2512,8 +2512,8 @@ function fillAdd(box){
 function shelfContent(box, forScene){
   if (shelf === 'For this background') box.append(gridOf(forScene.map(shopTile)));
   else if (shelf === 'Objects'){
-    accordion(box, 'decor', 'Home decor', b => b.append(gridOf(DECOR.map(shopTile))));
     accordion(box, 'fashion', 'Fashion', b => b.append(gridOf([...PRODUCTS].sort((a, c) => SHELF_ORDER[a.shelf] - SHELF_ORDER[c.shelf]).map(shopTile))));
+    accordion(box, 'decor', 'Home decor', b => b.append(gridOf(DECOR.map(shopTile))));
   }
   else if (shelf === 'People'){
     box.append(gridOf(FIGURES.filter(f => f.kind === 'people').map(figTile)));
