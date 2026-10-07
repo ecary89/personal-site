@@ -3097,13 +3097,45 @@ function fillShare(box){
     const so = el('div', 'share-out');
     const post = el('a', 'btn'); post.href = `https://www.reddit.com/r/${SUBREDDIT}/submit`; post.target = '_blank'; post.rel = 'noopener';
     post.innerHTML = icon('reddit') + `Post to r/${SUBREDDIT}`;
-    post.addEventListener('click', () => track('share_reddit', { what:shareWhat() }));
+    // One click: the picture goes on the clipboard and Reddit opens with the title and words filled in.
+    // On phones, the share sheet opens with the picture attached instead, so it can go straight to the Reddit app.
+    post.addEventListener('click', e => {
+      const out = shareOut, title = ((p.title || '').trim() || (book.title || '').trim() || 'My Kamira page').slice(0, 300);
+      const body = (asText() ? out && out.text : redditBody()) || '';
+      post.href = `https://www.reddit.com/r/${SUBREDDIT}/submit?title=${encodeURIComponent(title)}&text=${encodeURIComponent(body.slice(0, 3000))}`;
+      const img = out && out.kind === 'image' && out.png;
+      track('share_reddit', { what:shareWhat(), how:img && phoneShare(img) ? 'share_sheet' : img ? 'copy_and_open' : 'open' });
+      if (!img) return;
+      const file = new File([img], `${title.replace(/[\\/:*?"<>|]+/g, '')}.png`, { type:'image/png' });
+      if (phoneShare(img)){
+        e.preventDefault();
+        navigator.share({ files:[file], title, text:`r/${SUBREDDIT}` }).catch(() => {});
+        return;
+      }
+      // Start the copy while this tab still has focus; the link then opens Reddit in a new tab
+      try {
+        navigator.clipboard.write([new ClipboardItem({ 'image/png':img })])
+          .then(() => toast('Picture copied. Paste it into your Reddit post.', null, 6000))
+          .catch(() => toast('Couldn\'t copy the picture. Use Download, then add it to your post.', null, 6000));
+      } catch (err){ toast('Couldn\'t copy the picture. Use Download, then add it to your post.', null, 6000); }
+    });
     const postWrap = el('div', 'share-post'); postWrap.append(post, el('p', null, 'Our alpha product community'));
     so.append(el('h3', null, 'Share with others'), acts, postWrap);
     right.append(so);
   }
   const wrap = el('div', 'share-wrap'); wrap.append(left, right); box.append(wrap);
 
+  function redditBody(){
+    // The words that go under the picture: the story and items when they're switched on
+    // The page title is already the post title, so it isn't repeated in the words
+    let t = shareText(p, cover); const title = (p.title || '').trim();
+    if (s.story && title && t.startsWith(title)) t = t.slice(title.length).replace(/^\n+/, '');
+    return t;
+  }
+  function phoneShare(png){
+    try { return matchMedia('(pointer: coarse)').matches && !!navigator.canShare && navigator.canShare({ files:[new File([png], 'p.png', { type:'image/png' })] }); }
+    catch (e){ return false; }
+  }
   function shareWhat(){ return [s.picture && 'picture', parts.story && s.story && 'story', parts.items && s.items && 'items'].filter(Boolean).join('+') + (asText() ? ':text' : ''); }
   function asText(){ return !s.picture && s.as === 'text'; }
   function update(){
@@ -3129,6 +3161,7 @@ function fillShare(box){
       const im = new Image(); im.src = URL.createObjectURL(blob); im.alt = 'Preview of what you\'ll share';
       prev.innerHTML = ''; prev.append(im); prev.classList.remove('busy');
       shareOut = { kind:'image', canvas:cv, blob }; copy.disabled = save.disabled = false;
+      const ready = shareOut; cv.toBlob(png => { if (ready === shareOut) ready.png = png; }, 'image/png');
     }).catch(() => { if (job !== shareJob) return; prev.classList.remove('busy'); prev.innerHTML = ''; prev.append(el('p', null, 'Sorry, that picture couldn\'t be made. Try again in a moment.')); });
   }
   async function shareAct(kind, btn){
