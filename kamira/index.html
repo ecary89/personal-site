@@ -3167,7 +3167,7 @@ function fillShare(box){
   async function shareAct(kind, btn){
     if (!shareOut) return;
     // First time: the support prompt, then back here to finish what they tapped
-    if (!supporter && !supportSeen){ gate(() => { openView('share'); setTimeout(() => { const b = sheetBody.querySelector(kind === 'copy' ? '.share-acts .btn:not(.primary)' : '.share-acts .btn.primary'); b && b.click(); }, 400); }, 'Kamira is a passion project built with love.'); return; }
+    if (!supporter && !supportSeen){ gate(() => { openView('share'); setTimeout(() => { const b = sheetBody.querySelector(kind === 'copy' ? '.share-acts .btn:first-child' : '.share-acts .btn:last-child'); b && b.click(); }, 400); }, 'Kamira is a passion project built with love.'); return; }
     const what = shareWhat(), out = shareOut;
     track(kind === 'copy' ? 'share_copy' : 'share_save', { what, where:cover ? 'cover' : 'page' });
     const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}`.replace(/[\\/:*?"<>|]+/g, '');
