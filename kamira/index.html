@@ -632,6 +632,9 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .share-out{ display:flex; flex-direction:column; gap:12px; padding-top:16px; border-top:1px solid var(--line); }
 .share-out h3{ margin:0; font-size:16px; font-weight:600; }
 .share-out .btn{ height:48px; font-size:15px; }
+.share-ctrls h3{ margin:0; font-size:16px; font-weight:600; }
+.share-post{ display:flex; flex-direction:column; gap:8px; }
+.share-post p{ margin:0; text-align:center; font-size:13px; color:var(--muted); }
 @media (min-width:1024px){
   .sheet.sharew{ width:min(920px, calc(100vw - 48px)); }
   .share-wrap{ display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:24px; align-items:start; }
@@ -1040,6 +1043,7 @@ const ICONS = {
   lasso:   '<path d="M7 15c-2.5-1-4-2.7-4-4.8C3 6.7 7 4 12 4s9 2.7 9 6.2-4 6.3-9 6.3c-1 0-2-.1-2.9-.3"/><path d="M8 15.5c0 1.6-1 3-2.5 3.5 1 .8 2.5 1 3.5.2"/>',
   brush:   '<path d="M14 4l6 6-8.5 8.5a3 3 0 0 1-4.2 0l-1.8-1.8a3 3 0 0 1 0-4.2Z"/><path d="M4 20c1.5 0 3-.5 3.5-2"/>',
   eraser:  '<path d="m7 20-4-4 10-10 7 7-7 7Z"/><path d="M20 20H7"/>',
+  reddit:  '<ellipse cx="12" cy="14.5" rx="7.5" ry="5.5"/><circle cx="4.6" cy="11.6" r="1.6"/><circle cx="19.4" cy="11.6" r="1.6"/><path d="M12 9l1.4-4.6 4.1 1"/><circle cx="19" cy="5.6" r="1.4"/><circle cx="9.2" cy="13.8" r=".6" fill="currentColor"/><circle cx="14.8" cy="13.8" r=".6" fill="currentColor"/><path d="M9.4 17q2.6 1.6 5.2 0"/>',
   people:  '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M16.5 14.5c2.3 0 4 1.4 4.5 4"/>'
 };
 // Analytics: sends an event to Google Analytics when the page has it (the portfolio build does; Claude doesn't)
@@ -2940,7 +2944,6 @@ function fillProfile(box){
    With the picture on, everything becomes one image. With it off, the story and items can be an
    image or plain text. The preview redraws every time a switch changes, so what you see is what
    gets copied or saved. */
-const KAMIRA_URL = 'https://erikacary.com/kamira/';
 const SUBREDDIT = 'kamiraCreators';               // r/kamiraCreators: where people share what they made
 let shareSoonTapped = false;
 const shareState = { picture:true, story:true, items:true, as:'image' };
@@ -2967,7 +2970,7 @@ function shareText(p, cover){
     lines.push('Items on this page');
     items.forEach(a => lines.push(`- ${[a.brand, a.name].filter(Boolean).join(', ') || 'From the web'}${a.price ? ' (' + a.price + ')' : ''}\n  ${a.url}`));
   }
-  lines.push('', 'Made with Kamira ' + KAMIRA_URL);
+  lines.push('', 'Made with Kamira');
   return lines.join('\n');
 }
 
@@ -3048,9 +3051,9 @@ async function renderShareImage(p, cover){
       if (a.price){ x.fillStyle = '#111111'; x.font = '500 28px Figtree, system-ui, sans-serif'; x.fillText(a.price, cx, cy + THUMB + 104); }
     });
   }
-  // A small sign-off so people can find their way back
-  x.fillStyle = '#555555'; x.font = '400 28px Figtree, system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.fillText('Made with Kamira · erikacary.com/kamira', W / 2, cv.height - FOOT / 2);
+  // A quiet sign-off, light enough to stay out of the way
+  x.fillStyle = '#C4BFB8'; x.font = '400 24px Figtree, system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText('Made with Kamira', W / 2, cv.height - FOOT / 2);
   return cv;
 }
 
@@ -3081,21 +3084,22 @@ function fillShare(box){
   const asSeg = el('div', 'seg share-as'); asSeg.setAttribute('role', 'group'); asSeg.setAttribute('aria-label', 'Format');
   const asBtn = (v, label) => { const b = el('button', null, label); b.dataset.v = v; b.onclick = () => { s.as = v; update(); }; return b; };
   asSeg.append(asBtn('image', 'Image'), asBtn('text', 'Text'));
-  const ctrls = el('div', 'share-ctrls'); ctrls.append(inc, asSeg);
+  const ctrls = el('div', 'share-ctrls'); ctrls.append(el('h3', null, 'Include the following in the export'), inc, asSeg);
 
   const copy = el('button', 'btn'), save = el('button', 'btn primary');
   const acts = el('div', 'share-acts'); acts.append(copy, save);
   copy.onclick = () => shareAct('copy', copy); save.onclick = () => shareAct('save', save);
 
   const left = el('div', 'share-left'); left.append(prev);
-  const right = el('div', 'share-right'); right.append(ctrls, acts);
+  const right = el('div', 'share-right'); right.append(ctrls);
   // Share with others: the subreddit
   {
     const so = el('div', 'share-out');
     const post = el('a', 'btn'); post.href = `https://www.reddit.com/r/${SUBREDDIT}/submit`; post.target = '_blank'; post.rel = 'noopener';
-    post.innerHTML = icon('people') + `Post to r/${SUBREDDIT}`;
+    post.innerHTML = icon('reddit') + `Post to r/${SUBREDDIT}`;
     post.addEventListener('click', () => track('share_reddit', { what:shareWhat() }));
-    so.append(el('h3', null, 'Share with others'), post);
+    const postWrap = el('div', 'share-post'); postWrap.append(post, el('p', null, 'Our alpha product community'));
+    so.append(el('h3', null, 'Share with others'), acts, postWrap);
     right.append(so);
   }
   const wrap = el('div', 'share-wrap'); wrap.append(left, right); box.append(wrap);
@@ -3109,7 +3113,7 @@ function fillShare(box){
     chips.forEach(b => b.setAttribute('aria-pressed', String(!!s[b.dataset.key])));
     asSeg.hidden = s.picture;
     [...asSeg.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === (asText() ? 'text' : 'image'))));
-    copy.innerHTML = icon('copy') + 'Copy'; save.innerHTML = icon('download') + 'Save';
+    copy.innerHTML = icon('copy') + 'Copy'; save.innerHTML = icon('download') + 'Download';
     copy.disabled = save.disabled = true; shareOut = null;
     const job = ++shareJob;
     if (asText()){
@@ -3135,7 +3139,7 @@ function fillShare(box){
     track(kind === 'copy' ? 'share_copy' : 'share_save', { what, where:cover ? 'cover' : 'page' });
     const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}`.replace(/[\\/:*?"<>|]+/g, '');
     if (out.kind === 'text'){
-      if (kind === 'save') return saveBlob(new Blob([out.text], { type:'text/plain' }), name + '.txt', 'Text saved');
+      if (kind === 'save') return saveBlob(new Blob([out.text], { type:'text/plain' }), name + '.txt', 'Text downloaded');
       try { await navigator.clipboard.writeText(out.text); done(btn); }
       catch (e){ toast('Your browser didn\'t allow copying. Try Save instead.', null, 4000); }
       return;
