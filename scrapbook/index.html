@@ -492,7 +492,7 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .cut-chip{ position:absolute; left:12px; top:12px; display:flex; align-items:center; gap:6px; background:rgba(17,17,17,.82); color:#fff; font-size:13px; font-weight:500; border-radius:999px; padding:5px 11px 5px 9px; pointer-events:none; }
 .cut-chip svg{ width:16px; height:16px; }
 .cut-ring{ position:absolute; border-radius:50%; border:2px solid #111; box-shadow:0 0 0 2px #fff; transform:translate(-50%, -50%); pointer-events:none; }
-.cut-wrap.desk{ display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:20px; align-items:start; }
+.cut-wrap.desk{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; align-items:start; }
 .cut-wrap.desk .cut-preview{ height:min(470px, 58vh); max-height:none; }
 .cut-wrap.desk .cut-preview canvas{ max-height:calc(min(470px, 58vh) - 28px); }
 .cut-opts{ display:flex; flex-direction:column; gap:6px; }
@@ -507,7 +507,9 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .cut-ob .hint{ margin:0; font-size:13px; }
 .cut-ob .slider{ font-size:13px; }
 .lasso-body{ display:flex; flex-direction:column; gap:10px; }
-.lasso-body > .btn{ align-self:flex-start; height:32px; padding:0 12px; font-size:13px; }
+.lasso-end{ display:flex; gap:6px; align-items:center; }
+.lasso-end .btn{ height:34px; padding:0 12px; font-size:13px; }
+.lasso-body .tools .tool{ flex:1; justify-content:center; padding:0 6px; white-space:nowrap; }
 .tools{ display:flex; gap:4px; flex-wrap:wrap; }
 .tool{ display:inline-flex; align-items:center; gap:5px; height:34px; padding:0 8px; border-radius:10px; border:1.5px solid var(--line); background:var(--bg); font:500 13px var(--ui); color:var(--ink); }
 .tool svg{ width:17px; height:17px; }
@@ -519,7 +521,7 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .cut-phone .cut-sub{ margin:0; }
 .cut-foot{ margin-top:16px; }
 @media (max-width:1023px){ .cut-foot{ position:sticky; bottom:-4px; background:var(--bg); padding-top:10px; } .cut-foot .btn{ flex:1; height:48px; justify-content:center; } }
-@media (min-width:1024px){ .sheet.cutw{ width:min(780px, calc(100vw - 48px)); } }
+@media (min-width:1024px){ .sheet.cutw{ width:min(820px, calc(100vw - 48px)); } }
 
 /* ---------- Scrapbook covers: hard materials with a few paper pieces on top ---------- */
 :root{
@@ -3132,13 +3134,14 @@ function fillCutter(box){
         const tools = el('div', 'tools');
         const undo = el('button', 'tool'); undo.innerHTML = icon('undo'); undo.setAttribute('aria-label', 'Undo last brush stroke');
         undo.onclick = () => { if (!j.history.length) return; j.paint = j.history.pop(); runCut(cv); sync(); };
-        tools.append(tool('brush', 'Add back', 'add'), tool('eraser', 'Erase', 'erase'), undo);
+        tools.append(tool('brush', 'Keep more', 'add'), tool('eraser', 'Remove more', 'erase'));
         const size = el('label', 'slider brush-size');
         const r = el('input'); r.type = 'range'; r.min = 6; r.max = 70; r.value = j.brush; r.oninput = () => { j.brush = +r.value; };
         size.append(el('span', null, 'Brush size'), r);
-        const again = el('button', 'btn', 'Draw again');
+        const again = el('button', 'btn', 'Reset');
         again.onclick = () => { j.path = null; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync(); };
-        f.append(tools, size, el('p', 'hint', 'Paint over anything it missed, or erase what it kept.'), again);
+        const endRow = el('div', 'lasso-end'); endRow.append(again, undo);
+        f.append(tools, el('p', 'hint', 'Keep more paints back parts it cut off. Remove more erases parts it kept.'), size, endRow);
         f.dataset.after = '1';
         return f;
       } },
