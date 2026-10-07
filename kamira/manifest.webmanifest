@@ -1,0 +1,29 @@
+{
+  "id": "/kamira/",
+  "name": "Kamira",
+  "short_name": "Kamira",
+  "description": "Make scrapbook pages with cutouts, scenes and your own stories.",
+  "start_url": "/kamira/",
+  "scope": "/kamira/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "/kamira/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/kamira/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/kamira/app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "/kamira/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        { "name": "image", "accept": ["image/*", ".jpg", ".jpeg", ".png", ".webp", ".gif"] }
+      ]
+    }
+  }
+}
