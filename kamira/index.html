@@ -1114,6 +1114,8 @@ const SCENE_LIST = [
   { id:'blank',   name:'Blank page' }
 ];
 const SCENES = Object.fromEntries(SCENE_LIST.map(sc => [sc.id, sc]));
+// Load the painted backgrounds once up front, so switching to one shows it right away
+const SCENE_PRELOAD = SCENE_LIST.filter(sc => sc.src).map(sc => { const i = new Image(); i.src = sc.src; if (i.decode) i.decode().catch(() => {}); return i; });
 // A scene can be a painted one, one you uploaded, or a picture saved with the Clipper
 // (for those we use the full original picture, even if you've cut it out since)
 const clipOriginal = u => u && u.source === 'web' ? (u.orig || (!u.cut ? u.src : null)) : null;
@@ -1459,7 +1461,11 @@ const canvas = $('#canvas'), card = $('#card'), stage = $('#stage');
 const els = new Map();
 
 function renderFront(newId){
+  // Keep the same background picture in place when it hasn't changed, so it doesn't blink while it reloads
+  const oldScene = canvas.querySelector('img.scene');
   canvas.innerHTML = onCover ? `<div class="scene cover-bg mat-${book.cover.material}"><div class="cover-stitch"></div></div>` : sceneMarkup(page().scene, satOf(page()), page().bg);
+  const newScene = canvas.querySelector('img.scene');
+  if (oldScene && newScene && oldScene.getAttribute('src') === newScene.getAttribute('src')){ oldScene.setAttribute('style', newScene.getAttribute('style') || ''); newScene.replaceWith(oldScene); }
   $('#curlFront').hidden = onCover;
   els.clear();
   page().items.forEach(it => {
