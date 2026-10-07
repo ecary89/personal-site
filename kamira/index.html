@@ -512,7 +512,12 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .q-seg{ display:flex; align-self:stretch; }
 .q-seg button{ flex:1; padding:7px 10px; font-size:13.5px; }
 .q-note{ margin:0; }
-.cut-wait{ position:absolute; left:50%; bottom:14px; transform:translateX(-50%); background:rgba(17,17,17,.84); color:#fff; font-size:13px; font-weight:500; border-radius:999px; padding:7px 14px; white-space:nowrap; pointer-events:none; }
+.cut-wait{ position:absolute; inset:0; z-index:4; display:grid; place-items:center; background:rgba(255,255,255,.6); backdrop-filter:blur(2px) saturate(.7); -webkit-backdrop-filter:blur(2px) saturate(.7); cursor:progress; border-radius:inherit; }
+.cut-wait[hidden]{ display:none; }
+.cut-wait-pill{ display:flex; align-items:center; gap:10px; background:#111; color:#fff; font-size:15px; font-weight:600; border-radius:999px; padding:12px 20px; box-shadow:0 8px 24px rgba(0,0,0,.18); max-width:calc(100% - 32px); text-align:center; }
+.cut-wait-pill .spin{ flex:none; width:16px; height:16px; border-radius:50%; border:2.5px solid rgba(255,255,255,.3); border-top-color:#fff; animation:cutspin .8s linear infinite; }
+@keyframes cutspin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){ .cut-wait-pill .spin{ animation-duration:2.4s; } }
 .cut-ob .hint{ margin:0; font-size:13px; }
 .cut-ob .slider{ font-size:13px; }
 .lasso-body{ display:flex; flex-direction:column; gap:10px; }
@@ -3560,7 +3565,8 @@ function runCut(cv){
   const note = cv.parentElement && cv.parentElement.querySelector('.cut-wait');
   if (note){
     note.hidden = !wait;
-    const say = () => { note.textContent = AI.session ? 'Finding the edges…' : AI.got ? `Getting the best quality ready · ${Math.round(AI.got / 1e6)} of ${Math.round(AI.total / 1e6)} MB` : 'Getting the best quality ready…'; };
+    if (wait){ const lp = cv.parentElement.querySelector('.cut-loupe'), rg = cv.parentElement.querySelector('.cut-ring'); if (lp) lp.hidden = true; if (rg) rg.hidden = true; }
+    const say = () => { note.querySelector('.t').textContent = AI.session ? 'Finding the edges…' : AI.got ? `Getting the best quality ready · ${Math.round(AI.got / 1e6)} of ${Math.round(AI.total / 1e6)} MB` : 'Getting the best quality ready…'; };
     say();
     if (wait) runAI(j, j.mode === 'remove' ? 'whole' : 'loop', () => { if (cutJob === j) runCut(cv); }).catch(() => {});
     if (wait && !AI.session) loadAI(say).then(say).catch(() => {});
@@ -3576,6 +3582,8 @@ function fillCutter(box){
   const ring = el('div', 'cut-ring'); ring.hidden = true;
   const loupe = el('canvas', 'cut-loupe'); loupe.hidden = true; loupe.setAttribute('aria-hidden', 'true');
   const wait = el('div', 'cut-wait'); wait.hidden = true; wait.setAttribute('role', 'status');
+  wait.innerHTML = '<div class="cut-wait-pill"><span class="spin" aria-hidden="true"></span><span class="t"></span></div>';
+  wait.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); });
   prev.append(cv, chip, ring, loupe, wait);
 
   // Controls for each mode
