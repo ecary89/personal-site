@@ -881,13 +881,13 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 </div>
 <div class="app">
   <header class="topbar">
-    <button class="wordmark home-btn" id="homeBtn" aria-label="Your scrapbooks" title="Your scrapbooks">kamira<span class="alpha-tag" aria-hidden="true">Alpha</span></button>
+    <button class="wordmark home-btn" id="homeBtn" aria-label="Your profile" title="Your profile">kamira<span class="alpha-tag" aria-hidden="true">Alpha</span></button>
     <span class="divider desk-only" aria-hidden="true"></span>
     <div class="book-name">
       <div class="title-row">
         <h1 id="bookTitle">The Rainy Season</h1>
-        <input id="titleInput" class="title-input" maxlength="48" aria-label="Scrapbook name" autocomplete="off" hidden>
-        <button class="icon-btn title-edit" id="titleEdit" aria-label="Rename scrapbook" title="Rename"></button>
+        <input id="titleInput" class="title-input" maxlength="48" aria-label="Name" autocomplete="off" hidden>
+        <button class="icon-btn title-edit" id="titleEdit" aria-label="Rename" title="Rename"></button>
       </div>
       <button class="page-pill phone-only" id="pagePill" aria-label="Show all pages"></button>
       <span class="page-pill desk-only" id="pageCount"></span>
@@ -898,7 +898,7 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
     <button class="icon-btn" id="menuBtn" aria-label="More options" title="More"></button>
     <button class="pill-btn" id="readBtn"></button>
     <button class="pill-btn share-btn desk-only" id="shareBtn" aria-label="Share"></button>
-    <button class="avatar-btn" id="profileBtn" aria-label="Your scrapbooks" title="Your scrapbooks"></button>
+    <button class="avatar-btn" id="profileBtn" aria-label="Your profile" title="Your profile"></button>
   </header>
 
   <div class="workspace">
@@ -955,12 +955,12 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 
 <div class="reader" id="reader" hidden>
   <div class="reader-top">
-    <button class="wordmark reader-home" id="readerHome" aria-label="Your scrapbooks" title="Your scrapbooks">kamira<span class="alpha-tag" aria-hidden="true">Alpha</span></button>
+    <button class="wordmark reader-home" id="readerHome" aria-label="Your profile" title="Your profile">kamira<span class="alpha-tag" aria-hidden="true">Alpha</span></button>
     <i class="divider" aria-hidden="true"></i>
     <div class="reader-title"><b id="readerTitle"></b><span id="readerCount"></span></div>
     <button class="pill-btn" id="closeReader"></button>
     <button class="pill-btn share-btn" id="readerShare" aria-label="Share"></button>
-    <button class="avatar-btn" id="readerProfile" aria-label="Your scrapbooks" title="Your scrapbooks"></button>
+    <button class="avatar-btn" id="readerProfile" aria-label="Your profile" title="Your profile"></button>
   </div>
   <div class="reader-col">
     <div class="book" id="book"></div>
@@ -1192,7 +1192,7 @@ let library = [];
 const snapBook = () => ({ id:book.id, title:book.title, pages:book.pages, cover:book.cover, current:book.current, updated:Date.now() });
 function syncLibrary(){ const b = snapBook(), i = library.findIndex(x => x.id === b.id); if (i < 0) library.unshift(b); else library[i] = b; }
 function loadBookInto(b){
-  book.id = b.id || newBookId(); book.title = b.title || 'Untitled scrapbook';
+  book.id = b.id || newBookId(); book.title = b.title || 'Untitled';
   book.pages = b.pages && b.pages.length ? b.pages : [{ scene:'cafe', title:'', story:'', items:[] }];
   book.current = clamp(b.current || 0, 0, book.pages.length - 1);
   nextId = Math.max(nextId, 1 + Math.max(0, ...book.pages.flatMap(p => p.items.map(i => i.id)), ...((b.cover && b.cover.items) || []).map(i => i.id)));
@@ -1232,26 +1232,26 @@ function openBook(id){
 function newScrapbook(){
   track('new_scrapbook', { scrapbooks:library.length + 1 });
   syncLibrary();
-  loadBookInto({ id:newBookId(), title:'Untitled scrapbook', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
+  loadBookInto({ id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
   syncLibrary();
   afterSwitch();
-  toast('New scrapbook started. Find all of yours under your profile.');
+  toast('Started a new one. Find all of yours under your profile.');
 }
 // Delete the open scrapbook, then open the most recent one left (or a fresh blank one)
 function deleteBook(){
-  const gone = book.id, title = book.title || 'Untitled scrapbook';
+  const gone = book.id, title = book.title || 'Untitled';
   track('delete_scrapbook', { scrapbooks_left:library.filter(b => b.id !== gone).length });
   library = library.filter(b => b.id !== gone);
   const next = [...library].sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
-  loadBookInto(next || { id:newBookId(), title:'Untitled scrapbook', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
+  loadBookInto(next || { id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
   afterSwitch();
   toast(`Deleted "${title}"`);
 }
 function fillDeleteBook(box){
   const n = book.pages.length;
-  box.append(el('p', 'lede', `"${book.title || 'Untitled scrapbook'}" and ${n === 1 ? 'its page' : 'all ' + n + ' pages'} will be erased from this browser. You can't undo this.`));
+  box.append(el('p', 'lede', `"${book.title || 'Untitled'}" and ${n === 1 ? 'its page' : 'all ' + n + ' pages'} will be erased from this browser. You can't undo this.`));
   const cancel = el('button', 'btn', 'Cancel'); cancel.onclick = closeSheet;
-  const del = el('button', 'btn dark'); del.innerHTML = icon('trash') + 'Delete scrapbook'; del.onclick = deleteBook;
+  const del = el('button', 'btn dark'); del.innerHTML = icon('trash') + 'Delete'; del.onclick = deleteBook;
   const row = el('div', 'row-end'); row.append(cancel, del); box.append(row);
 }
 function afterSwitch(){
@@ -1735,7 +1735,7 @@ function gate(next, why){
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
@@ -1878,7 +1878,7 @@ let communityTapped = false;
 function fillCommunity(box){
   const art = el('div', 'support-art'); art.innerHTML = icon('people', 1.6);
   const tag = el('span', 'alpha-tag soon-tag', 'Coming soon');
-  box.append(art, tag, el('p', 'lede', 'Soon you\'ll be able to read scrapbooks other people made, and share yours with them. Thanks for tapping. It tells us this is worth building.'));
+  box.append(art, tag, el('p', 'lede', 'Soon you\'ll be able to read what other people made, and share yours with them. Thanks for tapping. It tells us this is worth building.'));
   const ok = el('button', 'btn primary', 'Got it'); ok.onclick = closeSheet;
   const actions = el('div', 'support-actions'); actions.append(ok);
   box.append(actions);
@@ -2123,14 +2123,14 @@ function setCoverMaterial(id){
 function fillTitleStyle(box){
   const it = selItem(); if (!it || it.type !== 'title'){ closeSheet(); return; }
   const nameSec = el('div', 'sec'); nameSec.append(el('h3', null, 'Name'));
-  const input = el('input', 'field'); input.id = 'coverName'; input.value = book.title; input.maxLength = 48; input.setAttribute('aria-label', 'Scrapbook name');
+  const input = el('input', 'field'); input.id = 'coverName'; input.value = book.title; input.maxLength = 48; input.setAttribute('aria-label', 'Name');
   let t;
   input.oninput = () => {
     const v = input.value.trim(); if (!v) return;
     book.title = v; $('#bookTitle').textContent = v; renderFront();
     clearTimeout(t); t = setTimeout(() => { commit(); renderRail(); }, 600);
   };
-  nameSec.append(input, el('p', 'hint', 'This is your scrapbook\'s name, so it changes at the top too.'));
+  nameSec.append(input);
   const styleSec = el('div', 'sec'); styleSec.append(el('h3', null, 'Style'));
   const g = el('div', 'piece-grid');
   TITLE_STYLES.forEach(ts => {
@@ -2153,7 +2153,7 @@ function fillWelcome(box){
     el('p', 'hint', 'Pick a scene, add the pieces that fit, and say what happens. Start with the sample, or begin your own.'));
   // Alpha note: work lives only in this browser
   const note = el('div', 'alpha-note');
-  note.append(el('span', 'alpha-tag', 'Alpha'), el('p', null, 'This is an early version. Your scrapbooks are saved only in this browser, so clearing your browser history erases them. To keep a page, save it as an image from Share.'));
+  note.append(el('span', 'alpha-tag', 'Alpha'), el('p', null, 'This is an early version. Everything you make is saved only in this browser, so clearing your browser history erases it. To keep a page, save it as an image from Share.'));
   box.append(note);
   const row = el('div', 'row-end');
   const look = el('button', 'btn', 'Look around'), mine = el('button', 'btn primary', 'Start my own');
@@ -2906,7 +2906,7 @@ function fillExport(box){
   const save = el('button', 'btn primary'); save.innerHTML = icon('download') + 'Save picture'; save.disabled = true;
   const row = el('div', 'row-end'); const close = el('button', 'btn', 'Close'); close.onclick = closeSheet; row.append(close, save);
   box.append(prev, row, el('p', 'hint', isDesk() ? 'Saves a high-resolution JPG of this page.' : 'Or press and hold the picture to save it to your photos.'));
-  const name = `${book.title || 'scrapbook'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}.jpg`.replace(/[\\/:*?"<>|]+/g, '');
+  const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}.jpg`.replace(/[\\/:*?"<>|]+/g, '');
   renderPageImage(p, cover).then(cv => new Promise(res => cv.toBlob(res, 'image/jpeg', .92))).then(blob => {
     if (!blob) throw new Error('no image');
     const im = new Image(); im.src = URL.createObjectURL(blob); im.alt = 'Your page as a picture';
@@ -2920,14 +2920,14 @@ function fillProfile(box){
   syncLibrary();
   const head = el('div', 'profile-head');
   const av = el('span', 'avatar big'); av.innerHTML = icon('user', 1.8);
-  const who = el('div'); who.append(el('b', null, 'You'), el('span', null, `${library.length} ${library.length === 1 ? 'scrapbook' : 'scrapbooks'} · saved in this browser`));
+  const who = el('div'); who.append(el('b', null, 'You'), el('span', null, 'Saved in this browser'));
   head.append(av, who);
   const grid = el('div', 'shelf-grid');
-  const add = el('button', 'shelf-card'); const t = el('div', 'new-page shelf-new'); t.innerHTML = icon('plus') + '<span>New scrapbook</span>';
+  const add = el('button', 'shelf-card'); const t = el('div', 'new-page shelf-new'); t.innerHTML = icon('plus') + '<span>Start a new one</span>';
   add.append(t); add.onclick = newScrapbook; grid.append(add);
   [...library].sort((a, b) => (b.id === book.id) - (a.id === book.id) || (b.updated || 0) - (a.updated || 0)).forEach(b => {
     const c = el('button', 'shelf-card'); if (b.id === book.id) c.setAttribute('aria-current', 'true');
-    c.append(coverThumb(b.cover, b.title), el('span', 'shelf-title', b.title || 'Untitled scrapbook'),
+    c.append(coverThumb(b.cover, b.title), el('span', 'shelf-title', b.title || 'Untitled'),
       el('small', null, (b.id === book.id ? 'Open now · ' : '') + `${b.pages.length} ${b.pages.length === 1 ? 'page' : 'pages'}`));
     c.onclick = () => openBook(b.id);
     grid.append(c);
@@ -3133,7 +3133,7 @@ function fillShare(box){
     if (!supporter && !supportSeen){ gate(() => { openView('share'); setTimeout(() => { const b = sheetBody.querySelector(kind === 'copy' ? '.share-acts .btn:not(.primary)' : '.share-acts .btn.primary'); b && b.click(); }, 400); }, 'Kamira is a passion project built with love.'); return; }
     const what = shareWhat(), out = shareOut;
     track(kind === 'copy' ? 'share_copy' : 'share_save', { what, where:cover ? 'cover' : 'page' });
-    const name = `${book.title || 'scrapbook'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}`.replace(/[\\/:*?"<>|]+/g, '');
+    const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}`.replace(/[\\/:*?"<>|]+/g, '');
     if (out.kind === 'text'){
       if (kind === 'save') return saveBlob(new Blob([out.text], { type:'text/plain' }), name + '.txt', 'Text saved');
       try { await navigator.clipboard.writeText(out.text); done(btn); }
@@ -3163,7 +3163,7 @@ function clipperBtn(){
 function menuItems(){
   const items = [];
   if (!isDesk()) items.push({ icon:'share', label:'Share', run:() => openView('share') });
-  items.push({ icon:'trash', label:'Delete scrapbook', run:() => openView('deleteBook') });
+  items.push({ icon:'trash', label:'Delete', run:() => openView('deleteBook') });
   items.push({ icon:'download', label:'Get the Kamira Clipper', run:() => openView('clipper') });
   return items;
 }
@@ -3625,7 +3625,7 @@ function newLeaf(cls){
 let endTracked = false;
 function openReader(){
   track('open_reader', { pages:book.pages.length }); endTracked = false;
-  $('#readerTitle').textContent = book.title || 'Untitled scrapbook';
+  $('#readerTitle').textContent = book.title || 'Untitled';
   select(null);
   bookEl.innerHTML = ''; leaves = []; leafAt = 0; turning = false;
   const cov = newLeaf('solo cover-leaf');
