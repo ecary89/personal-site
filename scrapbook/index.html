@@ -9,9 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Coming+Soon&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Figtree:wght@400;500;600;700&family=Kalam:wght@400;700&family=Pinyon+Script&family=Special+Elite&display=swap" rel="stylesheet">
 <meta name="robots" content="noindex, nofollow">
-<link rel="manifest" href="/scrapbook/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/scrapbook/app/apple-touch-icon.png">
-<meta name="theme-color" content="#FFFFFF">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Y1BEF1E44"></script>
 <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-9Y1BEF1E44', { page_path:'/scrapbook/', page_title:'Scrapbook (alpha)' });</script>
 </head>
@@ -78,7 +75,7 @@ body{ display:flex; flex-direction:column; }
 .icon-btn:hover{ background:var(--surface); }
 .icon-btn:disabled{ opacity:.3; cursor:default; background:none; }
 .icon-btn svg{ width:21px; height:21px; }
-.avatar-btn{ width:36px; height:36px; flex:none; border-radius:50%; border:1px solid var(--ink); padding:0; display:grid; place-items:center; background:transparent; color:var(--ink); }
+.avatar-btn{ width:36px; height:36px; flex:none; border-radius:50%; border:none; padding:0; display:grid; place-items:center; background:var(--accent-soft); color:var(--accent); }
 .avatar-btn svg{ width:20px; height:20px; }
 .profile-head{ display:flex; align-items:center; gap:14px; }
 .profile-head div{ display:flex; flex-direction:column; gap:2px; }
@@ -318,23 +315,6 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .tile .brand{ font-size:13.5px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .tile .price{ font-size:11.5px; color:var(--muted); margin-top:-4px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .tile .badge{ position:absolute; left:6px; top:6px; font-size:10.5px; font-weight:700; background:var(--accent); color:var(--on-accent); padding:2px 7px; border-radius:999px; }
-/* Android: save pictures from the phone's Share menu, and the Saved screen after */
-.share-how{ margin-top:20px; padding-top:16px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:12px; }
-.share-how h3{ margin:0; font-family:var(--display); font-weight:600; font-size:18px; }
-.share-step{ display:flex; gap:12px; align-items:flex-start; font-size:14px; line-height:1.4; }
-.share-step b{ font-weight:600; }
-.share-num{ flex:none; width:24px; height:24px; border-radius:50%; background:var(--surface-2, #F5F5F5); display:grid; place-items:center; font-size:13px; font-weight:600; }
-.share-how .btn{ width:100%; margin-top:4px; }
-.share-how .hint{ margin-top:-4px; }
-.saved-paper{ height:min(340px, 42vh); border-radius:12px; background:#FFFCF7; display:grid; place-items:center; overflow:hidden; }
-.saved-paper img{ max-width:62%; max-height:78%; transform:rotate(-4deg); filter:drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff) drop-shadow(1px 5px 6px rgba(44,30,50,.25)); }
-.saved-ok{ display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px; margin-top:16px; }
-.saved-dot{ width:24px; height:24px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; }
-.saved-dot svg{ width:16px; height:16px; }
-.saved-meta{ margin:4px 0 0 32px; font-size:14px; color:var(--muted); }
-.saved-where{ margin:12px 0 0; }
-.saved-row{ display:flex; gap:8px; margin-top:18px; }
-.saved-row .btn{ flex:1; min-height:44px; }
 .empty-note{ margin:0; color:var(--muted); line-height:1.5; font-size:14px; }
 .scene-grid{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
 .scene-opt{ border:none; background:none; padding:0; text-align:left; display:flex; flex-direction:column; gap:6px; font-size:14px; font-weight:600; }
@@ -683,6 +663,7 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
   .reader-top .divider{ display:block; width:1px; height:28px; background:var(--line); }
   .reader-title{ flex-direction:row; align-items:center; gap:12px; }
   .reader-title b{ font-size:21px; }
+  .avatar-btn{ background:transparent; border:1px solid var(--ink); color:var(--ink); }
   .topbar .divider{ width:1px; height:28px; background:var(--line); }
   .book-name{ flex-direction:row; align-items:center; gap:12px; }
   .book-name .page-pill{ align-self:center; }
@@ -981,12 +962,12 @@ const deskQuery = matchMedia('(min-width: 1024px)');
 const isDesk = () => deskQuery.matches;
 
 let toastTimer;
-function toast(msg, action, ms){
+function toast(msg, action){
   const t = $('#toast'); t.textContent = msg;
   t.classList.toggle('has-action', !!action);
   if (action){ const b = el('button', null, action.label); b.onclick = () => { t.classList.remove('show'); action.run(); }; t.append(b); }
   t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms || (action ? 5000 : 2000));
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), action ? 5000 : 2000);
 }
 
 // Small line icons
@@ -1725,11 +1706,11 @@ function gate(next, why){
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title', saved:'Saved' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
-  ({ support:fillSupport, community:fillCommunity, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, saved:fillSaved, deleteBook:fillDeleteBook, profile:fillProfile })[kind](box);
+  ({ support:fillSupport, community:fillCommunity, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, deleteBook:fillDeleteBook, profile:fillProfile })[kind](box);
 }
 function openView(kind){
   if (kind === 'scene' && onCover) kind = 'cover';
@@ -2327,9 +2308,8 @@ function shelfContent(box, forScene){
     if (!mine.length) box.append(el('p', 'empty-note', clipper.on
       ? 'Right-click any picture on the web and choose "Add to Scrapbook". It shows up here, ready to cut out.'
       : 'Pictures you upload or save from the web show up here, ready to cut out.'));
+    if (!clipper.on) box.append(clipperBtn());
     if (mine.length) box.append(gridOf(mine.map(mineTile)));
-    if (app.android) box.append(shareHowTo());
-    else if (!clipper.on) box.append(clipperBtn());
   }
 }
 // Search across shop pieces, people, flowers and your own cutouts
@@ -3131,7 +3111,7 @@ function fillCutter(box){
   const desk = isDesk();
   const wrap = el('div', 'cut-wrap' + (desk ? ' desk' : ''));
   const prev = el('div', 'cut-preview'); const cv = el('canvas'); cv.setAttribute('aria-label', 'Preview of your cutout');
-  const chip = el('div', 'cut-chip'); chip.innerHTML = icon('lasso') + '<span>Draw a loop around it</span>';
+  const chip = el('div', 'cut-chip'); chip.innerHTML = icon('lasso') + '<span>Circle the object</span>';
   const ring = el('div', 'cut-ring'); ring.hidden = true;
   prev.append(cv, chip, ring);
 
@@ -3242,7 +3222,7 @@ function fillCutter(box){
   cv.addEventListener('pointerup', done); cv.addEventListener('pointercancel', done);
 
   const row = el('div', 'row-end cut-foot');
-  const cancel = el('button', 'btn', 'Cancel'), add = el('button', 'btn primary', j.meta.shared ? 'Add to scrapbook' : 'Add to page');
+  const cancel = el('button', 'btn', 'Cancel'), add = el('button', 'btn primary', 'Add to page');
   cancel.onclick = closeSheet; add.onclick = () => finishCut();
   row.append(cancel, add);
   if (desk){ const side = el('div', 'cut-side'); side.append(opts); wrap.append(prev, side); box.append(wrap, row); }
@@ -3262,12 +3242,6 @@ function finishCut(){
   const prev = USER.get(id) || {};
   USER.set(id, { ...prev, ...pickMeta(j.meta), id, src, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload' });
   const ratio = j.out.height / j.out.width;
-  if (j.meta.shared){ // came from the phone's Share menu: save it, then show "Saved"
-    track('share_saved', { mode:j.mode });
-    scheduleSave(); closeSheet();
-    if (queue.length) toast('Saved. Here\'s the next one.'); else { savedId = id; openView('saved'); }
-    return;
-  }
   closeSheet();
   addItem({ type:'photo', value:id, size:clamp(Math.round(30 / Math.max(1, ratio * .8)), 12, 40) });
   scheduleSave();
@@ -3278,8 +3252,7 @@ const pickMeta = m => ({ name:m.name || null, brand:m.brand || null, price:m.pri
 function openFile(file){
   if (!file || !file.type.startsWith('image/')){ toast('That file isn\'t a picture.'); return; }
   const r = new FileReader();
-  const meta = file.name === 'shared' && shareInfo ? shareInfo : { name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '), source:'upload' };
-  r.onload = () => openCutter(r.result, meta);
+  r.onload = () => openCutter(r.result, { name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '), source:'upload' });
   r.onerror = () => toast('That picture couldn\'t be read.');
   r.readAsDataURL(file);
 }
@@ -3332,104 +3305,6 @@ addEventListener('message', e => {
     window.postMessage({ source:'daydream-page', type:'ack', id:it.id }, '*');
   }
 });
-/* =========================================================
-   Scrapbook on a phone's Home Screen (Android, Chrome)
-   Once it's added, Scrapbook shows up in the phone's Share menu.
-   sw.js catches a shared picture and reopens this page at ?shared=1.
-   ========================================================= */
-const app = {
-  android:/Android/i.test(navigator.userAgent),
-  installed:matchMedia('(display-mode: standalone)').matches || navigator.standalone === true,
-  prompt:null // Chrome's "add to Home Screen" offer, kept until someone taps our button
-};
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/scrapbook/sw.js', { scope:'/scrapbook/' }).catch(() => {});
-addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); app.prompt = e;
-  if (shelf === 'Your cutouts' && sheetKind === 'add') refreshViews();
-});
-addEventListener('appinstalled', () => {
-  app.installed = true; app.prompt = null; track('app_installed');
-  toast('Scrapbook is on your Home Screen. It\'s in your Share menu now too.', null, 4000);
-  if (shelf === 'Your cutouts') refreshViews();
-});
-async function installApp(){
-  track('install_tap', { offered:!!app.prompt });
-  if (app.prompt){
-    const p = app.prompt; app.prompt = null;
-    p.prompt();
-    try { const { outcome } = await p.userChoice; track('install_choice', { outcome }); } catch (e){}
-    return;
-  }
-  // Chrome didn't offer it (already added, or not ready yet): say where to find it
-  toast('In Chrome, tap ⋮ at the top right, then "Add to Home screen". If it\'s already there, open Scrapbook from your Home Screen.', null, 7000);
-}
-// "Save pictures from any shop": shown under Add → Your cutouts on Android phones
-function shareHowTo(){
-  const box = el('div', 'share-how');
-  box.append(el('h3', null, 'Save pictures from any shop'));
-  const step = (n, html) => { const s = el('div', 'share-step'); const b = el('span', 'share-num', n); const t = el('span'); t.innerHTML = html; s.append(b, t); return s; };
-  box.append(step('1', 'In Chrome, press and hold a picture'), step('2', 'Tap <b>Share image</b>, then <b>Scrapbook</b>'));
-  if (!app.installed){
-    const b = el('button', 'btn'); b.textContent = 'Add Scrapbook to your Home Screen'; b.onclick = installApp;
-    box.append(b, el('p', 'hint', 'One time only. It puts Scrapbook in your Share menu.'));
-  }
-  return box;
-}
-// A picture arrived from the Share menu: open the cutout window with it
-const sharedFlag = new URLSearchParams(location.search).get('shared');
-let savedId = null;
-async function takeShared(flag){
-  history.replaceState(null, '', location.pathname);
-  if (flag === 'error'){ toast('That picture didn\'t come through. Try sharing it again.', null, 4000); return; }
-  try {
-    const cache = await caches.open('scrapbook-share');
-    const base = new URL('./', location.href);
-    const metaRes = await cache.match(new URL('shared/meta', base));
-    if (!metaRes) return;
-    const meta = await metaRes.json();
-    const files = [];
-    for (let i = 0; i < meta.count; i++){
-      const r = await cache.match(new URL('shared/' + i, base));
-      if (r){ const b = await r.blob(); files.push(b); }
-    }
-    for (const k of await cache.keys()) await cache.delete(k);
-    track('share_in', { pictures:files.length });
-    if (!files.length){
-      toast(meta.url || meta.text
-        ? 'That shared the page, not the picture. Press and hold the picture itself, then tap Share image.'
-        : 'No picture came through. Try sharing it again.', null, 6000);
-      return;
-    }
-    let link = meta.url || (meta.text.match(/https?:\/\/\S+/) || [])[0] || null, brand = null;
-    try { if (link) brand = new URL(link).hostname.replace(/^www\./, ''); } catch (e){ link = null; }
-    const info = { name:meta.title || null, brand, url:link, source:'share', shared:true };
-    const read = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
-    const [first, ...rest] = files;
-    // Extra pictures wait their turn; each gets the same cutout window
-    rest.forEach(b => queue.push(new File([b], 'shared', { type:b.type })));
-    shareInfo = info;
-    openCutter(await read(first), info);
-  } catch (e){ toast('That picture didn\'t come through. Try sharing it again.', null, 4000); }
-}
-let shareInfo = null; // keeps the Share-menu details for pictures waiting in the queue
-// After "Add to scrapbook": the M5 Saved screen
-function fillSaved(box){
-  const u = USER.get(savedId);
-  if (!u){ closeSheet(); return; }
-  const paper = el('div', 'saved-paper'); const img = el('img'); img.src = u.src; img.alt = u.name || 'Your cutout'; paper.append(img);
-  const ok = el('div', 'saved-ok'); ok.innerHTML = '<span class="saved-dot">' + icon('check') + '</span>Saved to your scrapbook';
-  box.append(paper, ok);
-  const meta = [u.brand, u.name, u.price].filter(Boolean).join(' · ');
-  if (meta) box.append(el('p', 'saved-meta', meta));
-  box.append(el('p', 'hint saved-where', 'Find it anytime in Add → Your cutouts.'));
-  const row = el('div', 'row saved-row');
-  const back = el('button', 'btn', 'Back to shopping');
-  back.onclick = () => { track('share_back'); window.close(); setTimeout(() => toast('Use your phone\'s Back gesture to return to the shop.', null, 4000), 300); };
-  const open = el('button', 'btn dark', 'Open scrapbook');
-  open.onclick = () => { track('share_open'); closeSheet(); shelf = 'Your cutouts'; addQuery = ''; setTimeout(() => openView('add'), 280); };
-  row.append(back, open);
-  box.append(row);
-}
 // The Clipper: download it, then a short animated walkthrough of installing it in Chrome
 // The zip travels inside a small .json file (as base64) and is rebuilt here, then saved
 const CLIP_ZIP = 'clipper/scrapbook-clipper.json';
@@ -3912,7 +3787,7 @@ renderAll();
 fitCard();
 const seen = (() => { try { return localStorage.getItem('daydream-welcomed') === '1'; } catch (e){ return false; } })();
 resetHistory();
-loadSaved().then(found => { if (found){ renderAll(); resetHistory(); } else if (!seen && !sharedFlag) openView('welcome'); if (sharedFlag) takeShared(sharedFlag); });
+loadSaved().then(found => { if (found){ renderAll(); resetHistory(); } else if (!seen) openView('welcome'); });
 // Say hello to the Scrapbook Clipper extension, if it's installed
 window.postMessage({ source:'daydream-page', type:'hello' }, '*');
 </script>
