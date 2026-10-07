@@ -1499,7 +1499,7 @@ function onHandleDown(e){
   moved = false;
   beginGesture('handle');
 }
-// On phones, a quick tap on the empty painting (nothing selected) opens the Scene settings.
+// On phones, a quick tap on the empty painting (nothing selected) opens the Background settings.
 // If a piece is selected, the first tap just deselects it.
 let sceneTap = null;
 canvas.addEventListener('pointerdown', e => {
@@ -1635,7 +1635,7 @@ function renderDock(){
   }
   // The dock is for this page; the page menu at the top is for the whole scrapbook
   dock.append(
-    dockBtn('Scene', 'scene', () => openView('scene')),
+    dockBtn('Background', 'scene', () => openView('scene')),
     dockBtn('Write', 'pen', () => flip(true), { main:true }),
     dockBtn('Add', 'plus', () => openView('add'))
   );
@@ -1800,9 +1800,9 @@ function gate(next, why){
   openView('support');
 }
 
-const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
+const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Background']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
@@ -2218,7 +2218,7 @@ function fillWelcome(box){
   ['cafe', 'rain', 'rooftop'].forEach(id => { const im = new Image(); im.src = SCENES[id].src; im.alt = ''; art.append(im); });
   box.append(art,
     el('p', 'lede welcome-line', 'Your daydreams, made into pages.'),
-    el('p', 'hint', 'Pick a scene, add the pieces that fit, and say what happens. Start with the sample, or begin your own.'));
+    el('p', 'hint', 'Pick a background, add the pieces that fit, and say what happens. Start with the sample, or begin your own.'));
   // Alpha note: work lives only in this browser
   const note = el('div', 'alpha-note');
   note.append(el('span', 'alpha-tag', 'Alpha'), el('p', null, 'This is an early version. Everything you make is saved only in this browser, so clearing your browser history erases it. To keep a page, save it as an image from Share.'));
@@ -2261,7 +2261,7 @@ function fillScenes(box){
     grid.append(b);
   };
   SCENE_LIST.forEach(sc => opt(sc.id, sc.name));
-  [...USER.values()].filter(u => u.kind === 'scene').forEach(u => opt(u.id, u.name || 'Your scene'));
+  [...USER.values()].filter(u => u.kind === 'scene').forEach(u => opt(u.id, u.name || 'Your background'));
   box.append(strength, grid);
   // Plain colors and gradients
   const cur = page().scene === 'color' ? cleanBg(page().bg) : null;
@@ -2294,7 +2294,7 @@ function fillScenes(box){
   const clips = [...USER.values()].filter(clipOriginal).reverse();
   const sec = el('div', 'sec'); sec.append(el('h3', null, 'From the Kamira Clipper'));
   if (!clips.length){
-    sec.append(el('p', 'empty-note', 'Pictures you save from the web can become a scene too.'));
+    sec.append(el('p', 'empty-note', 'Pictures you save from the web can become a background too.'));
     if (!clipper.on) sec.append(clipperBtn());
   } else {
     const cg = el('div', 'scene-grid');
@@ -2310,7 +2310,7 @@ function fillScenes(box){
   box.append(sec);
   // Bottom: upload, docked like "Upload your own cutout" in Add
   const foot = el('div', 'add-foot scene-foot');
-  const up = el('button', 'btn dark'); up.innerHTML = icon('upload') + 'Upload your own scene'; up.onclick = () => gate(() => $('#sceneInput').click());
+  const up = el('button', 'btn dark'); up.innerHTML = icon('upload') + 'Upload your own background'; up.onclick = () => gate(() => $('#sceneInput').click());
   foot.append(up); box.append(foot);
 }
 // Your own scene: cropped to the page shape and kept in this browser
@@ -2325,10 +2325,10 @@ function openSceneFile(file){
       const x = cv.getContext('2d'); x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, H); x.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
       let src = cv.toDataURL('image/webp', .86); if (!src.startsWith('data:image/webp')) src = cv.toDataURL('image/jpeg', .86);
       const id = 's_' + uid();
-      USER.set(id, { id, src, kind:'scene', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your scene', source:'upload', cut:true, t:Date.now() }); shareUser(USER.get(id));
+      USER.set(id, { id, src, kind:'scene', name:file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') || 'Your background', source:'upload', cut:true, t:Date.now() }); shareUser(USER.get(id));
       page().scene = id;
       renderFront(); commit(); renderRail(); refreshViews(); scheduleSave();
-      toast('Scene added');
+      toast('Background added');
     } catch (e){ toast('That picture couldn\'t be opened. Try a JPG or PNG.'); }
   };
   r.readAsDataURL(file);
@@ -2337,7 +2337,7 @@ $('#sceneInput').onchange = e => { openSceneFile(e.target.files[0]); e.target.va
 
 /* ---------- Add: everything you can put on a page, in one place ---------- */
 let shelf = null, textFont = 'hand', textInk = 'ink', addQuery = '';
-const SHELVES = ['For this scene', 'Objects', 'People', 'Decorations', 'Text', 'Your cutouts'];
+const SHELVES = ['For this background', 'Objects', 'People', 'Decorations', 'Text', 'Your cutouts'];
 const COVER_SHELVES = ['Cover pieces', 'Objects', 'People', 'Decorations', 'Text', 'Your cutouts'];
 const SHELF_ORDER = { 'Clothes':0, 'Shoes & bags':1, 'Extras':2 };
 const closedSecs = new Set(); // accordion sections the person folded away
@@ -2366,7 +2366,7 @@ function accordion(box, key, title, fill){
 }
 function fillAdd(box){
   const forScene = onCover ? [] : [...PRODUCTS, ...DECOR].filter(p => p.scene === page().scene);
-  const shelves = onCover ? COVER_SHELVES : SHELVES.filter(n => n !== 'For this scene' || forScene.length);
+  const shelves = onCover ? COVER_SHELVES : SHELVES.filter(n => n !== 'For this background' || forScene.length);
   if (!shelves.includes(shelf)) shelf = shelves[0];
   // Top: search and a row of filters you can scroll sideways
   const head = el('div', 'add-head');
@@ -2412,7 +2412,7 @@ function fillAdd(box){
   setTimeout(() => chips.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block:'nearest', inline:'nearest' }), 0);
 }
 function shelfContent(box, forScene){
-  if (shelf === 'For this scene') box.append(gridOf(forScene.map(shopTile)));
+  if (shelf === 'For this background') box.append(gridOf(forScene.map(shopTile)));
   else if (shelf === 'Objects'){
     accordion(box, 'decor', 'Home decor', b => b.append(gridOf(DECOR.map(shopTile))));
     accordion(box, 'fashion', 'Fashion', b => b.append(gridOf([...PRODUCTS].sort((a, c) => SHELF_ORDER[a.shelf] - SHELF_ORDER[c.shelf]).map(shopTile))));
@@ -2501,10 +2501,10 @@ function photosShelf(box){
     const g = el('div', 'piece-grid'); prints.forEach(u => g.append(pieceOpt(u.name || 'Your photo', { type:'polaroid', value:u.id, size:66 }, { type:'polaroid', value:u.id, size:30 })));
     sec.append(g); box.append(sec);
   }
-  const sec = el('div', 'sec'); sec.append(el('h3', null, 'Scenes'));
+  const sec = el('div', 'sec'); sec.append(el('h3', null, 'Backgrounds'));
   const g = el('div', 'piece-grid');
   SCENE_LIST.filter(sc => sc.src).forEach(sc => g.append(pieceOpt(sc.name, { type:'polaroid', value:sc.id, size:66 }, { type:'polaroid', value:sc.id, size:30 })));
-  [...USER.values()].filter(u => u.kind === 'scene').forEach(u => g.append(pieceOpt(u.name || 'Your scene', { type:'polaroid', value:u.id, size:66 }, { type:'polaroid', value:u.id, size:30 })));
+  [...USER.values()].filter(u => u.kind === 'scene').forEach(u => g.append(pieceOpt(u.name || 'Your background', { type:'polaroid', value:u.id, size:66 }, { type:'polaroid', value:u.id, size:30 })));
   sec.append(g); box.append(sec);
 }
 const printInput = el('input'); printInput.type = 'file'; printInput.accept = 'image/*'; printInput.className = 'sr'; printInput.tabIndex = -1; printInput.setAttribute('aria-hidden', 'true');
