@@ -329,7 +329,6 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .bg-bar .bg-sw.any svg{ width:12px; height:12px; }
 .bg-bar h4{ margin:0 0 7px; font-size:12px; font-weight:600; color:var(--muted); }
 .bg-bar .bg-strength{ width:132px; padding:2px 2px; font-size:13px; }
-#card.page-sel{ outline:1.5px dashed var(--ink); outline-offset:6px; }
 .dock.bg .scroller{ align-items:center; gap:10px; padding:0 10px; }
 .dock.bg .bg-row{ flex-wrap:nowrap; gap:10px; padding:5px; }
 .dock.bg .bg-sw{ width:32px; height:32px; }
@@ -1484,9 +1483,9 @@ function positionHandle(){
   handle.hidden = false;
 }
 function select(id){ if (id && pageSel){ pageSel = false; selectedId = id; markSelection(); return; } if (selectedId === id) return; selectedId = id; markSelection(); }
-/* The page itself can be selected too: click an empty spot while the Background tab is open
-   (or tap one on a phone). Its own settings then sit beside it, like a selected piece's actions:
-   colors and gradients for a blank page, color strength for a painted or photo background. */
+/* The page's background settings sit beside the page: colors and gradients for a blank page,
+   color strength for a painted or photo background. On desktop they show whenever the Background
+   tab is open. On phones, tapping an empty spot selects the page and puts them in the dock. */
 let pageSel = false;
 function selectPage(on){ on = !!on && !onCover; if (on === pageSel && !(on && selectedId)) return; pageSel = on; if (on) selectedId = null; markSelection(); }
 
@@ -1539,7 +1538,6 @@ canvas.addEventListener('pointerdown', e => {
     const hadItem = !!selectedId;
     if (!hadItem && !isDesk() && e.isPrimary) sceneTap = { x:e.clientX, y:e.clientY, t:Date.now() };
     select(null);
-    if (isDesk() && !hadItem && panelTab === 'scene') selectPage(true);
   }
 });
 // Open on "click" (not pointerup) so the tap's own click can't land on the new overlay and close it
@@ -1775,9 +1773,8 @@ function bgControls(where){
   return f;
 }
 function renderBgBar(){
-  card.classList.toggle('page-sel', pageSel && !onCover);
   bgBar.innerHTML = '';
-  if (!isDesk() || !pageSel || onCover){ bgBar.hidden = true; return; }
+  if (!isDesk() || panelTab !== 'scene' || onCover || isFlipped()){ bgBar.hidden = true; return; }
   bgBar.append(bgControls('bar'));
   bgBar.hidden = false;
   positionBgBar();
@@ -1818,7 +1815,7 @@ function flip(toBack){
   if (toBack) select(null);
   card.classList.toggle('flipped', toBack);
   $('#nudgeLine').textContent = '';
-  renderDock();
+  renderDock(); renderBgBar();
   positionHandle();
 }
 $('#curlFront').onclick = () => flip(true);
@@ -1981,7 +1978,7 @@ $('#sheetClose').innerHTML = icon('close'); $('#sheetClose').onclick = closeShee
 
 function setTab(kind){
   panelTab = kind;
-  if (kind !== 'scene' && pageSel) selectPage(false);
+  renderBgBar();
   renderTabs();
   renderPanel();
 }
@@ -2359,7 +2356,7 @@ function fillScenes(box){
     if (id === 'blank'){ if (!isBlank(p)) p.bg = 'default'; } // a page that was already blank keeps its color
     p.scene = id;
     if (!isDesk()) closeSheet();
-    selectPage(true); renderFront(); commit(); renderRail(); refreshViews();
+    if (!isDesk()) selectPage(true); renderFront(); commit(); renderRail(); refreshViews();
   };
   const opt = (id, name) => {
     const b = el('button', 'scene-opt');
