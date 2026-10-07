@@ -323,6 +323,15 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .scene-opt .mini{ border:2.5px solid transparent; }
 .scene-opt[aria-pressed="true"] .mini{ border-color:var(--accent); }
 .bg-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.fb-text{ display:block; width:100%; box-sizing:border-box; min-height:132px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:12px 14px; font:inherit; font-size:15px; line-height:1.45; color:var(--ink); background:var(--bg); }
+.fb-text:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
+.fb-shot{ display:flex; align-items:center; gap:12px; margin:14px 0 4px; font-size:14px; cursor:pointer; }
+.fb-shot[hidden]{ display:none; }
+.fb-shot input{ width:18px; height:18px; accent-color:var(--accent); flex:none; margin:0; }
+.fb-thumb{ height:72px; max-width:120px; flex:none; border-radius:8px; overflow:hidden; border:1px solid var(--line); background:var(--surface-2); display:grid; place-items:center; }
+.fb-thumb img{ display:block; width:100%; height:100%; object-fit:cover; }
+.fb-wait{ width:16px; height:16px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--muted); animation:cutspin .8s linear infinite; }
+.fb-err{ margin:8px 0 0; color:#B3261E; font-size:14px; }
 .bg-bar{ flex-direction:column; align-items:stretch; gap:12px; padding:10px 12px 12px; }
 .bg-bar .bg-row{ display:grid; grid-template-columns:repeat(4, 24px); gap:7px; }
 .bg-bar .bg-sw{ width:24px; height:24px; }
@@ -1074,6 +1083,7 @@ const ICONS = {
   lasso:   '<path d="M7 15c-2.5-1-4-2.7-4-4.8C3 6.7 7 4 12 4s9 2.7 9 6.2-4 6.3-9 6.3c-1 0-2-.1-2.9-.3"/><path d="M8 15.5c0 1.6-1 3-2.5 3.5 1 .8 2.5 1 3.5.2"/>',
   brush:   '<path d="M14 4l6 6-8.5 8.5a3 3 0 0 1-4.2 0l-1.8-1.8a3 3 0 0 1 0-4.2Z"/><path d="M4 20c1.5 0 3-.5 3.5-2"/>',
   eraser:  '<path d="m7 20-4-4 10-10 7 7-7 7Z"/><path d="M20 20H7"/>',
+  chat:    '<path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-4 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
   pinterest:'<circle cx="12" cy="12" r="9.5"/><path d="M10.4 8.3h2.4a2.9 2.9 0 0 1 0 5.8h-2.1"/><path d="M11.2 8.3 9.3 19.6"/>',
   reddit:  '<ellipse cx="12" cy="14.5" rx="7.5" ry="5.5"/><circle cx="4.6" cy="11.6" r="1.6"/><circle cx="19.4" cy="11.6" r="1.6"/><path d="M12 9l1.4-4.6 4.1 1"/><circle cx="19" cy="5.6" r="1.4"/><circle cx="9.2" cy="13.8" r=".6" fill="currentColor"/><circle cx="14.8" cy="13.8" r=".6" fill="currentColor"/><path d="M9.4 17q2.6 1.6 5.2 0"/>',
   people:  '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M16.5 14.5c2.3 0 4 1.4 4.5 4"/>'
@@ -1913,11 +1923,11 @@ function gate(next, why){
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Background']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title', feedback:'Send feedback' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
-  ({ support:fillSupport, community:fillCommunity, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, deleteBook:fillDeleteBook, profile:fillProfile })[kind](box);
+  ({ support:fillSupport, community:fillCommunity, welcome:fillWelcome, scene:fillScenes, add:fillAdd, pages:fillPages, shop:fillShop, cutter:fillCutter, word:fillWord, menu:fillMenu, clipper:fillClipper, story:fillStory, cover:fillCover, titleStyle:fillTitleStyle, export:fillExport, share:fillShare, deleteBook:fillDeleteBook, profile:fillProfile, feedback:fillFeedback })[kind](box);
 }
 function openView(kind){
   if (kind === 'scene' && onCover) kind = 'cover';
@@ -3400,6 +3410,7 @@ function menuItems(){
   if (!isDesk()) items.push({ icon:'share', label:'Share', run:() => openView('share') });
   items.push({ icon:'trash', label:'Delete', run:() => openView('deleteBook') });
   items.push({ icon:'download', label:'Get the Kamira Clipper', run:() => openView('clipper') });
+  if (FEEDBACK_URL) items.push({ icon:'chat', label:'Send feedback', run:startFeedback });
   return items;
 }
 function menuRow(it, before){
@@ -3424,6 +3435,80 @@ function toggleMenuPop(){
 addEventListener('pointerdown', e => { if (!menuPop.hidden && !menuPop.contains(e.target) && !$('#menuBtn').contains(e.target)) closeMenuPop(); }, true);
 addEventListener('keydown', e => { if (e.key === 'Escape' && !menuPop.hidden){ closeMenuPop(); $('#menuBtn').focus(); } });
 addEventListener('resize', closeMenuPop);
+/* ---------- Send feedback ----------
+   Feedback goes to Erika's "Kamira feedback" Google Sheet, through a small Google Apps Script
+   web app attached to it. A screenshot of what the person was looking at (taken behind the
+   feedback window, so the window itself isn't in it) is saved to her Drive and linked in the sheet. */
+let FEEDBACK_URL = '';
+let fbShot = null, fbShotJob = 0;
+function startFeedback(){
+  closeMenuPop();
+  track('feedback_open');
+  fbShot = null; const job = ++fbShotJob;
+  // What they were doing, in a few words
+  fbShot = { where:[!reader.hidden ? 'Reading' : onCover ? 'Cover' : `Page ${book.current + 1} of ${book.pages.length}`,
+    isDesk() && reader.hidden ? panelTab.replace('scene', 'background') + ' tab' : '', isFlipped() ? 'story side' : ''].filter(Boolean).join(' · '), img:null, pending:true };
+  openView('feedback');
+  takeShot().then(img => { if (job !== fbShotJob) return; fbShot.img = img; fbShot.pending = false; const f = sheetBody.querySelector('.fb-shot'); if (f) f.dispatchEvent(new Event('shot')); });
+}
+async function takeShot(){
+  try {
+    if (!window.htmlToImage) await loadScript('vendor/html-to-image.js');
+    const k = Math.min(1, 1400 / innerWidth);
+    const opts = { width:innerWidth, height:innerHeight, pixelRatio:k, quality:.72, backgroundColor:'#ffffff', cacheBust:false,
+      filter:n => n !== sheet && n !== scrim && !(n.classList && (n.classList.contains('toast')
+        // only the side of the page that's facing them (the other side would show through, mirrored)
+        || (n.classList.contains('face') && n.classList.contains(isFlipped() ? 'front' : 'back')))) };
+    // Try with the site's fonts; if those can't be gathered, take it with plain fonts instead
+    try { return await htmlToImage.toJpeg(document.body, opts); }
+    catch (e){ return await htmlToImage.toJpeg(document.body, { ...opts, skipFonts:true }); }
+  } catch (e){ return null; }
+}
+function deviceName(){
+  const u = navigator.userAgent;
+  const os = /iPhone|iPad/.test(u) ? (/iPad/.test(u) ? 'iPad' : 'iPhone') : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : 'Other';
+  const br = /Edg\//.test(u) ? 'Edge' : /Firefox\//.test(u) ? 'Firefox' : /Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : 'Other';
+  return os + ' · ' + br;
+}
+function fillFeedback(box){
+  const shot = fbShot || { where:'', img:null, pending:false };
+  const text = el('textarea', 'fb-text'); text.setAttribute('aria-label', 'Your feedback'); text.rows = 5;
+  text.placeholder = 'What\'s working? What\'s confusing? What do you wish it did?';
+  const sh = el('label', 'fb-shot');
+  const cb = el('input'); cb.type = 'checkbox'; cb.checked = true;
+  const thumb = el('div', 'fb-thumb'); thumb.style.aspectRatio = innerWidth + ' / ' + innerHeight;
+  const cap = el('span', null, 'Include a screenshot of this screen');
+  const paint = () => {
+    thumb.innerHTML = '';
+    if (shot.img){ const im = el('img'); im.src = shot.img; im.alt = 'Screenshot of your screen'; thumb.append(im); sh.hidden = false; }
+    else if (shot.pending) thumb.append(el('span', 'fb-wait'));
+    else sh.hidden = true; // couldn't take one
+  };
+  sh.addEventListener('shot', paint); paint();
+  sh.append(cb, thumb, cap);
+  const err = el('p', 'fb-err'); err.hidden = true; err.setAttribute('role', 'alert');
+  const row = el('div', 'row-end');
+  const cancel = el('button', 'btn', 'Cancel'); cancel.onclick = closeSheet;
+  const send = el('button', 'btn primary', 'Send'); send.disabled = true;
+  text.oninput = () => { send.disabled = !text.value.trim(); err.hidden = true; };
+  send.onclick = async () => {
+    const msg = text.value.trim(); if (!msg) return;
+    send.disabled = true; send.textContent = 'Sending…'; err.hidden = true;
+    const body = JSON.stringify({ text:msg.slice(0, 5000), where:shot.where, screenshot:cb.checked && shot.img ? shot.img : '', device:deviceName(), screen:innerWidth + '×' + innerHeight });
+    try {
+      // Plain text keeps this a "simple" request, which Google Apps Script accepts from any site
+      await fetch(FEEDBACK_URL, { method:'POST', mode:'no-cors', body });
+      track('feedback_sent', { screenshot:!!(cb.checked && shot.img) });
+      closeSheet(); toast('Thanks! Your feedback was sent.');
+    } catch (e){
+      send.disabled = false; send.textContent = 'Send';
+      err.textContent = 'That didn\'t send. Check your connection and try again.'; err.hidden = false;
+    }
+  };
+  row.append(cancel, send);
+  box.append(text, sh, err, row);
+  setTimeout(() => text.focus({ preventScroll:true }), 80);
+}
 function afterReset(){ selectedId = null; onCover = false; $('#bookTitle').textContent = book.title; renderAll(); commit(); }
 
 /* =========================================================
