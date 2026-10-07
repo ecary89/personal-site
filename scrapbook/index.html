@@ -730,8 +730,6 @@ body.tw-picking, body.tw-picking *{ cursor:crosshair !important; }
 body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; }
 
 /* ================= Clipper install guide ================= */
-.clip-get{ display:flex; flex-direction:column; gap:10px; }
-.clip-get .btn{ width:100%; justify-content:center; height:48px; border-radius:12px; font-size:15px; }
 .clip-ok{ display:flex; align-items:center; gap:10px; background:#E8F6EE; color:#1F6B45; border-radius:12px; padding:12px 14px; font-weight:600; font-size:14px; }
 .clip-ok i{ width:10px; height:10px; border-radius:50%; background:#2FA36B; box-shadow:0 0 0 4px rgba(47,163,107,.2); flex:none; }
 .guide{ display:flex; flex-direction:column; gap:10px; }
@@ -796,6 +794,10 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 .g-cursor::after{ content:""; position:absolute; left:-1cqw; top:-1cqw; width:3cqw; height:3cqw; border-radius:50%; border:.4cqw solid #1A73E8; opacity:0; }
 .g-scene.play .g-cursor::after{ animation:gclick .45s calc(var(--d, .6s) + 1s) forwards; }
 @keyframes gclick{ 0%{ opacity:.9; transform:scale(.4); } 100%{ opacity:0; transform:scale(1.6); } }
+.g-title{ margin:0; font-size:15px; font-weight:600; }
+.g-player{ border-radius:14px; overflow:hidden; background:#EEF0F4; box-shadow:inset 0 0 0 1px rgba(0,0,0,.06); }
+.g-player .g-stage{ border-radius:0; box-shadow:none; }
+.g-player .g-nav{ padding:8px 10px; border-top:1px solid rgba(0,0,0,.06); background:var(--bg); }
 .g-cap{ display:flex; gap:10px; align-items:flex-start; min-height:52px; }
 .g-num{ flex:none; width:26px; height:26px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-weight:700; font-size:13px; }
 .g-cap p{ margin:2px 0 0; font-size:14px; line-height:1.45; }
@@ -805,7 +807,11 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 .g-nav .dots button{ width:8px; height:8px; border-radius:50%; border:none; padding:0; background:var(--line); }
 .g-nav .dots button[aria-current="true"]{ background:var(--pop); width:20px; border-radius:4px; }
 .g-nav .ctl{ display:flex; gap:6px; }
-.g-nav .ctl button{ border:1.5px solid var(--line); background:var(--bg); border-radius:999px; padding:6px 12px; font-weight:600; font-size:13px; color:var(--ink); }
+.g-nav .ctl{ align-items:center; }
+.g-nav .ctl button{ width:36px; height:36px; border:none; background:none; border-radius:50%; padding:0; display:grid; place-items:center; color:var(--ink); }
+.g-nav .ctl button:hover{ background:var(--well); }
+.g-nav .ctl button.pp{ width:40px; height:40px; background:var(--ink); color:var(--bg); }
+.g-nav .ctl svg{ width:20px; height:20px; display:block; }
 </style>
 
 <div class="topnote" id="topNote">
@@ -3175,14 +3181,14 @@ async function downloadClipper(){
     const res = await fetch(CLIP_ZIP); if (!res.ok) throw 0;
     const { base64 } = await res.json();
     const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-    await saveBlob(new Blob([bytes], { type:'application/zip' }), 'scrapbook-clipper.zip', 'Downloaded. Now follow the steps below.');
+    await saveBlob(new Blob([bytes], { type:'application/zip' }), 'scrapbook-clipper.zip', 'Downloaded. Now follow the steps above.');
   } catch (e){ toast('The download didn\'t start. Try again in a moment.'); }
 }
 const CURSOR = '<svg viewBox="0 0 24 24"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#202124" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const gBar = (url, extra = '') => `<div class="g-bar"><div class="g-dots"><i></i><i></i><i></i></div><div class="g-url">${url}</div><div class="g-tools">${extra}</div></div>`;
 const gCur = (x0, y0, x1, y1, d) => `<div class="g-cursor" style="--x0:${x0};--y0:${y0};--x1:${x1};--y1:${y1};${d ? '--d:' + d : ''}">${CURSOR}</div>`;
 const GUIDE = [
-  { text:'Find <b>scrapbook-clipper.zip</b> in your Downloads and double-click it. Move the folder it makes somewhere safe, like Documents.',
+  { text:'After you download it, find <b>scrapbook-clipper.zip</b> in your Downloads and double-click it. Move the folder it makes somewhere safe, like Documents.',
     html:`<div class="g-desk"><div class="g-file"><div class="g-zip"></div>scrapbook-clipper.zip</div><div class="g-arrow">→</div><div class="g-file out"><div class="g-bigfolder"></div>scrapbook-clipper</div></div>${gCur('70%', '80%', '24%', '42%')}` },
   { text:'In Chrome, type <code>chrome://extensions</code> in the address bar and press Enter.',
     html:`<div class="g-win">${gBar('<span class="typed">chrome://extensions</span>')}<div class="g-body"><div class="g-h" style="opacity:.25">Extensions</div><div class="g-cards"><div class="g-card"></div><div class="g-card"></div></div></div></div>` },
@@ -3198,40 +3204,52 @@ const GUIDE = [
 let guideTimer = null;
 function fillClipper(box){
   clearInterval(guideTimer);
-  box.append(el('p', 'hint', 'The Scrapbook Clipper is a free Chrome extension. Right-click any picture on any website, choose "Add to Scrapbook", and it shows up here, ready to cut out.'));
+  // 1. What it is
+  box.append(el('p', 'hint', 'A free Chrome extension. Right-click any picture on the web, choose "Add to Scrapbook", and it lands here, ready to cut out.'));
   if (clipper.on){ const ok = el('div', 'clip-ok'); ok.append(el('i'), el('span', null, 'The Clipper is installed and working.')); box.append(ok); }
-  const get = el('div', 'clip-get');
-  if (isPhone) get.append(el('p', 'empty-note', 'The Clipper works in Chrome on a computer. Open this page there to add it.'));
-  else {
-    const dl = el('button', 'btn dark'); dl.innerHTML = icon('download') + 'Download the Clipper'; dl.onclick = downloadClipper;
-    get.append(dl, el('p', 'hint', 'A small .zip file. Then follow these steps. It takes about two minutes.'));
-  }
-  box.append(get);
-  // the walkthrough
-  const g = el('div', 'guide'); const stage = el('div', 'g-stage'); stage.setAttribute('aria-hidden', 'true');
-  const scenes = GUIDE.map(st => { const sc = el('div', 'g-scene'); sc.innerHTML = st.html; stage.append(sc); return sc; });
+  if (isPhone) box.append(el('p', 'empty-note', 'The Clipper works in Chrome on a computer. Open this page there to add it.'));
+  // 2. How to add it: the step text, then the walkthrough with its controls attached
+  const g = el('div', 'guide');
+  g.append(el('h3', 'g-title', 'How to add it · about 2 minutes'));
   const cap = el('div', 'g-cap'); const num = el('span', 'g-num'); const txt = el('p'); cap.append(num, txt);
   cap.setAttribute('aria-live', 'polite');
+  const player = el('div', 'g-player');
+  const stage = el('div', 'g-stage'); stage.setAttribute('aria-hidden', 'true');
+  const scenes = GUIDE.map(st => { const sc = el('div', 'g-scene'); sc.innerHTML = st.html; stage.append(sc); return sc; });
   const nav = el('div', 'g-nav'); const dots = el('div', 'dots'); const ctl = el('div', 'ctl');
-  const prev = el('button', null, 'Back'), play = el('button', null, 'Pause'), next = el('button', null, 'Next');
+  const IC_PREV = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.4" height="14" rx="1"/><path d="M19 6.2v11.6a1 1 0 0 1-1.5.86L9 13.4a1.6 1.6 0 0 1 0-2.8l8.5-5.26A1 1 0 0 1 19 6.2Z"/></svg>';
+  const IC_NEXT = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="16.6" y="5" width="2.4" height="14" rx="1"/><path d="M5 6.2v11.6a1 1 0 0 0 1.5.86L15 13.4a1.6 1.6 0 0 0 0-2.8L6.5 5.34A1 1 0 0 0 5 6.2Z"/></svg>';
+  const IC_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10-6.4a1 1 0 0 0 0-1.7l-10-6.4A1 1 0 0 0 8 5.6Z"/></svg>';
+  const IC_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1.2"/><rect x="13.5" y="5" width="4" height="14" rx="1.2"/></svg>';
+  const prev = el('button'), play = el('button', 'pp'), next = el('button');
+  prev.innerHTML = IC_PREV; prev.setAttribute('aria-label', 'Previous step');
+  next.innerHTML = IC_NEXT; next.setAttribute('aria-label', 'Next step');
+  const setPlay = on => { play.innerHTML = on ? IC_PAUSE : IC_PLAY; play.setAttribute('aria-label', on ? 'Pause' : 'Play'); };
   ctl.append(prev, play, next); nav.append(dots, ctl);
+  player.append(stage, nav);
   let at = 0, playing = !reduceMotion;
   const show = i => {
     at = (i + GUIDE.length) % GUIDE.length;
     scenes.forEach((sc, k) => { sc.classList.toggle('on', k === at); sc.classList.remove('play'); });
-    void scenes[at].offsetWidth; if (!reduceMotion) scenes[at].classList.add('play'); else scenes[at].classList.add('play');
+    void scenes[at].offsetWidth; scenes[at].classList.add('play');
     num.textContent = at + 1; txt.innerHTML = GUIDE[at].text;
     dots.querySelectorAll('button').forEach((d, k) => d.setAttribute('aria-current', String(k === at)));
   };
   GUIDE.forEach((_, k) => { const d = el('button'); d.setAttribute('aria-label', 'Step ' + (k + 1)); d.onclick = () => { stop(); show(k); }; dots.append(d); });
   const tick = () => { if (!document.contains(stage)){ clearInterval(guideTimer); return; } show(at + 1); };
-  const start = () => { clearInterval(guideTimer); guideTimer = setInterval(tick, 4600); playing = true; play.textContent = 'Pause'; };
-  const stop = () => { clearInterval(guideTimer); playing = false; play.textContent = 'Play'; };
+  const start = () => { clearInterval(guideTimer); guideTimer = setInterval(tick, 4600); playing = true; setPlay(true); };
+  const stop = () => { clearInterval(guideTimer); playing = false; setPlay(false); };
   prev.onclick = () => { stop(); show(at - 1); }; next.onclick = () => { stop(); show(at + 1); };
   play.onclick = () => playing ? stop() : start();
-  g.append(stage, cap, nav); box.append(g);
-  show(0); if (playing) start(); else play.textContent = 'Play';
+  g.append(cap, player); box.append(g);
+  show(0); if (playing) start(); else setPlay(false);
   box.append(el('p', 'hint', 'No extension? Copy a picture and paste it here, or drop it onto the page.'));
+  // 3. The one action, docked at the bottom
+  if (!isPhone){
+    const foot = el('div', 'add-foot scene-foot');
+    const dl = el('button', 'btn dark'); dl.innerHTML = icon('download') + 'Download the Clipper'; dl.onclick = downloadClipper;
+    foot.append(dl); box.append(foot);
+  }
 }
 
 /* =========================================================
