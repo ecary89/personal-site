@@ -1231,6 +1231,7 @@ function migrateCover(cv){
   return { material:old.material || 'leather', items:coverPieces(old) };
 }
 const defaultCover = () => migrateCover(null);
+const plainCover = () => ({ material:'leather', items:[] }); // new scrapbooks start with nothing on the cover
 const book = { title:'The Rainy Season', current:0, pages:samplePages(), cover:defaultCover() };
 // When onCover is true, the editor shows the cover instead of a page
 let onCover = false;
@@ -1339,14 +1340,14 @@ function openBook(id){
 function newScrapbook(){
   track('new_scrapbook', { scrapbooks:library.length + 1 });
   syncLibrary();
-  loadBookInto({ id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
+  loadBookInto(blankBook());
   syncLibrary();
   afterSwitch();
   toast('Started a new one. Find all of yours under your profile.');
 }
 // Delete the open scrapbook, then open the most recent one left. If it was the last one,
 // start over from nothing: a plain cover and one blank page, opened on the cover.
-const blankBook = () => ({ id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
+const blankBook = () => ({ id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:plainCover() });
 function deleteBook(){
   const gone = book.id, title = book.title || 'Untitled';
   track('delete_scrapbook', { scrapbooks_left:library.filter(b => b.id !== gone).length });
