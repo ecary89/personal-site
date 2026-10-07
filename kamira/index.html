@@ -1557,7 +1557,7 @@ function itemActions(it){
   if (it.type === 'title') acts.push({ id:'edit', label:'Title style', icon:'pen', view:'titleStyle' });
   const mine = it.type === 'photo' && USER.get(it.value);
   if (mine && mine.cut && mine.orig && !mine.kind) acts.push({ id:'recut', label:'Edit cutout', icon:'wand',
-    open:() => gate(() => openCutter(mine.orig, mine, mine.id, { edit:true, state:mine.cutState })) });
+    open:() => gate(() => openCutter(mine.orig, mine, mine.id, { edit:true, state:mine.cutState, item:it })) });
   acts.push({ id:'remove', label:'Remove', icon:'trash', key:'Delete', danger:true, run:() => { items.splice(i, 1); selectedId = null; } });
   return acts;
 }
@@ -3280,7 +3280,7 @@ async function openCutter(src, meta = {}, existingId = null, opts = {}){
     const ctx = work.getContext('2d', { willReadFrequently:true });
     ctx.drawImage(img, 0, 0, w, h);
     const original = ctx.getImageData(0, 0, w, h);
-    cutJob = { src, meta, existingId, original, w, h, mode:hasClearEdges(original) ? 'keep' : 'remove', tol:34, out:null, edit:!!opts.edit };
+    cutJob = { src, meta, existingId, original, w, h, mode:hasClearEdges(original) ? 'keep' : 'remove', tol:34, out:null, edit:!!opts.edit, item:opts.item || null };
     // Editing a cutout? Start from how it was made last time.
     const s = opts.state;
     if (s){
@@ -3759,8 +3759,11 @@ function finishCut(){
   if (!j || !j.out){ toast('Nothing left to add. Try moving the slider to Less.'); return; }
   let src = j.out.toDataURL('image/webp', .9);
   if (!src.startsWith('data:image/webp')) src = j.out.toDataURL('image/png');
-  const id = j.existingId || 'u_' + uid();
+  let id = j.existingId || 'u_' + uid();
   const prev = USER.get(id) || {};
+  // Editing one piece on the page? If other pieces use the same picture, this one
+  // becomes its own cutout so the others stay as they were.
+  if (j.edit && j.item && photoUses(id) > 1){ id = 'u_' + uid(); j.item.value = id; }
   const cutState = { mode:j.mode, q:j.q, tol:j.tol, path:j.path ? j.path.filter((p, i) => i % Math.ceil(j.path.length / 300) === 0).map(p => [+(p.x / j.w).toFixed(4), +(p.y / j.h).toFixed(4)]) : null };
   const u = { ...prev, ...pickMeta(j.meta), id, src, orig:prev.orig || keepOriginal(j), cutState, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload', t:Date.now() };
   if (prev.name && !j.meta.name) u.name = prev.name;
@@ -3768,9 +3771,15 @@ function finishCut(){
   const ratio = j.out.height / j.out.width;
   closeSheet();
   refreshViews(); // so Your cutouts shows the new cutout, not the old photo
-  if (j.edit){ renderFront(); toast('Cutout updated'); }
+  if (j.edit){ renderFront(); commit(); toast('Cutout updated'); }
   else addItem({ type:'photo', value:id, size:clamp(Math.round(30 / Math.max(1, ratio * .8)), 12, 40) });
   scheduleSave();
+}
+// How many pieces, in all your scrapbooks, show this picture
+function photoUses(id){
+  syncLibrary();
+  return library.reduce((n, b) => n + [...(b.pages || []).flatMap(p => p.items || []), ...((b.cover && b.cover.items) || [])]
+    .filter(i => i.type === 'photo' && i.value === id).length, 0);
 }
 const pickMeta = m => ({ name:m.name || null, brand:m.brand || null, price:m.price || null, url:m.url || null });
 
