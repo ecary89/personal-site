@@ -3127,7 +3127,7 @@ function fillCutter(box){
   const tool = (name, label, val) => { const b = el('button', 'tool'); b.innerHTML = icon(name) + (label ? '<span>' + label + '</span>' : ''); b.onclick = () => { j.tool = val; sync(); }; b.dataset.tool = val; return b; };
   const MODES = [
     { key:'remove', icon:'wand', title:'Remove background', sub:'Best for photos on a plain background.',
-      body:() => { const f = document.createDocumentFragment(); f.append(sliderFor('How much to remove'), el('p', 'hint', 'Drag until only your piece is left.')); return f; } },
+      body:() => { const f = document.createDocumentFragment(); f.append(sliderFor('How much to remove')); return f; } },
     { key:'lasso', icon:'lasso', title:'Draw around it', sub:'Circling snaps to the edges.',
       body:() => {
         const f = el('div', 'lasso-body');
@@ -3141,7 +3141,7 @@ function fillCutter(box){
         const again = el('button', 'btn', 'Reset');
         again.onclick = () => { j.path = null; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync(); };
         const endRow = el('div', 'lasso-end'); endRow.append(again, undo);
-        f.append(tools, el('p', 'hint', 'Keep more paints back parts it cut off. Remove more erases parts it kept.'), size, endRow);
+        f.append(tools, size, endRow);
         f.dataset.after = '1';
         return f;
       } },
