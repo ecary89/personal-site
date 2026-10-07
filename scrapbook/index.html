@@ -78,7 +78,7 @@ body{ display:flex; flex-direction:column; }
 .icon-btn:hover{ background:var(--surface); }
 .icon-btn:disabled{ opacity:.3; cursor:default; background:none; }
 .icon-btn svg{ width:21px; height:21px; }
-.avatar-btn{ width:36px; height:36px; flex:none; border-radius:50%; border:none; padding:0; display:grid; place-items:center; background:var(--accent-soft); color:var(--accent); }
+.avatar-btn{ width:36px; height:36px; flex:none; border-radius:50%; border:1px solid var(--ink); padding:0; display:grid; place-items:center; background:transparent; color:var(--ink); }
 .avatar-btn svg{ width:20px; height:20px; }
 .profile-head{ display:flex; align-items:center; gap:14px; }
 .profile-head div{ display:flex; flex-direction:column; gap:2px; }
@@ -683,7 +683,6 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
   .reader-top .divider{ display:block; width:1px; height:28px; background:var(--line); }
   .reader-title{ flex-direction:row; align-items:center; gap:12px; }
   .reader-title b{ font-size:21px; }
-  .avatar-btn{ background:transparent; border:1px solid var(--ink); color:var(--ink); }
   .topbar .divider{ width:1px; height:28px; background:var(--line); }
   .book-name{ flex-direction:row; align-items:center; gap:12px; }
   .book-name .page-pill{ align-self:center; }
