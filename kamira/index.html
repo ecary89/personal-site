@@ -743,10 +743,10 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
   .desk-only{ display:inline-flex !important; }
   .phone-only{ display:none !important; }
   .page-rail{ display:flex; flex-direction:column; gap:14px; width:116px; flex:none; padding:20px 16px 56px; overflow-y:auto; border-right:1px solid var(--line); }
-  .fb-corner{ position:fixed; left:8px; bottom:12px; z-index:5; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; padding:6px 6px; border:none; border-radius:8px; background:var(--bg); color:var(--muted); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
+  .fb-corner{ position:fixed; left:10px; bottom:12px; z-index:65; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:var(--bg); color:var(--ink); box-shadow:0 2px 8px rgba(17,17,17,.08); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
   .fb-corner svg{ width:14px; height:14px; flex:none; }
   .fb-corner[hidden]{ display:none; }
-  .fb-corner:hover{ color:var(--ink); background:var(--surface-2); }
+  .fb-corner:hover{ background:var(--surface-2); box-shadow:0 3px 12px rgba(17,17,17,.12); }
   .fb-corner:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .rail-page{ border:none; background:none; padding:0; display:flex; flex-direction:column; gap:6px; text-align:left; }
   .rail-page .mini{ border:2.5px solid transparent; box-shadow:0 1px 4px rgba(17,17,17,.12); }
@@ -3335,7 +3335,9 @@ function fillShare(box){
       try { const blob = await pngOf(); if (!blob) throw 0; await saveBlob(blob, name, 'Picture saved. Add it to your pin.'); }
       catch (e){ toast('The picture didn\'t save. Try Download, then add it to your pin.'); }
     };
-    so.append(el('h3', null, 'Share with others'), acts, postWrap, pin);
+    // Pinterest is hidden for now, until people ask for an easier way to share there
+    so.append(el('h3', null, 'Share with others'), acts, postWrap);
+    if (SHOW_PINTEREST) so.append(pin);
     right.append(so);
   }
   const wrap = el('div', 'share-wrap'); wrap.append(left, right); box.append(wrap);
@@ -3446,6 +3448,7 @@ addEventListener('resize', closeMenuPop);
    Feedback goes to Erika's "Kamira feedback" Google Sheet, through a small Google Apps Script
    web app attached to it. A screenshot of what the person was looking at (taken behind the
    feedback window, so the window itself isn't in it) is saved to her Drive and linked in the sheet. */
+const SHOW_PINTEREST = false;
 let FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbw_Yn9FHw5Bf5nirv3VGmEd_sS5XU04I5kQ0nUswEYtKBfLZK4Db3iODGZUUiIwQmCOGA/exec';
 let fbShot = null, fbShotJob = 0;
 // Desktop: a quiet "Send feedback" link in the bottom-left corner, under the pages
@@ -3465,7 +3468,7 @@ async function takeShot(){
     if (!window.htmlToImage) await loadScript('vendor/html-to-image.js');
     const k = Math.min(1, 1400 / innerWidth);
     const opts = { width:innerWidth, height:innerHeight, pixelRatio:k, quality:.72, backgroundColor:'#ffffff', cacheBust:false,
-      filter:n => n !== sheet && n !== scrim && !(n.classList && (n.classList.contains('toast')
+      filter:n => n !== sheet && n !== scrim && !(n.classList && (n.classList.contains('toast') || n.classList.contains('fb-corner')
         // only the side of the page that's facing them (the other side would show through, mirrored)
         || (n.classList.contains('face') && n.classList.contains(isFlipped() ? 'front' : 'back')))) };
     // Try with the site's fonts; if those can't be gathered, take it with plain fonts instead
