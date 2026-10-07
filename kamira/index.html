@@ -3496,11 +3496,15 @@ function fillFeedback(box){
     send.disabled = true; send.textContent = 'Sending…'; err.hidden = true;
     const body = JSON.stringify({ text:msg.slice(0, 5000), where:shot.where, screenshot:cb.checked && shot.img ? shot.img : '', device:deviceName(), screen:innerWidth + '×' + innerHeight });
     try {
-      // Plain text keeps this a "simple" request, which Google Apps Script accepts from any site
-      await fetch(FEEDBACK_URL, { method:'POST', mode:'no-cors', body });
+      // Plain text keeps this a "simple" request, which Google Apps Script accepts from any site.
+      // Its answer says whether the row was saved, so "sent" is only shown when it really was.
+      const res = await fetch(FEEDBACK_URL, { method:'POST', body, redirect:'follow' });
+      const out = await res.json().catch(() => null);
+      if (!out || !out.ok) throw new Error('not saved');
       track('feedback_sent', { screenshot:!!(cb.checked && shot.img) });
       closeSheet(); toast('Thanks! Your feedback was sent.');
     } catch (e){
+      track('feedback_failed');
       send.disabled = false; send.textContent = 'Send';
       err.textContent = 'That didn\'t send. Check your connection and try again.'; err.hidden = false;
     }
