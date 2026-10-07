@@ -912,6 +912,10 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 .g-num{ flex:none; width:26px; height:26px; border-radius:50%; background:var(--accent); color:var(--on-accent); display:grid; place-items:center; font-weight:700; font-size:13px; }
 .g-cap p{ margin:2px 0 0; font-size:14px; line-height:1.45; }
 .g-cap code{ font:600 13px ui-monospace, Menlo, monospace; background:var(--well); padding:1px 5px; border-radius:5px; }
+.g-copy{ display:inline-flex; align-items:center; gap:6px; padding:2px 8px 2px 2px; margin:0 1px; border:1px solid var(--line); border-radius:7px; background:var(--bg); color:var(--ink); cursor:pointer; vertical-align:baseline; font:inherit; }
+.g-copy code{ background:var(--well); }
+.g-copy:hover{ border-color:var(--ink); }
+.g-copy.done{ border-color:#1E8E3E; }
 .g-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .g-nav .dots{ display:flex; gap:6px; }
 .g-nav .dots button{ width:8px; height:8px; border-radius:50%; border:none; padding:0; background:var(--line); }
@@ -4134,10 +4138,12 @@ async function downloadClipper(){
 const CURSOR = '<svg viewBox="0 0 24 24"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#fff" stroke="#202124" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const gBar = (url, extra = '') => `<div class="g-bar"><div class="g-dots"><i></i><i></i><i></i></div><div class="g-url">${url}</div><div class="g-tools">${extra}</div></div>`;
 const gCur = (x0, y0, x1, y1, d) => `<div class="g-cursor" style="--x0:${x0};--y0:${y0};--x1:${x1};--y1:${y1};${d ? '--d:' + d : ''}">${CURSOR}</div>`;
+// Chrome doesn't let a website open chrome:// pages, so the address is one click to copy instead
+const COPY_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>';
 const GUIDE = [
   { text:'After you download it, find <b>kamira-clipper.zip</b> in your Downloads and double-click it. Move the folder it makes somewhere safe, like Documents.',
     html:`<div class="g-desk"><div class="g-file"><div class="g-zip"></div>kamira-clipper.zip</div><div class="g-arrow">→</div><div class="g-file out"><div class="g-bigfolder"></div>kamira-clipper</div></div>${gCur('70%', '80%', '24%', '42%')}` },
-  { text:'In Chrome, type <code>chrome://extensions</code> in the address bar and press Enter.',
+  { text:'Copy <button class="g-copy" type="button" data-copy="chrome://extensions" aria-label="Copy chrome://extensions"><code>chrome://extensions</code>' + COPY_ICON + '</button>, paste it in Chrome\'s address bar and press Enter.',
     html:`<div class="g-win">${gBar('<span class="typed">chrome://extensions</span>')}<div class="g-body"><div class="g-h" style="opacity:.25">Extensions</div><div class="g-cards"><div class="g-card"></div><div class="g-card"></div></div></div></div>` },
   { text:'Turn on <b>Developer mode</b> with the switch in the top-right corner.',
     html:`<div class="g-win">${gBar('chrome://extensions')}<div class="g-body"><div class="g-row"><div class="g-h">Extensions</div><div class="g-toggle">Developer mode <span class="g-sw"></span></div></div><div class="g-btns reveal"><span>Load unpacked</span><span>Pack extension</span><span>Update</span></div><div class="g-cards"><div class="g-card"></div><div class="g-card"></div></div></div></div>${gCur('40%', '75%', '80.5%', '27%')}` },
@@ -4180,6 +4186,10 @@ function fillClipper(box){
     scenes.forEach((sc, k) => { sc.classList.toggle('on', k === at); sc.classList.remove('play'); });
     void scenes[at].offsetWidth; scenes[at].classList.add('play');
     num.textContent = at + 1; txt.innerHTML = GUIDE[at].text;
+    txt.querySelectorAll('.g-copy').forEach(b => b.onclick = async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); b.classList.add('done'); toast('Copied. Paste it in the address bar.'); track('clipper_copy_url'); }
+      catch (e){ toast('Select it and copy it with ⌘C.'); }
+    });
     dots.querySelectorAll('button').forEach((d, k) => d.setAttribute('aria-current', String(k === at)));
   };
   GUIDE.forEach((_, k) => { const d = el('button'); d.setAttribute('aria-label', 'Step ' + (k + 1)); d.onclick = () => { stop(); show(k); }; dots.append(d); });
