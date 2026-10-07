@@ -1750,7 +1750,10 @@ let supporter = store.get('daydream-supporter') === '1';
 let afterSupport = null, supportAmount = 3;
 // Run "next" right away for supporters; otherwise show the prompt first, then carry on
 let supportWhy = null;
-let supportSeen = false;
+// Once someone has answered the prompt (an amount, Maybe later, or closing it), it never pops up on its own again.
+// The Donate button in the top banner still opens it, since that's their choice.
+let supportSeen = store.get('kamira-support-answered') === '1';
+const supportDone = () => { supportSeen = true; store.set('kamira-support-answered', '1'); };
 let supportSource = 'banner'; // what opened the prompt: banner, pictures or export
 function gate(next, why){
   if (supporter || supportSeen){ next(); return; }
@@ -1792,6 +1795,7 @@ function closeSheet(){
   if (sheetKind === 'cutter') nextQueued();
   if (sheetKind === 'welcome') welcomed();
   const wasOpen = !!sheetKind, wasSupport = sheetKind === 'support';
+  if (wasSupport) supportDone();
   if (wasSupport && !supportAnswered) track('support_skip', { source:supportSource }); // closed without picking an amount
   sheetKind = null; shopAsset = null;
   sheet.classList.remove('open'); scrim.classList.remove('open'); document.body.classList.remove('sheet-open');
@@ -1887,7 +1891,7 @@ function fillSupport(box){
   const pick = (amount, b) => {
     // Only the first pick each time the prompt opens is sent, so changing your mind doesn't count twice
     if (!supportAnswered) track('support_pledge', { amount, value:amount, currency:'USD', source:supportSource });
-    supportAnswered = true;
+    supportAnswered = true; supportDone();
     row.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     thanks.textContent = 'Thank you! We\'re not taking donations yet, so nothing was charged. Your answer helps us see if fans can keep Kamira running.';
     ok.textContent = afterSupport ? 'Continue' : 'Got it';
