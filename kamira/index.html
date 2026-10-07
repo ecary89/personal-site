@@ -1844,7 +1844,7 @@ function refreshViews(){
 
 function addItem(props){
   { const a = props.type === 'photo' ? asset(props.value) : null;
-    track('add_piece', { piece_type:props.type, piece_source:a ? (PRODUCT[props.value] ? 'shop' : FIG[props.value] ? 'figure' : 'yours') : props.type, piece_id:a && PRODUCT[props.value] ? props.value : undefined, brand:a && a.brand || undefined, on_cover:onCover }); }
+    track('add_piece', { piece_type:props.type, piece_source:a ? (PRODUCT[props.value] ? 'shop' : FIG[props.value] ? 'figure' : a.source === 'web' ? 'clipper' : 'yours') : props.type, piece_id:a && PRODUCT[props.value] ? props.value : undefined, brand:a && a.brand || undefined, on_cover:onCover }); }
   const it = { id:nextId++, x:50 + (Math.random() * 16 - 8), y:46 + (Math.random() * 16 - 8), rot:Math.round(Math.random() * 10 - 5), flip:false, shadow:true, ...props };
   page().items.push(it);
   selectedId = it.id;
@@ -3748,6 +3748,10 @@ addEventListener('message', e => {
       USER.set(id, { id, src:it.dataUrl, orig:it.dataUrl, w:it.width, h:it.height, cut:!!it.cut, source:'web',
         name:it.name || it.pageTitle || null, brand:it.brand || it.siteName || null, price:it.price && it.price.text || null, url:it.pageUrl || null });
       scheduleSave();
+      // A picture saved with the Clipper arrived. "site" is just the website's name (like reformation.com), never the full link.
+      // Find it in Google Analytics under Events > clipper_save.
+      let site = it.siteName || 'unknown'; try { if (it.pageUrl) site = new URL(it.pageUrl).hostname.replace(/^www\./, ''); } catch (err){}
+      track('clipper_save', { site:site.slice(0, 60), cut_out:!!it.cut });
       toast('Saved from the web. Find it in Add → Your cutouts.');
       shelf = 'Your cutouts'; addQuery = '';
       refreshViews();
