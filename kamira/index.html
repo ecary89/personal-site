@@ -1074,6 +1074,7 @@ const ICONS = {
   lasso:   '<path d="M7 15c-2.5-1-4-2.7-4-4.8C3 6.7 7 4 12 4s9 2.7 9 6.2-4 6.3-9 6.3c-1 0-2-.1-2.9-.3"/><path d="M8 15.5c0 1.6-1 3-2.5 3.5 1 .8 2.5 1 3.5.2"/>',
   brush:   '<path d="M14 4l6 6-8.5 8.5a3 3 0 0 1-4.2 0l-1.8-1.8a3 3 0 0 1 0-4.2Z"/><path d="M4 20c1.5 0 3-.5 3.5-2"/>',
   eraser:  '<path d="m7 20-4-4 10-10 7 7-7 7Z"/><path d="M20 20H7"/>',
+  pinterest:'<circle cx="12" cy="12" r="9.5"/><path d="M10.4 8.3h2.4a2.9 2.9 0 0 1 0 5.8h-2.1"/><path d="M11.2 8.3 9.3 19.6"/>',
   reddit:  '<ellipse cx="12" cy="14.5" rx="7.5" ry="5.5"/><circle cx="4.6" cy="11.6" r="1.6"/><circle cx="19.4" cy="11.6" r="1.6"/><path d="M12 9l1.4-4.6 4.1 1"/><circle cx="19" cy="5.6" r="1.4"/><circle cx="9.2" cy="13.8" r=".6" fill="currentColor"/><circle cx="14.8" cy="13.8" r=".6" fill="currentColor"/><path d="M9.4 17q2.6 1.6 5.2 0"/>',
   people:  '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M16.5 14.5c2.3 0 4 1.4 4.5 4"/>'
 };
@@ -3294,7 +3295,30 @@ function fillShare(box){
       else toast(msg || 'Ready to post.', { label:'Open Reddit', run:openReddit });
     });
     const postWrap = el('div', 'share-post'); postWrap.append(post, el('p', null, 'Our alpha product community'));
-    so.append(el('h3', null, 'Share with others'), acts, postWrap);
+    // Save to Pinterest: Pinterest can't take a picture made in the browser by link, so the picture
+    // downloads and Pinterest's pin maker opens, ready for it. On phones, the share sheet (with the
+    // Pinterest app in it) opens with the picture attached.
+    const pin = el('button', 'btn'); pin.innerHTML = icon('pinterest') + 'Save to Pinterest';
+    pin.onclick = async () => {
+      const title = ((p.title || '').trim() || (book.title || '').trim() || 'My Kamira page').slice(0, 100);
+      const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}.png`.replace(/[\\/:*?"<>|]+/g, '');
+      const pngOf = () => {
+        const out = shareOut;
+        if (out && out.kind === 'image') return out.png ? Promise.resolve(out.png) : new Promise(res => out.canvas.toBlob(res, 'image/png'));
+        return renderPageImage(p, cover).then(cv => new Promise(res => cv.toBlob(res, 'image/png')));
+      };
+      if (shareOut && shareOut.kind === 'image' && shareOut.png && phoneShare(shareOut.png)){
+        track('share_pinterest', { how:'share_sheet' });
+        navigator.share({ files:[new File([shareOut.png], name, { type:'image/png' })], title }).catch(() => {});
+        return;
+      }
+      // Open Pinterest right away (a click can only open one new tab, and only straight away), then save the picture
+      const w = window.open('https://www.pinterest.com/pin-builder/', '_blank'); if (w) w.opener = null;
+      track('share_pinterest', { how:'download_and_open' });
+      try { const blob = await pngOf(); if (!blob) throw 0; await saveBlob(blob, name, 'Picture saved. Add it to your pin.'); }
+      catch (e){ toast('The picture didn\'t save. Try Download, then add it to your pin.'); }
+    };
+    so.append(el('h3', null, 'Share with others'), acts, postWrap, pin);
     right.append(so);
   }
   const wrap = el('div', 'share-wrap'); wrap.append(left, right); box.append(wrap);
