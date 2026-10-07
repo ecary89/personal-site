@@ -484,12 +484,42 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .phrase-row button{ border:none; background:#fff; color:var(--ink, #2C2A4A); padding:5px 12px; box-shadow:0 1px 3px rgba(44,30,50,.22); font-size:16px; }
 .phrase-row button.wf-label{ font-size:12px; }
 
-/* ---------- Cutout tool: draw around it ---------- */
+/* ---------- Cutout tool: three ways to cut, draw around it, brushes ---------- */
+.cut-preview.photo{ background:var(--surface); }
 .cut-preview canvas.drawing{ touch-action:none; cursor:crosshair; }
-.seg{ flex-wrap:wrap; }
-.check{ display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--ink); }
-.check input{ accent-color:var(--accent); width:18px; height:18px; margin:0; }
-.lasso-tools{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.cut-preview canvas.painting{ touch-action:none; cursor:none; }
+.cut-preview canvas.snapped{ filter:drop-shadow(1.5px 0 0 #D9467F) drop-shadow(-1.5px 0 0 #D9467F) drop-shadow(0 1.5px 0 #D9467F) drop-shadow(0 -1.5px 0 #D9467F); }
+.cut-chip{ position:absolute; left:12px; top:12px; display:flex; align-items:center; gap:6px; background:rgba(17,17,17,.82); color:#fff; font-size:13px; font-weight:500; border-radius:999px; padding:5px 11px 5px 9px; pointer-events:none; }
+.cut-chip svg{ width:16px; height:16px; }
+.cut-ring{ position:absolute; border-radius:50%; border:2px solid #111; box-shadow:0 0 0 2px #fff; transform:translate(-50%, -50%); pointer-events:none; }
+.cut-wrap.desk{ display:grid; grid-template-columns:minmax(0,1fr) 270px; gap:20px; align-items:start; }
+.cut-wrap.desk .cut-preview{ height:min(470px, 58vh); max-height:none; }
+.cut-wrap.desk .cut-preview canvas{ max-height:calc(min(470px, 58vh) - 28px); }
+.cut-opts{ display:flex; flex-direction:column; gap:6px; }
+.cut-opt{ border:1.5px solid var(--line); border-radius:12px; }
+.cut-opt.on{ border-color:var(--ink); }
+.cut-oh{ width:100%; display:flex; align-items:center; gap:10px; border:none; background:none; padding:11px 12px; font:600 14px var(--ui); color:var(--ink); text-align:left; }
+.cut-oh svg{ width:18px; height:18px; flex:none; }
+.cut-oh:focus{ outline:none; }
+.cut-oh:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; border-radius:11px; }
+.cut-opt .cut-ob{ padding:0 12px 12px 40px; display:flex; flex-direction:column; gap:10px; }
+.cut-sub{ font-size:13px; color:var(--muted); line-height:1.4; }
+.cut-ob .hint{ margin:0; font-size:13px; }
+.cut-ob .slider{ font-size:13px; }
+.lasso-body{ display:flex; flex-direction:column; gap:10px; }
+.lasso-body > .btn{ align-self:flex-start; height:32px; padding:0 12px; font-size:13px; }
+.tools{ display:flex; gap:4px; flex-wrap:wrap; }
+.tool{ display:inline-flex; align-items:center; gap:5px; height:34px; padding:0 8px; border-radius:10px; border:1.5px solid var(--line); background:var(--bg); font:500 13px var(--ui); color:var(--ink); }
+.tool svg{ width:17px; height:17px; }
+.tool.on{ background:var(--ink); border-color:var(--ink); color:var(--bg); }
+.cut-phone{ display:flex; flex-direction:column; gap:10px; }
+.cut-seg{ display:flex; width:100%; align-self:stretch; flex-wrap:nowrap; }
+.cut-seg button{ flex:1; padding:9px 4px; font-size:13.5px; }
+.cut-phone .cut-ob{ display:flex; flex-direction:column; gap:10px; }
+.cut-phone .cut-sub{ margin:0; }
+.cut-foot{ margin-top:16px; }
+@media (max-width:1023px){ .cut-foot{ position:sticky; bottom:-4px; background:var(--bg); padding-top:10px; } .cut-foot .btn{ flex:1; height:48px; justify-content:center; } }
+@media (min-width:1024px){ .sheet.cutw{ width:min(780px, calc(100vw - 48px)); } }
 
 /* ---------- Scrapbook covers: hard materials with a few paper pieces on top ---------- */
 :root{
@@ -976,6 +1006,9 @@ const ICONS = {
   link:    '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
   mail:    '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/>',
   wand:    '<path d="m4 20 11-11"/><path d="m13 7 2-2 2 2-2 2"/><path d="M18 3v2M20 5h-2M19 11v2M21 12h-2M10 3v2M11 4H9"/>',
+  lasso:   '<path d="M7 15c-2.5-1-4-2.7-4-4.8C3 6.7 7 4 12 4s9 2.7 9 6.2-4 6.3-9 6.3c-1 0-2-.1-2.9-.3"/><path d="M8 15.5c0 1.6-1 3-2.5 3.5 1 .8 2.5 1 3.5.2"/>',
+  brush:   '<path d="M14 4l6 6-8.5 8.5a3 3 0 0 1-4.2 0l-1.8-1.8a3 3 0 0 1 0-4.2Z"/><path d="M4 20c1.5 0 3-.5 3.5-2"/>',
+  eraser:  '<path d="m7 20-4-4 10-10 7 7-7 7Z"/><path d="M20 20H7"/>',
   people:  '<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="16.5" cy="9.5" r="2.6"/><path d="M16.5 14.5c2.3 0 4 1.4 4.5 4"/>'
 };
 // Analytics: sends an event to Google Analytics when the page has it (the portfolio build does; Claude doesn't)
@@ -1670,7 +1703,7 @@ function gate(next, why){
 }
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Scene']];
-const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile'];
+const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
 const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Scene', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'Your scrapbook', clipper:'Scrapbook Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this scrapbook?', profile:'Your scrapbooks', titleStyle:'Cover title' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
@@ -1686,6 +1719,7 @@ function openView(kind){
   if (!sheetKind) lastFocus = document.activeElement;
   sheetKind = kind;
   sheet.classList.toggle('wide', kind === 'profile');
+  sheet.classList.toggle('cutw', kind === 'cutter');
   sheet.classList.toggle('mid', kind === 'clipper');
   // Tool panels open tall on phones and keep that height, even when a search finds nothing
   sheet.classList.toggle('tall', TALL_SHEETS.includes(kind));
@@ -2964,14 +2998,23 @@ function hasClearEdges({ data, width:w, height:h }){
    1. Find the typical color around the edge of the photo (the backdrop).
    2. Starting from the edges, spread inward through pixels that look like the backdrop.
    3. Everything the spread reached becomes see-through. Specks are tidied, edges softened. */
-function removeBackground(src, tol){
+function removeBackground(src, tol, inside){
   const { width:w, height:h } = src;
   const d = new Uint8ClampedArray(src.data);
   const N = w * h;
   const rs = [], gs = [], bs = [];
   const sample = i => { rs.push(d[i * 4]); gs.push(d[i * 4 + 1]); bs.push(d[i * 4 + 2]); };
-  for (let x = 0; x < w; x++){ sample(x); sample((h - 1) * w + x); }
-  for (let y = 0; y < h; y++){ sample(y * w); sample(y * w + w - 1); }
+  if (inside){
+    // "Draw around it": the backdrop is whatever sits just inside the loop you drew
+    for (let i = 0; i < N; i++){
+      if (!inside[i]) continue; const x = i % w;
+      if ((x > 0 && !inside[i - 1]) || (x < w - 1 && !inside[i + 1]) || (i >= w && !inside[i - w]) || (i < N - w && !inside[i + w])) sample(i);
+    }
+    if (!rs.length) sample(0);
+  } else {
+    for (let x = 0; x < w; x++){ sample(x); sample((h - 1) * w + x); }
+    for (let y = 0; y < h; y++){ sample(y * w); sample(y * w + w - 1); }
+  }
   const med = a => a.sort((p, q) => p - q)[a.length >> 1];
   const R = med(rs), G = med(gs), B = med(bs);
   const tg = tol * tol * 3, tl = Math.pow(Math.max(5, tol * .55), 2) * 3;
@@ -2980,8 +3023,11 @@ function removeBackground(src, tol){
   const far = i => { const j = i * 4, a = d[j] - R, b = d[j + 1] - G, c = d[j + 2] - B; return a * a + b * b + c * c; };
   const near = (i, k) => { const j = i * 4, m = k * 4, a = d[j] - d[m], b = d[j + 1] - d[m + 1], c = d[j + 2] - d[m + 2]; return a * a + b * b + c * c; };
   const seed = i => { if (!bg[i] && (d[i * 4 + 3] < 20 || far(i) < tg)){ bg[i] = 1; q[tail++] = i; } };
-  for (let x = 0; x < w; x++){ seed(x); seed((h - 1) * w + x); }
-  for (let y = 0; y < h; y++){ seed(y * w); seed(y * w + w - 1); }
+  if (inside){ for (let i = 0; i < N; i++) if (!inside[i]){ bg[i] = 1; q[tail++] = i; } }
+  else {
+    for (let x = 0; x < w; x++){ seed(x); seed((h - 1) * w + x); }
+    for (let y = 0; y < h; y++){ seed(y * w); seed(y * w + w - 1); }
+  }
   const spread = (n, p) => { if (!bg[n] && (d[n * 4 + 3] < 20 || (far(n) < tg && near(n, p) < tl))){ bg[n] = 1; q[tail++] = n; } };
   while (head < tail){
     const p = q[head++], x = p % w;
@@ -3027,81 +3073,166 @@ function trim(imgData){
   out.getContext('2d').drawImage(full, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
   return out;
 }
-function runCut(previewCanvas){
+// The loop you drew, as a yes/no mask the size of the picture
+function loopMask(j){
+  const c = document.createElement('canvas'); c.width = j.w; c.height = j.h;
+  const x = c.getContext('2d'); x.fillStyle = '#000';
+  x.beginPath(); j.path.forEach((pt, i) => i ? x.lineTo(pt.x, pt.y) : x.moveTo(pt.x, pt.y)); x.closePath(); x.fill();
+  const a = x.getImageData(0, 0, j.w, j.h).data, m = new Uint8Array(j.w * j.h);
+  for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] > 127 ? 1 : 0;
+  return m;
+}
+// Work out the cutout at full size (not trimmed), then apply any brush touch-ups
+function computeCut(j){
+  if (j.mode === 'keep') return j.original;
+  if (j.mode === 'remove') return removeBackground(j.original, j.tol);
+  if (!j.path) return null;
+  if (!j.inside) j.inside = loopMask(j);
+  const data = removeBackground(j.original, j.tol, j.inside);
+  if (j.paint){
+    const d = data.data, o = j.original.data, p = j.paint;
+    for (let i = 0; i < p.length; i++){ if (p[i] === 1) d[i * 4 + 3] = o[i * 4 + 3]; else if (p[i] === 2) d[i * 4 + 3] = 0; }
+  }
+  return data;
+}
+function runCut(cv){
   const j = cutJob; if (!j) return;
-  if (j.mode === 'lasso' && !j.path){
-    // show the whole picture so you can draw around the part you want
-    previewCanvas.width = j.w; previewCanvas.height = j.h;
-    previewCanvas.getContext('2d').putImageData(j.original, 0, 0);
-    j.out = null; return;
-  }
-  let data = j.mode === 'remove' || (j.mode === 'lasso' && j.alsoRemove) ? removeBackground(j.original, j.tol) : j.original;
-  if (j.mode === 'lasso'){
-    const c = document.createElement('canvas'); c.width = j.w; c.height = j.h;
-    const x = c.getContext('2d'); x.putImageData(data, 0, 0);
-    x.globalCompositeOperation = 'destination-in';
-    x.beginPath(); j.path.forEach((pt, i) => i ? x.lineTo(pt.x, pt.y) : x.moveTo(pt.x, pt.y)); x.closePath(); x.fill();
-    data = x.getImageData(0, 0, j.w, j.h);
-  }
-  j.out = trim(data);
-  if (!j.out){ previewCanvas.width = 1; previewCanvas.height = 1; return; }
-  previewCanvas.width = j.out.width; previewCanvas.height = j.out.height;
-  previewCanvas.getContext('2d').drawImage(j.out, 0, 0);
+  cv.width = j.w; cv.height = j.h;
+  const data = computeCut(j);
+  j.full = data;
+  cv.getContext('2d').putImageData(data || j.original, 0, 0);
+  cv.classList.toggle('snapped', j.mode === 'lasso' && !!j.path);
 }
 function fillCutter(box){
   const j = cutJob; if (!j){ closeSheet(); return; }
-  if (j.path === undefined){ j.path = null; j.alsoRemove = false; }
-  const prev = el('div', 'cut-preview'); const cv = el('canvas'); cv.setAttribute('aria-label', 'Preview of your cutout'); prev.append(cv);
-  const seg = el('div', 'seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'How to cut it out');
-  const rm = el('button', null, 'Remove background'), lasso = el('button', null, 'Draw around it'), keep = el('button', null, 'Keep it all');
-  const slider = el('label', 'slider');
-  const range = el('input'); range.type = 'range'; range.id = 'cutTol'; range.min = 4; range.max = 110; range.value = j.tol;
-  const ends = el('span', 'ends'); ends.append(el('span', null, 'Less'), el('span', null, 'More'));
-  slider.append(el('span', null, 'How much background to remove'), range, ends);
-  const tools = el('div', 'lasso-tools');
-  const again = el('button', 'btn', 'Draw again');
-  const also = el('label', 'check'); const cb = el('input'); cb.type = 'checkbox'; cb.id = 'alsoRemove'; also.append(cb, el('span', null, 'Also remove plain background'));
-  tools.append(also, again);
-  const hint = el('p', 'hint');
-  const sync = () => {
-    rm.setAttribute('aria-pressed', String(j.mode === 'remove')); lasso.setAttribute('aria-pressed', String(j.mode === 'lasso')); keep.setAttribute('aria-pressed', String(j.mode === 'keep'));
-    slider.hidden = !(j.mode === 'remove' || (j.mode === 'lasso' && j.alsoRemove));
-    tools.hidden = j.mode !== 'lasso'; again.hidden = !j.path; cb.checked = !!j.alsoRemove;
-    cv.classList.toggle('drawing', j.mode === 'lasso' && !j.path);
-    hint.textContent = j.mode === 'lasso'
-      ? (j.path ? 'Happy with it? Add it to your page, or draw again.' : 'Draw a loop around the part you want to keep.')
-      : j.mode === 'remove' ? 'Works best on photos with a plain background. Drag the slider until only your piece is left.' : 'Adds the whole picture as it is.';
+  if (j.path === undefined){ j.path = null; j.paint = null; j.tool = 'add'; j.brush = 22; j.history = []; }
+  const desk = isDesk();
+  const wrap = el('div', 'cut-wrap' + (desk ? ' desk' : ''));
+  const prev = el('div', 'cut-preview'); const cv = el('canvas'); cv.setAttribute('aria-label', 'Preview of your cutout');
+  const chip = el('div', 'cut-chip'); chip.innerHTML = icon('lasso') + '<span>Draw a loop around it</span>';
+  const ring = el('div', 'cut-ring'); ring.hidden = true;
+  prev.append(cv, chip, ring);
+
+  // Controls for each mode
+  const sliderFor = label => {
+    const sl = el('label', 'slider');
+    const range = el('input'); range.type = 'range'; range.min = 4; range.max = 110; range.value = j.tol;
+    const ends = el('span', 'ends'); ends.append(el('span', null, 'Less'), el('span', null, 'More'));
+    sl.append(el('span', null, label), range, ends);
+    let t; range.oninput = () => { j.tol = +range.value; clearTimeout(t); t = setTimeout(() => runCut(cv), 40); };
+    return sl;
   };
-  rm.onclick = () => { j.mode = 'remove'; sync(); runCut(cv); };
-  lasso.onclick = () => { j.mode = 'lasso'; sync(); runCut(cv); };
-  keep.onclick = () => { j.mode = 'keep'; sync(); runCut(cv); };
-  again.onclick = () => { j.path = null; sync(); runCut(cv); };
-  cb.onchange = () => { j.alsoRemove = cb.checked; sync(); runCut(cv); };
-  let t; range.oninput = () => { j.tol = +range.value; clearTimeout(t); t = setTimeout(() => runCut(cv), 40); };
-  // Drawing the loop
-  let pts = null;
-  const at = e => { const r = cv.getBoundingClientRect(); return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height }; };
-  const stroke = () => {
+  const tool = (name, label, val) => { const b = el('button', 'tool'); b.innerHTML = icon(name) + (label ? '<span>' + label + '</span>' : ''); b.onclick = () => { j.tool = val; sync(); }; b.dataset.tool = val; return b; };
+  const MODES = [
+    { key:'remove', icon:'wand', title:'Remove background', sub:'Best for photos on a plain background.',
+      body:() => { const f = document.createDocumentFragment(); f.append(sliderFor('How much to remove'), el('p', 'hint', 'Drag until only your piece is left.')); return f; } },
+    { key:'lasso', icon:'lasso', title:'Draw around it', sub:'Circling snaps to the edges.',
+      body:() => {
+        const f = el('div', 'lasso-body');
+        const tools = el('div', 'tools');
+        const undo = el('button', 'tool'); undo.innerHTML = icon('undo'); undo.setAttribute('aria-label', 'Undo last brush stroke');
+        undo.onclick = () => { if (!j.history.length) return; j.paint = j.history.pop(); runCut(cv); sync(); };
+        tools.append(tool('brush', 'Add back', 'add'), tool('eraser', 'Erase', 'erase'), undo);
+        const size = el('label', 'slider brush-size');
+        const r = el('input'); r.type = 'range'; r.min = 6; r.max = 70; r.value = j.brush; r.oninput = () => { j.brush = +r.value; };
+        size.append(el('span', null, 'Brush size'), r);
+        const again = el('button', 'btn', 'Draw again');
+        again.onclick = () => { j.path = null; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync(); };
+        f.append(tools, size, el('p', 'hint', 'Paint over anything it missed, or erase what it kept.'), again);
+        f.dataset.after = '1';
+        return f;
+      } },
+    { key:'keep', icon:'image', title:'Keep it all', sub:'Adds the whole picture as it is.', body:null }
+  ];
+  const opts = el('div', desk ? 'cut-opts' : 'cut-phone');
+  const bodies = {};
+  let segRow = null;
+  if (desk){
+    MODES.forEach(m => {
+      const card = el('div', 'cut-opt'); card.dataset.mode = m.key;
+      const head = el('button', 'cut-oh'); head.innerHTML = icon(m.icon) + '<b>' + m.title + '</b>';
+      head.onclick = () => setMode(m.key);
+      const body = el('div', 'cut-ob'); body.append(el('span', 'cut-sub', m.sub));
+      if (m.body) body.append(m.body());
+      bodies[m.key] = body; card.append(head, body); opts.append(card);
+    });
+  } else {
+    segRow = el('div', 'seg cut-seg'); segRow.setAttribute('role', 'group'); segRow.setAttribute('aria-label', 'How to cut it out');
+    MODES.forEach(m => { const b = el('button', null, m.title); b.dataset.mode = m.key; b.onclick = () => setMode(m.key); segRow.append(b); });
+    opts.append(segRow);
+    MODES.forEach(m => { const body = el('div', 'cut-ob'); body.append(el('p', 'hint cut-sub', m.sub)); if (m.body) body.append(m.body()); bodies[m.key] = body; opts.append(body); });
+  }
+  const sync = () => {
+    const drawing = j.mode === 'lasso' && !j.path;
+    if (desk) opts.querySelectorAll('.cut-opt').forEach(c => { const on = c.dataset.mode === j.mode; c.classList.toggle('on', on); c.querySelector('.cut-oh').setAttribute('aria-expanded', String(on)); });
+    else segRow.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === j.mode)));
+    Object.entries(bodies).forEach(([k, b]) => { b.hidden = k !== j.mode; });
+    const lb = bodies.lasso.querySelector('.lasso-body'); if (lb) lb.hidden = !j.path;
+    bodies.lasso.querySelectorAll('.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === j.tool));
+    chip.hidden = !drawing;
+    prev.classList.toggle('photo', j.mode === 'keep' || drawing);
+    cv.classList.toggle('drawing', drawing);
+    cv.classList.toggle('painting', j.mode === 'lasso' && !!j.path);
+  };
+  const setMode = k => { j.mode = k; sync(); runCut(cv); };
+
+  // Drawing the loop, then painting touch-ups with the brushes
+  let pts = null, painting = false;
+  const at = e => { const r = cv.getBoundingClientRect(); return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height, k:cv.width / r.width }; };
+  const strokeLoop = () => {
     const x = cv.getContext('2d'); x.putImageData(j.original, 0, 0);
     x.beginPath(); pts.forEach((pt, i) => i ? x.lineTo(pt.x, pt.y) : x.moveTo(pt.x, pt.y));
     x.lineWidth = Math.max(2.5, cv.width / 220); x.strokeStyle = '#D9467F'; x.setLineDash([x.lineWidth * 3, x.lineWidth * 2]); x.lineJoin = 'round'; x.lineCap = 'round'; x.stroke();
   };
-  cv.addEventListener('pointerdown', e => { if (j.mode !== 'lasso' || j.path) return; e.preventDefault(); cv.setPointerCapture(e.pointerId); pts = [at(e)]; });
-  cv.addEventListener('pointermove', e => { if (!pts) return; pts.push(at(e)); stroke(); });
-  const done = () => { if (!pts) return; const p = pts; pts = null; if (p.length < 6){ runCut(cv); return; } j.path = p; sync(); runCut(cv); };
+  const dab = p => {
+    const r = j.brush * p.k / 2, v = j.tool === 'add' ? 1 : 2, w = j.w, h = j.h;
+    const x0 = Math.max(0, Math.floor(p.x - r)), x1 = Math.min(w - 1, Math.ceil(p.x + r)), y0 = Math.max(0, Math.floor(p.y - r)), y1 = Math.min(h - 1, Math.ceil(p.y + r));
+    const d = j.full.data, o = j.original.data;
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++){
+      if ((x - p.x) ** 2 + (y - p.y) ** 2 > r * r) continue;
+      const i = y * w + x; j.paint[i] = v; d[i * 4 + 3] = v === 1 ? o[i * 4 + 3] : 0;
+    }
+    cv.getContext('2d').putImageData(j.full, 0, 0, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+  };
+  const moveRing = e => {
+    if (!(j.mode === 'lasso' && j.path)) { ring.hidden = true; return; }
+    const r = prev.getBoundingClientRect(); ring.hidden = false;
+    ring.style.width = ring.style.height = j.brush + 'px';
+    ring.style.left = (e.clientX - r.left) + 'px'; ring.style.top = (e.clientY - r.top) + 'px';
+  };
+  cv.addEventListener('pointerdown', e => {
+    if (j.mode !== 'lasso') return;
+    e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    if (!j.path){ pts = [at(e)]; return; }
+    j.history.push(j.paint ? j.paint.slice() : new Uint8Array(j.w * j.h)); if (j.history.length > 12) j.history.shift();
+    if (!j.paint) j.paint = new Uint8Array(j.w * j.h);
+    painting = true; dab(at(e));
+  });
+  cv.addEventListener('pointermove', e => { moveRing(e); if (pts){ pts.push(at(e)); strokeLoop(); } else if (painting) dab(at(e)); });
+  cv.addEventListener('pointerleave', () => { ring.hidden = true; });
+  const done = () => {
+    painting = false;
+    if (!pts) return; const p = pts; pts = null;
+    if (p.length < 6){ runCut(cv); return; }
+    j.path = p; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync();
+  };
   cv.addEventListener('pointerup', done); cv.addEventListener('pointercancel', done);
-  seg.append(rm, lasso, keep);
-  const row = el('div', 'row-end sticky');
+
+  const row = el('div', 'row-end cut-foot');
   const cancel = el('button', 'btn', 'Cancel'), add = el('button', 'btn primary', 'Add to page');
-  cancel.onclick = closeSheet;
-  add.onclick = () => finishCut();
+  cancel.onclick = closeSheet; add.onclick = () => finishCut();
   row.append(cancel, add);
-  box.append(prev, seg, tools, slider, hint, row);
+  if (desk){ const side = el('div', 'cut-side'); side.append(opts); wrap.append(prev, side); box.append(wrap, row); }
+  else { box.append(prev, opts, row); }
   sync(); runCut(cv);
 }
 function finishCut(){
   track('make_cutout', { mode:cutJob && cutJob.mode });
-  const j = cutJob; if (!j || !j.out){ toast(j && j.mode === 'lasso' && !j.path ? 'Draw around the part you want first.' : 'Nothing left to add. Try moving the slider to Less.'); return; }
+  const j = cutJob;
+  if (j && j.mode === 'lasso' && !j.path){ toast('Draw around the part you want first.'); return; }
+  const data = j && (j.full || computeCut(j));
+  j.out = data ? trim(data) : null;
+  if (!j || !j.out){ toast('Nothing left to add. Try moving the slider to Less.'); return; }
   let src = j.out.toDataURL('image/webp', .9);
   if (!src.startsWith('data:image/webp')) src = j.out.toDataURL('image/png');
   const id = j.existingId || 'u_' + uid();
@@ -3161,7 +3292,7 @@ addEventListener('message', e => {
   if (m.type === 'image' && m.item && m.item.dataUrl){
     const it = m.item, id = 'w_' + it.id;
     if (!USER.has(id)){
-      USER.set(id, { id, src:it.dataUrl, orig:it.dataUrl, w:it.width, h:it.height, cut:false, source:'web',
+      USER.set(id, { id, src:it.dataUrl, orig:it.dataUrl, w:it.width, h:it.height, cut:!!it.cut, source:'web',
         name:it.name || it.pageTitle || null, brand:it.brand || it.siteName || null, price:it.price && it.price.text || null, url:it.pageUrl || null });
       scheduleSave();
       toast('Saved from the web. Find it in Add → Your cutouts.');
