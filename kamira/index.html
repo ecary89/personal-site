@@ -506,6 +506,11 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .cut-oh:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; border-radius:11px; }
 .cut-opt .cut-ob{ padding:0 12px 12px 40px; display:flex; flex-direction:column; gap:10px; }
 .cut-sub{ font-size:13px; color:var(--muted); line-height:1.4; }
+.cut-quality{ display:flex; flex-direction:column; gap:6px; }
+.q-seg{ display:flex; align-self:stretch; }
+.q-seg button{ flex:1; padding:7px 10px; font-size:13.5px; }
+.q-note{ margin:0; }
+.cut-wait{ position:absolute; left:50%; bottom:14px; transform:translateX(-50%); background:rgba(17,17,17,.84); color:#fff; font-size:13px; font-weight:500; border-radius:999px; padding:7px 14px; white-space:nowrap; pointer-events:none; }
 .cut-ob .hint{ margin:0; font-size:13px; }
 .cut-ob .slider{ font-size:13px; }
 .lasso-body{ display:flex; flex-direction:column; gap:10px; }
@@ -3350,13 +3355,164 @@ function loopMask(j){
   for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] > 127 ? 1 : 0;
   return m;
 }
-// Work out the cutout at full size (not trimmed), then apply any brush touch-ups
+/* Quick snap, in plain words: learn the colors just inside your loop (that's mostly
+   background) and the colors in its middle (mostly the thing you circled). Every pixel
+   inside the loop goes with whichever it looks more like. A few rounds of that, then
+   smooth it out, drop stray specks and fill small holes. */
+function snapQuick(src, inside){
+  const { width:w, height:h, data:d } = src, N = w * h;
+  // how far each pixel is from the loop's edge (inside) and outside it
+  const dist = (seedFn) => {
+    const D = new Int32Array(N).fill(1e9), q = new Int32Array(N); let hd = 0, tl = 0;
+    for (let i = 0; i < N; i++) if (seedFn(i)){ D[i] = 0; q[tl++] = i; }
+    while (hd < tl){ const p = q[hd++], x = p % w, v = D[p] + 1;
+      if (x > 0 && D[p - 1] > v){ D[p - 1] = v; q[tl++] = p - 1; }
+      if (x < w - 1 && D[p + 1] > v){ D[p + 1] = v; q[tl++] = p + 1; }
+      if (p >= w && D[p - w] > v){ D[p - w] = v; q[tl++] = p - w; }
+      if (p < N - w && D[p + w] > v){ D[p + w] = v; q[tl++] = p + w; } }
+    return D;
+  };
+  const din = dist(i => !inside[i]), dout = dist(i => !!inside[i]);
+  let maxIn = 0; for (let i = 0; i < N; i++) if (inside[i] && din[i] > maxIn) maxIn = din[i];
+  const band = Math.max(3, Math.round(maxIn * .14));
+  const B = 16, bin = i => ((d[i * 4] >> 4) << 8) | ((d[i * 4 + 1] >> 4) << 4) | (d[i * 4 + 2] >> 4);
+  const bins = new Uint16Array(N); for (let i = 0; i < N; i++) bins[i] = bin(i);
+  const hist = (pick) => { const H = new Float32Array(B * B * B); let n = 0; for (let i = 0; i < N; i++) if (pick(i)){ H[bins[i]]++; n++; }
+    // soften: spread each count to its neighbors so similar colors count too
+    const S = new Float32Array(H.length);
+    for (let r = 0; r < B; r++) for (let g = 0; g < B; g++) for (let bb = 0; bb < B; bb++){ const v = H[(r << 8) | (g << 4) | bb]; if (!v) continue;
+      for (let dr = -1; dr <= 1; dr++) for (let dg = -1; dg <= 1; dg++) for (let db = -1; db <= 1; db++){
+        const R = r + dr, G = g + dg, Bb = bb + db; if (R < 0 || G < 0 || Bb < 0 || R >= B || G >= B || Bb >= B) continue;
+        S[(R << 8) | (G << 4) | Bb] += v * (dr || dg || db ? .35 : 1); } }
+    let t = 0; for (let k = 0; k < S.length; k++) t += S[k]; for (let k = 0; k < S.length; k++) S[k] = (S[k] + .01) / (t + .01 * S.length);
+    return S; };
+  let bg = hist(i => (inside[i] && din[i] <= band) || (!inside[i] && dout[i] <= band));
+  let fg = hist(i => inside[i] && din[i] >= band * 2.2);
+  const lab = new Uint8Array(N);
+  for (let round = 0; round < 3; round++){
+    for (let i = 0; i < N; i++){ if (!inside[i]){ lab[i] = 0; continue; } const f = fg[bins[i]], g = bg[bins[i]]; lab[i] = f > g * 1.05 ? 1 : 0; }
+    fg = hist(i => lab[i] === 1);
+    bg = hist(i => (!lab[i] && inside[i]) || (!inside[i] && dout[i] <= band));
+  }
+  // smooth with a small box blur, then threshold
+  const r = Math.max(1, Math.round(band / 5)), I = new Float32Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++){ let row = 0; for (let x = 0; x < w; x++){ row += lab[y * w + x]; I[(y + 1) * (w + 1) + x + 1] = I[y * (w + 1) + x + 1] + row; } }
+  const sm = new Uint8Array(N);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const i = y * w + x; if (!inside[i]) continue;
+    const x0 = Math.max(0, x - r), x1 = Math.min(w, x + r + 1), y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+    const sum = I[y1 * (w + 1) + x1] - I[y0 * (w + 1) + x1] - I[y1 * (w + 1) + x0] + I[y0 * (w + 1) + x0];
+    sm[i] = sum / ((x1 - x0) * (y1 - y0)) > .5 ? 1 : 0; }
+  // keep the big pieces; fill small holes
+  const comps = (val) => { const L = new Int32Array(N).fill(-1), sizes = [], q = new Int32Array(N);
+    for (let i = 0; i < N; i++){ if (sm[i] !== val || L[i] >= 0 || (val === 0 && !inside[i])) continue; const id = sizes.length; let hd = 0, tl = 0, n = 0, edge = false; q[tl++] = i; L[i] = id;
+      while (hd < tl){ const p = q[hd++], x = p % w; n++;
+        const nb = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, p >= w ? p - w : -1, p < N - w ? p + w : -1];
+        for (const k of nb){ if (k < 0) continue; if (val === 0 && !inside[k]){ edge = true; continue; } if (sm[k] === val && L[k] < 0){ L[k] = id; q[tl++] = k; } } }
+      sizes.push(val === 0 ? (edge ? -1 : n) : n); }
+    return { L, sizes }; };
+  const F = comps(1), big = Math.max(0, ...F.sizes);
+  for (let i = 0; i < N; i++) if (sm[i] && F.sizes[F.L[i]] < Math.max(30, big * .04)) sm[i] = 0;
+  const Hh = comps(0), area = big || 1;
+  for (let i = 0; i < N; i++) if (!sm[i] && inside[i] && Hh.L[i] >= 0 && Hh.sizes[Hh.L[i]] >= 0 && Hh.sizes[Hh.L[i]] < area * .006) sm[i] = 1;
+  const out = new Uint8ClampedArray(d);
+  for (let i = 0; i < N; i++){
+    if (!sm[i]){ out[i * 4 + 3] = 0; continue; }
+    const x = i % w, edge = (x > 0 && !sm[i - 1]) || (x < w - 1 && !sm[i + 1]) || (i >= w && !sm[i - w]) || (i < N - w && !sm[i + w]);
+    if (edge) out[i * 4 + 3] = Math.min(out[i * 4 + 3], 150);
+  }
+  return new ImageData(out, w, h);
+}
+
+/* Best quality: a small AI model that finds the main object in a picture. It runs on
+   this device (nothing is uploaded), downloads once (about 55 MB), then is kept. */
+const AI = { session:null, loading:null, ready:false, got:0, total:44173029 };
+try { AI.ready = localStorage.getItem('kamira-ai-ready') === '1'; } catch (e){}
+function loadScript(src){ return new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.append(sc); }); }
+async function loadAI(onProgress){
+  if (AI.session) return AI.session;
+  if (AI.loading) return AI.loading;
+  AI.loading = (async () => {
+    if (!window.ort) await loadScript('ai/ort.wasm.min.js');
+    ort.env.wasm.wasmPaths = new URL('ai/', location.href).href;
+    ort.env.wasm.numThreads = 1;
+    const url = new URL('ai/silueta.onnx', location.href).href;
+    let cache = null, bytes = null;
+    try { cache = await caches.open('kamira-ai-1'); const hit = await cache.match(url); if (hit) bytes = new Uint8Array(await hit.arrayBuffer()); } catch (e){}
+    if (!bytes){
+      const res = await fetch(url); if (!res.ok) throw new Error('model');
+      AI.total = +res.headers.get('content-length') || AI.total;
+      const rd = res.body.getReader(), parts = []; AI.got = 0;
+      for (;;){ const { done, value } = await rd.read(); if (done) break; parts.push(value); AI.got += value.length; onProgress && onProgress(); }
+      bytes = new Uint8Array(AI.got); let o = 0; for (const p of parts){ bytes.set(p, o); o += p.length; }
+      try { cache && await cache.put(url, new Response(bytes)); } catch (e){}
+    }
+    AI.got = AI.total; onProgress && onProgress('ready');
+    AI.session = await ort.InferenceSession.create(bytes, { executionProviders:['wasm'] });
+    AI.ready = true; try { localStorage.setItem('kamira-ai-ready', '1'); } catch (e){}
+    return AI.session;
+  })();
+  try { return await AI.loading; } catch (e){ AI.loading = null; throw e; }
+}
+// How likely each pixel is part of the main object (0–1), for the region x,y,w,h of the picture
+async function aiPredict(src, rx, ry, rw, rh){
+  const S = 320, sess = await loadAI();
+  const full = document.createElement('canvas'); full.width = src.width; full.height = src.height; full.getContext('2d').putImageData(src, 0, 0);
+  const c = document.createElement('canvas'); c.width = S; c.height = S; const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, S, S); x.drawImage(full, rx, ry, rw, rh, 0, 0, S, S);
+  const px = x.getImageData(0, 0, S, S).data; let mx = 1; for (let i = 0; i < px.length; i++) if ((i & 3) !== 3 && px[i] > mx) mx = px[i];
+  const mean = [.485, .456, .406], sd = [.229, .224, .225], t = new Float32Array(3 * S * S);
+  for (let i = 0; i < S * S; i++) for (let k = 0; k < 3; k++) t[k * S * S + i] = (px[i * 4 + k] / mx - mean[k]) / sd[k];
+  const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor('float32', t, [1, 3, S, S]) });
+  const y = out[sess.outputNames[0]].data; let lo = Infinity, hi = -Infinity; for (const v of y){ if (v < lo) lo = v; if (v > hi) hi = v; }
+  const g = new ImageData(S, S); for (let i = 0; i < S * S; i++){ const v = Math.round((y[i] - lo) / (hi - lo + 1e-6) * 255); g.data[i * 4] = g.data[i * 4 + 1] = g.data[i * 4 + 2] = v; g.data[i * 4 + 3] = 255; }
+  const gc = document.createElement('canvas'); gc.width = S; gc.height = S; gc.getContext('2d').putImageData(g, 0, 0);
+  const up = document.createElement('canvas'); up.width = src.width; up.height = src.height; const ux = up.getContext('2d');
+  ux.imageSmoothingQuality = 'high'; ux.drawImage(gc, 0, 0, S, S, rx, ry, rw, rh);
+  const u = ux.getImageData(0, 0, src.width, src.height).data, P = new Float32Array(src.width * src.height);
+  for (let i = 0; i < P.length; i++) P[i] = u[i * 4 + 3] ? u[i * 4] / 255 : 0;
+  return P;
+}
+// Turn a 0–1 map into see-through edges. "tol" (the How much to remove slider) moves the cut line.
+function alphaFrom(src, P, tol, inside){
+  const d = new Uint8ClampedArray(src.data), t = .15 + (tol - 4) / 106 * .7;
+  for (let i = 0; i < P.length; i++){
+    if (inside && !inside[i]){ d[i * 4 + 3] = 0; continue; }
+    const a = Math.min(1, Math.max(0, (P[i] - (t - .12)) / .24));
+    d[i * 4 + 3] = Math.round(d[i * 4 + 3] * a);
+  }
+  return new ImageData(d, src.width, src.height);
+}
+const AI_BUSY = {};   // pictures the AI is working on
+async function runAI(j, kind, onDone){
+  const key = kind + (kind === 'loop' ? j.pathId : '');
+  if (AI_BUSY[key]) return; AI_BUSY[key] = true;
+  try {
+    if (kind === 'loop'){
+      let x0 = j.w, y0 = j.h, x1 = 0, y1 = 0;
+      for (let i = 0; i < j.inside.length; i++) if (j.inside[i]){ const x = i % j.w, y = (i / j.w) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      const pad = Math.round(Math.max(x1 - x0, y1 - y0) * .04);
+      x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(j.w - 1, x1 + pad); y1 = Math.min(j.h - 1, y1 + pad);
+      const P = await aiPredict(j.original, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+      if (key === 'loop' + j.pathId) j.aiLoop = P;
+    } else j.aiWhole = await aiPredict(j.original, 0, 0, j.w, j.h);
+  } catch (e){ j.aiFailed = true; toast('The best-quality cutout couldn’t load. Using Quick instead.'); j.q = 'quick'; }
+  delete AI_BUSY[key];
+  onDone && onDone();
+}
+// Work out the cutout at full size (not trimmed), then apply any brush touch-ups.
+// Returns null while the picture still needs a loop, or while the AI is working.
 function computeCut(j){
   if (j.mode === 'keep') return j.original;
-  if (j.mode === 'remove') return removeBackground(j.original, j.tol);
+  let data;
+  if (j.mode === 'remove'){
+    if (j.q === 'best'){ if (!j.aiWhole) return null; data = alphaFrom(j.original, j.aiWhole, j.tol); }
+    else data = removeBackground(j.original, j.tol);
+    return data;
+  }
   if (!j.path) return null;
   if (!j.inside) j.inside = loopMask(j);
-  const data = removeBackground(j.original, j.tol, j.inside);
+  if (j.q === 'best'){ if (!j.aiLoop) return null; data = alphaFrom(j.original, j.aiLoop, 50, j.inside); }
+  else { if (!j.quickLoop) j.quickLoop = snapQuick(j.original, j.inside); data = new ImageData(new Uint8ClampedArray(j.quickLoop.data), j.w, j.h); }
   if (j.paint){
     const d = data.data, o = j.original.data, p = j.paint;
     for (let i = 0; i < p.length; i++){ if (p[i] === 1) d[i * 4 + 3] = o[i * 4 + 3]; else if (p[i] === 2) d[i * 4 + 3] = 0; }
@@ -3369,7 +3525,17 @@ function runCut(cv){
   const data = computeCut(j);
   j.full = data;
   cv.getContext('2d').putImageData(data || j.original, 0, 0);
-  cv.classList.toggle('snapped', j.mode === 'lasso' && !!j.path);
+  cv.classList.toggle('snapped', j.mode === 'lasso' && !!j.path && !!data);
+  // Best quality still working? Show where it's at, then redraw when it's done.
+  const wait = j.q === 'best' && !data && (j.mode === 'remove' || (j.mode === 'lasso' && j.path));
+  const note = cv.parentElement && cv.parentElement.querySelector('.cut-wait');
+  if (note){
+    note.hidden = !wait;
+    const say = () => { note.textContent = AI.session ? 'Finding the edges…' : AI.got ? `Getting the best quality ready · ${Math.round(AI.got / 1e6)} of ${Math.round(AI.total / 1e6)} MB` : 'Getting the best quality ready…'; };
+    say();
+    if (wait) runAI(j, j.mode === 'remove' ? 'whole' : 'loop', () => { if (cutJob === j) runCut(cv); }).catch(() => {});
+    if (wait && !AI.session) loadAI(say).then(say).catch(() => {});
+  }
 }
 function fillCutter(box){
   const j = cutJob; if (!j){ closeSheet(); return; }
@@ -3379,7 +3545,8 @@ function fillCutter(box){
   const prev = el('div', 'cut-preview'); const cv = el('canvas'); cv.setAttribute('aria-label', 'Preview of your cutout');
   const chip = el('div', 'cut-chip'); chip.innerHTML = icon('lasso') + '<span>Circle the object</span>';
   const ring = el('div', 'cut-ring'); ring.hidden = true;
-  prev.append(cv, chip, ring);
+  const wait = el('div', 'cut-wait'); wait.hidden = true; wait.setAttribute('role', 'status');
+  prev.append(cv, chip, ring, wait);
 
   // Controls for each mode
   const sliderFor = label => {
@@ -3390,12 +3557,22 @@ function fillCutter(box){
     let t; range.oninput = () => { j.tol = +range.value; clearTimeout(t); t = setTimeout(() => runCut(cv), 40); };
     return sl;
   };
+  if (!j.q){ try { j.q = localStorage.getItem('kamira-cut-quality') || 'quick'; } catch (e){ j.q = 'quick'; } }
+  const quality = () => {
+    const f = el('div', 'cut-quality');
+    const seg = el('div', 'seg q-seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Edge quality');
+    [['quick', 'Quick'], ['best', 'Best']].forEach(([v, label]) => { const b = el('button', null, label); b.dataset.q = v;
+      b.onclick = () => { j.q = v; try { localStorage.setItem('kamira-cut-quality', v); } catch (e){} sync(); runCut(cv); }; seg.append(b); });
+    f.append(seg, el('p', 'cut-sub q-note'));
+    return f;
+  };
   const tool = (name, label, val) => { const b = el('button', 'tool'); b.innerHTML = icon(name) + (label ? '<span>' + label + '</span>' : ''); b.onclick = () => { j.tool = val; sync(); }; b.dataset.tool = val; return b; };
   const MODES = [
-    { key:'remove', icon:'wand', title:'Remove background', sub:'Best for photos on a plain background.',
-      body:() => { const f = document.createDocumentFragment(); f.append(sliderFor('How much to remove')); return f; } },
+    { key:'remove', icon:'wand', title:'Remove background', sub:'',
+      body:() => { const f = document.createDocumentFragment(); f.append(quality(), sliderFor('How much to remove')); return f; } },
     { key:'lasso', icon:'lasso', title:'Draw around it', sub:'Circling snaps to the edges.',
       body:() => {
+        const wrapL = document.createDocumentFragment(); wrapL.append(quality());
         const f = el('div', 'lasso-body');
         const tools = el('div', 'tools');
         const undo = el('button', 'tool'); undo.innerHTML = icon('undo'); undo.setAttribute('aria-label', 'Undo last brush stroke');
@@ -3405,11 +3582,12 @@ function fillCutter(box){
         const r = el('input'); r.type = 'range'; r.min = 6; r.max = 70; r.value = j.brush; r.oninput = () => { j.brush = +r.value; };
         size.append(el('span', null, 'Brush size'), r);
         const again = el('button', 'btn', 'Reset');
-        again.onclick = () => { j.path = null; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync(); };
+        again.onclick = () => { j.path = null; j.inside = null; j.quickLoop = null; j.aiLoop = null; j.paint = null; j.history = []; runCut(cv); sync(); };
         const endRow = el('div', 'lasso-end'); endRow.append(again, undo);
         f.append(tools, size, endRow);
         f.dataset.after = '1';
-        return f;
+        wrapL.append(f);
+        return wrapL;
       } },
     { key:'keep', icon:'image', title:'Keep it all', sub:'Adds the whole picture as it is.', body:null }
   ];
@@ -3421,7 +3599,7 @@ function fillCutter(box){
       const card = el('div', 'cut-opt'); card.dataset.mode = m.key;
       const head = el('button', 'cut-oh'); head.innerHTML = icon(m.icon) + '<b>' + m.title + '</b>';
       head.onclick = () => setMode(m.key);
-      const body = el('div', 'cut-ob'); body.append(el('span', 'cut-sub', m.sub));
+      const body = el('div', 'cut-ob'); if (m.sub) body.append(el('span', 'cut-sub', m.sub));
       if (m.body) body.append(m.body());
       bodies[m.key] = body; card.append(head, body); opts.append(card);
     });
@@ -3429,7 +3607,7 @@ function fillCutter(box){
     segRow = el('div', 'seg cut-seg'); segRow.setAttribute('role', 'group'); segRow.setAttribute('aria-label', 'How to cut it out');
     MODES.forEach(m => { const b = el('button', null, m.title); b.dataset.mode = m.key; b.onclick = () => setMode(m.key); segRow.append(b); });
     opts.append(segRow);
-    MODES.forEach(m => { const body = el('div', 'cut-ob'); body.append(el('p', 'hint cut-sub', m.sub)); if (m.body) body.append(m.body()); bodies[m.key] = body; opts.append(body); });
+    MODES.forEach(m => { const body = el('div', 'cut-ob'); if (m.sub) body.append(el('p', 'hint cut-sub', m.sub)); if (m.body) body.append(m.body()); bodies[m.key] = body; opts.append(body); });
   }
   const sync = () => {
     const drawing = j.mode === 'lasso' && !j.path;
@@ -3438,6 +3616,10 @@ function fillCutter(box){
     Object.entries(bodies).forEach(([k, b]) => { b.hidden = k !== j.mode; });
     const lb = bodies.lasso.querySelector('.lasso-body'); if (lb) lb.hidden = !j.path;
     bodies.lasso.querySelectorAll('.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === j.tool));
+    opts.querySelectorAll('.q-seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.q === j.q)));
+    opts.querySelectorAll('.q-note').forEach(n => { n.textContent = j.q === 'best'
+      ? (AI.ready ? 'Cleaner edges on busy photos. Takes a few seconds.' : 'Cleaner edges on busy photos. Slower, and downloads about 55 MB the first time.')
+      : 'Instant. Works best on plain backgrounds.'; });
     chip.hidden = !drawing;
     prev.classList.toggle('photo', j.mode === 'keep' || drawing);
     cv.classList.toggle('drawing', drawing);
@@ -3473,6 +3655,7 @@ function fillCutter(box){
     if (j.mode !== 'lasso') return;
     e.preventDefault(); cv.setPointerCapture(e.pointerId);
     if (!j.path){ pts = [at(e)]; return; }
+    if (!j.full) return;
     j.history.push(j.paint ? j.paint.slice() : new Uint8Array(j.w * j.h)); if (j.history.length > 12) j.history.shift();
     if (!j.paint) j.paint = new Uint8Array(j.w * j.h);
     painting = true; dab(at(e));
@@ -3483,7 +3666,7 @@ function fillCutter(box){
     painting = false;
     if (!pts) return; const p = pts; pts = null;
     if (p.length < 6){ runCut(cv); return; }
-    j.path = p; j.inside = null; j.paint = null; j.history = []; runCut(cv); sync();
+    j.path = p; j.pathId = (j.pathId || 0) + 1; j.inside = null; j.quickLoop = null; j.aiLoop = null; j.paint = null; j.history = []; runCut(cv); sync();
   };
   cv.addEventListener('pointerup', done); cv.addEventListener('pointercancel', done);
 
@@ -3499,6 +3682,7 @@ function finishCut(){
   track('make_cutout', { mode:cutJob && cutJob.mode });
   const j = cutJob;
   if (j && j.mode === 'lasso' && !j.path){ toast('Draw around the part you want first.'); return; }
+  if (j && j.q === 'best' && j.mode !== 'keep' && !j.full){ toast('Still finding the edges. One moment.'); return; }
   const data = j && (j.full || computeCut(j));
   j.out = data ? trim(data) : null;
   if (!j || !j.out){ toast('Nothing left to add. Try moving the slider to Less.'); return; }
