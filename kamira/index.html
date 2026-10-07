@@ -323,6 +323,7 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .scene-opt .mini{ border:2.5px solid transparent; }
 .scene-opt[aria-pressed="true"] .mini{ border-color:var(--accent); }
 .bg-row{ display:flex; flex-wrap:wrap; gap:10px; }
+.fb-corner{ display:none; }
 .fb-text{ display:block; width:100%; box-sizing:border-box; min-height:132px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:12px 14px; font:inherit; font-size:15px; line-height:1.45; color:var(--ink); background:var(--bg); }
 .fb-text:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 0 0 1px var(--ink); }
 .fb-shot{ display:flex; align-items:center; gap:12px; margin:14px 0 4px; font-size:14px; cursor:pointer; }
@@ -741,7 +742,12 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
   .book-name h1{ font-size:21px; }
   .desk-only{ display:inline-flex !important; }
   .phone-only{ display:none !important; }
-  .page-rail{ display:flex; flex-direction:column; gap:14px; width:116px; flex:none; padding:20px 16px; overflow-y:auto; border-right:1px solid var(--line); }
+  .page-rail{ display:flex; flex-direction:column; gap:14px; width:116px; flex:none; padding:20px 16px 56px; overflow-y:auto; border-right:1px solid var(--line); }
+  .fb-corner{ position:fixed; left:8px; bottom:12px; z-index:5; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; padding:6px 6px; border:none; border-radius:8px; background:var(--bg); color:var(--muted); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
+  .fb-corner svg{ width:14px; height:14px; flex:none; }
+  .fb-corner[hidden]{ display:none; }
+  .fb-corner:hover{ color:var(--ink); background:var(--surface-2); }
+  .fb-corner:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .rail-page{ border:none; background:none; padding:0; display:flex; flex-direction:column; gap:6px; text-align:left; }
   .rail-page .mini{ border:2.5px solid transparent; box-shadow:0 1px 4px rgba(17,17,17,.12); }
   .rail-page[aria-current="true"] .mini{ border-color:var(--accent); }
@@ -946,6 +952,7 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 
   <div class="workspace">
     <nav class="page-rail" id="pageRail" aria-label="Pages"></nav>
+    <button class="fb-corner" id="fbCorner" type="button" hidden>Send feedback</button>
     <div class="stage-wrap">
     <main class="stage" id="stage">
       <div class="stage-inner" id="stageInner">
@@ -3441,6 +3448,8 @@ addEventListener('resize', closeMenuPop);
    feedback window, so the window itself isn't in it) is saved to her Drive and linked in the sheet. */
 let FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbw_Yn9FHw5Bf5nirv3VGmEd_sS5XU04I5kQ0nUswEYtKBfLZK4Db3iODGZUUiIwQmCOGA/exec';
 let fbShot = null, fbShotJob = 0;
+// Desktop: a quiet "Send feedback" link in the bottom-left corner, under the pages
+{ const b = $('#fbCorner'); b.innerHTML = icon('chat') + 'Send feedback'; b.onclick = () => startFeedback(); b.hidden = !FEEDBACK_URL; }
 function startFeedback(){
   closeMenuPop();
   track('feedback_open');
