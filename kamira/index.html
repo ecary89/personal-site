@@ -494,6 +494,8 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .cut-chip{ position:absolute; left:12px; top:12px; display:flex; align-items:center; gap:6px; background:rgba(17,17,17,.82); color:#fff; font-size:13px; font-weight:500; border-radius:999px; padding:5px 11px 5px 9px; pointer-events:none; }
 .cut-chip svg{ width:16px; height:16px; }
 .cut-ring{ position:absolute; border-radius:50%; border:2px solid #111; box-shadow:0 0 0 2px #fff; transform:translate(-50%, -50%); pointer-events:none; }
+.cut-preview canvas.cut-loupe{ position:absolute; left:0; top:0; width:136px; height:136px; max-width:none; max-height:none; display:block; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.18), 0 8px 22px rgba(0,0,0,.22); pointer-events:none; z-index:3; background:#fff; }
+.cut-preview canvas.cut-loupe[hidden]{ display:none; }
 .cut-wrap.desk{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; align-items:start; }
 .cut-wrap.desk .cut-preview{ height:min(470px, 58vh); max-height:none; }
 .cut-wrap.desk .cut-preview canvas{ max-height:calc(min(470px, 58vh) - 28px); }
@@ -3572,8 +3574,9 @@ function fillCutter(box){
   const prev = el('div', 'cut-preview'); const cv = el('canvas'); cv.setAttribute('aria-label', 'Preview of your cutout');
   const chip = el('div', 'cut-chip'); chip.innerHTML = icon('lasso') + '<span>Circle the object</span>';
   const ring = el('div', 'cut-ring'); ring.hidden = true;
+  const loupe = el('canvas', 'cut-loupe'); loupe.hidden = true; loupe.setAttribute('aria-hidden', 'true');
   const wait = el('div', 'cut-wait'); wait.hidden = true; wait.setAttribute('role', 'status');
-  prev.append(cv, chip, ring, wait);
+  prev.append(cv, chip, ring, loupe, wait);
 
   // Controls for each mode
   const sliderFor = label => {
@@ -3672,6 +3675,31 @@ function fillCutter(box){
     }
     cv.getContext('2d').putImageData(j.full, 0, 0, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
   };
+  // Magnifier: while brushing, a round lens shows the spot under the brush 3x bigger
+  const LOUPE = 136, ZOOM = 3;
+  let checker = null;
+  const showLoupe = e => {
+    if (!(j.mode === 'lasso' && j.path && j.full)){ loupe.hidden = true; return; }
+    const dpr = window.devicePixelRatio || 1, size = Math.round(LOUPE * dpr);
+    if (loupe.width !== size){ loupe.width = loupe.height = size; }
+    const x = loupe.getContext('2d'), p = at(e), src = LOUPE * p.k / ZOOM;
+    if (!checker){ const t = document.createElement('canvas'); t.width = t.height = 16; const c = t.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, 16, 16); c.fillStyle = '#e9e9ec'; c.fillRect(0, 0, 8, 8); c.fillRect(8, 8, 8, 8); checker = x.createPattern(t, 'repeat'); }
+    x.save(); x.fillStyle = checker; x.fillRect(0, 0, size, size);
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(cv, p.x - src / 2, p.y - src / 2, src, src, 0, 0, size, size);
+    // the brush, at the same zoom
+    x.beginPath(); x.arc(size / 2, size / 2, j.brush * ZOOM * dpr / 2, 0, Math.PI * 2);
+    x.lineWidth = 2 * dpr; x.strokeStyle = '#fff'; x.stroke(); x.lineWidth = 1 * dpr; x.strokeStyle = '#111'; x.stroke();
+    x.restore();
+    // sit above and to the left of the brush, and flip if that runs off the edge
+    const r = prev.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, gap = 18 + j.brush / 2;
+    const fits = ([a, b]) => a >= 6 && b >= 6 && a + LOUPE <= r.width - 6 && b + LOUPE <= r.height - 6;
+    const spots = [[px - LOUPE - gap, py - LOUPE - gap], [px + gap, py - LOUPE - gap], [px - LOUPE - gap, py + gap], [px + gap, py + gap]];
+    let [lx, ly] = spots.find(fits) || spots[0];
+    lx = clamp(lx, 6, r.width - LOUPE - 6); ly = clamp(ly, 6, r.height - LOUPE - 6);
+    loupe.style.transform = `translate(${Math.round(lx)}px, ${Math.round(ly)}px)`;
+    loupe.hidden = false;
+  };
   const moveRing = e => {
     if (!(j.mode === 'lasso' && j.path)) { ring.hidden = true; return; }
     const r = prev.getBoundingClientRect(); ring.hidden = false;
@@ -3685,12 +3713,12 @@ function fillCutter(box){
     if (!j.full) return;
     j.history.push(j.paint ? j.paint.slice() : new Uint8Array(j.w * j.h)); if (j.history.length > 12) j.history.shift();
     if (!j.paint) j.paint = new Uint8Array(j.w * j.h);
-    painting = true; dab(at(e));
+    painting = true; dab(at(e)); showLoupe(e);
   });
-  cv.addEventListener('pointermove', e => { moveRing(e); if (pts){ pts.push(at(e)); strokeLoop(); } else if (painting) dab(at(e)); });
-  cv.addEventListener('pointerleave', () => { ring.hidden = true; });
-  const done = () => {
-    painting = false;
+  cv.addEventListener('pointermove', e => { moveRing(e); if (pts){ pts.push(at(e)); strokeLoop(); } else if (painting) dab(at(e)); if (!pts && (painting || e.pointerType === 'mouse')) showLoupe(e); });
+  cv.addEventListener('pointerleave', () => { ring.hidden = true; loupe.hidden = true; });
+  const done = e => {
+    painting = false; if (e && e.pointerType !== 'mouse') loupe.hidden = true;
     if (!pts) return; const p = pts; pts = null;
     if (p.length < 6){ runCut(cv); return; }
     j.path = p; j.pathId = (j.pathId || 0) + 1; j.inside = null; j.quickLoop = null; j.aiLoop = null; j.paint = null; j.history = []; runCut(cv); sync();
