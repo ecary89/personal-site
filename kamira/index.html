@@ -1293,7 +1293,14 @@ const tabs = (() => { try { return new BroadcastChannel('kamira'); } catch (e){ 
 const newer = (a, b) => !b || (a.t || 0) > (b.t || 0);
 function shareUser(u){ try { tabs && tabs.postMessage({ type:'user', u }); } catch (e){} }
 if (tabs) tabs.onmessage = e => {
-  const m = e.data; if (!m || m.type !== 'user' || !m.u || !m.u.id) return;
+  const m = e.data;
+  // A scrapbook was deleted in another tab: drop it here too, so this tab can't save it back
+  if (m && m.type === 'deleted' && m.id){
+    library = library.filter(b => b.id !== m.id);
+    if (book.id === m.id){ const next = [...library].sort((a, b) => (b.updated || 0) - (a.updated || 0))[0]; loadBookInto(next || blankBook()); afterSwitch(); if (!next) enterCover(); }
+    return;
+  }
+  if (!m || m.type !== 'user' || !m.u || !m.u.id) return;
   if (!newer(m.u, USER.get(m.u.id))) return;
   USER.set(m.u.id, m.u);
   renderFront(); refreshViews();
@@ -1337,14 +1344,18 @@ function newScrapbook(){
   afterSwitch();
   toast('Started a new one. Find all of yours under your profile.');
 }
-// Delete the open scrapbook, then open the most recent one left (or a fresh blank one)
+// Delete the open scrapbook, then open the most recent one left. If it was the last one,
+// start over from nothing: a plain cover and one blank page, opened on the cover.
+const blankBook = () => ({ id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
 function deleteBook(){
   const gone = book.id, title = book.title || 'Untitled';
   track('delete_scrapbook', { scrapbooks_left:library.filter(b => b.id !== gone).length });
   library = library.filter(b => b.id !== gone);
+  try { tabs && tabs.postMessage({ type:'deleted', id:gone }); } catch (e){}
   const next = [...library].sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
-  loadBookInto(next || { id:newBookId(), title:'Untitled', pages:[{ scene:'blank', title:'', story:'', items:[] }], cover:defaultCover() });
+  loadBookInto(next || blankBook());
   afterSwitch();
+  if (!next) enterCover();
   toast(`Deleted "${title}"`);
 }
 function fillDeleteBook(box){
