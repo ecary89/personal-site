@@ -10,7 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Coming+Soon&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Figtree:wght@400;500;600;700&family=Kalam:wght@400;700&family=Pinyon+Script&family=Special+Elite&display=swap" rel="stylesheet">
 <meta name="robots" content="noindex, nofollow">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9Y1BEF1E44"></script>
-<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-9Y1BEF1E44', { page_path:'/kamira/', page_title:'Kamira (alpha)' });</script>
+<script>// Don't count Erika: visit any page with ?notrack once per browser to stop sending analytics from it (?track turns it back on).
+(function () { try { var q = location.search; if (/[?&]notrack\b/.test(q)) localStorage.setItem('ec-no-analytics', '1'); if (/[?&]track\b/.test(q)) localStorage.removeItem('ec-no-analytics'); if (localStorage.getItem('ec-no-analytics') === '1') window['ga-disable-G-9Y1BEF1E44'] = true; } catch (e) {} })();
+window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-9Y1BEF1E44', { page_path:'/kamira/', page_title:'Kamira (alpha)' });</script>
 <!-- Hide the page until the saved story is loaded, so the sample story doesn't flash first -->
 <script>document.documentElement.classList.add('booting'); setTimeout(function(){ document.documentElement.classList.remove('booting'); }, 3000);</script>
 <style>html.booting .workspace, html.booting #bookTitle, html.booting #pageCount{ visibility:hidden; }</style>

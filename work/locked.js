@@ -11,6 +11,9 @@
 // knows which page a password belongs to. The working password is kept in sessionStorage
 // so moving between /work pages in the same tab doesn't re-prompt. Visit /work/?lock to forget it.
 
+    // Don't count Erika: visit any page with ?notrack once per browser to stop sending analytics from it (?track turns it back on).
+    (function () { try { var q = location.search; if (/[?&]notrack\b/.test(q)) localStorage.setItem('ec-no-analytics', '1'); if (/[?&]track\b/.test(q)) localStorage.removeItem('ec-no-analytics'); if (localStorage.getItem('ec-no-analytics') === '1') window['ga-disable-G-9Y1BEF1E44'] = true; } catch (e) {} })();
+
 (function () {
     'use strict';
 

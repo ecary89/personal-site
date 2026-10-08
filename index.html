@@ -25,6 +25,8 @@
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
+        // Don't count Erika: visit any page with ?notrack once per browser to stop sending analytics from it (?track turns it back on).
+        (function () { try { var q = location.search; if (/[?&]notrack\b/.test(q)) localStorage.setItem('ec-no-analytics', '1'); if (/[?&]track\b/.test(q)) localStorage.removeItem('ec-no-analytics'); if (localStorage.getItem('ec-no-analytics') === '1') window['ga-disable-G-9Y1BEF1E44'] = true; } catch (e) {} })();
         gtag('js', new Date());
         gtag('config', 'G-9Y1BEF1E44');
     </script>
