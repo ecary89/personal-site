@@ -189,6 +189,9 @@ body{ display:flex; flex-direction:column; }
 /* Shadow off: the piece sits flat on the painting, no white edge or shadow */
 .cut.flat, .cut.flat img{ filter:none !important; box-shadow:none !important; }
 .cut.word.flat{ background:transparent; }
+.cut.word.plain, .cut.word.wf-label.plain, .cut.word.wf-label.flat.plain{ background:transparent; box-shadow:none; }
+.cut.word.wf-label.plain{ color:var(--ink, #2C2A4A); text-shadow:none; }
+.cut.word.plain:not(.flat){ filter:drop-shadow(0 .03em .05em rgba(44,30,50,.35)); }
 .cut.sel{ outline:1.5px dashed var(--accent); outline-offset:7px; }
 .cut:focus-visible{ outline:2px solid var(--accent); outline-offset:7px; }
 .cut.new{ animation:pop .45s cubic-bezier(.3,1.5,.5,1); }
@@ -463,12 +466,12 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 
 
 /* ---------- Word styles (shared by text on the page and the pickers) ---------- */
-.wf-hand{ font-family:var(--hand); font-weight:700; }
-.wf-script{ font-family:"Pinyon Script", "Snell Roundhand", cursive; font-weight:400; }
-.wf-type{ font-family:"Special Elite", "Courier New", monospace; font-weight:400; }
-.wf-serif{ font-family:var(--display); font-style:italic; font-weight:600; }
-.wf-bold{ font-family:var(--ui); font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
-.wf-label{ font-family:var(--ui); font-weight:700; text-transform:uppercase; letter-spacing:.18em; }
+.wf-hand, .cut.word.wf-hand{ font-family:var(--hand); font-weight:700; }
+.wf-script, .cut.word.wf-script{ font-family:"Pinyon Script", "Snell Roundhand", cursive; font-weight:400; }
+.wf-type, .cut.word.wf-type{ font-family:"Special Elite", "Courier New", monospace; font-weight:400; }
+.wf-serif, .cut.word.wf-serif{ font-family:var(--display); font-style:italic; font-weight:600; }
+.wf-bold, .cut.word.wf-bold{ font-family:var(--ui); font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.wf-label, .cut.word.wf-label{ font-family:var(--ui); font-weight:700; text-transform:uppercase; letter-spacing:.18em; }
 .cut.word.wf-script{ padding:.12em .55em .24em; }
 .cut.word.wf-label, .phrase-row .wf-label{ background:var(--tape, #1F1E24); color:#F6F3EE; padding:.34em .7em .3em; border-radius:.12em; text-shadow:0 -.05em 0 rgba(0,0,0,.5), 0 .06em 0 rgba(255,255,255,.2); }
 .cut.word.wf-label.flat{ background:var(--tape, #1F1E24); }
@@ -653,6 +656,7 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .piece-well .cut{ cursor:inherit; pointer-events:none; }
 .piece-opt[aria-pressed="true"] .piece-well{ outline:2.5px solid var(--accent); outline-offset:2px; }
 .ink-fonts{ margin:2px 0 12px 44px; }
+.ink-bg{ display:flex; align-items:center; gap:10px; margin-top:12px; margin-left:-44px; }
 .ink-fonts[hidden]{ display:none; }
 .word-preview{ position:relative; height:120px; margin-bottom:14px; border-radius:12px; overflow:hidden; container-type:inline-size; background:var(--paper); border:1px solid var(--line); }
 .word-preview .scene{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
@@ -1416,6 +1420,7 @@ function cutEl(item){
   if (item.type === 'word'){
     const ink = INKS.find(k => k.id === item.ink) || INKS[0];
     c.classList.add('wf-' + (item.font || 'hand'));
+    if (item.plain) c.classList.add('plain');
     c.style.setProperty('--ink', ink.c); c.style.setProperty('--tape', ink.tape);
   }
   if (item.type === 'photo'){
@@ -3148,7 +3153,15 @@ function fillWord(box){
   f.append(input, save);
   input.oninput = () => { const v = input.value.trim(); if (v){ it.value = v; renderFront(); drawPreview(); } };
   f.onsubmit = e => { e.preventDefault(); it.value = input.value.trim() || it.value; closeSheet(); renderFront(); commit(); renderRail(); };
-  const fontBlock = el('div', 'ink-fonts'); fontBlock.append(fontPicker(it.font || 'hand', id => { it.font = id; if (it.type === 'word') it.size = WORD_SIZE[id] || it.size; renderFront(); commit(); drawPreview(); }));
+  const fontBlock = el('div', 'ink-fonts'); fontBlock.append(fontPicker(it.font || 'hand', id => { it.font = id; if (it.type === 'word') it.size = WORD_SIZE[id] || it.size; renderFront(); commit(); drawPreview(); bgSync(); }));
+  // Paper behind the words, or just the words
+  const bgRow = el('div', 'ink-bg'); bgRow.append(el('span', 'ink-label', 'Behind'));
+  const bgSeg = el('div', 'seg'); bgSeg.setAttribute('role', 'group'); bgSeg.setAttribute('aria-label', 'Behind the words');
+  const bgBtn = (plain, label) => { const b = el('button', null, label); b.type = 'button'; b.dataset.plain = plain ? '1' : ''; b.onclick = () => { if (plain) it.plain = true; else delete it.plain; renderFront(); commit(); drawPreview(); bgSync(); }; return b; };
+  const paperBtn = bgBtn(false, 'Paper'), noneBtn = bgBtn(true, 'Nothing');
+  bgSeg.append(paperBtn, noneBtn); bgRow.append(bgSeg); fontBlock.append(bgRow);
+  const bgSync = () => { paperBtn.textContent = it.font === 'label' ? 'Tape' : 'Paper'; [paperBtn, noneBtn].forEach(b => b.setAttribute('aria-pressed', String(!!b.dataset.plain === !!it.plain))); };
+  bgSync();
   const sync = () => { fontBlock.hidden = it.type === 'wood'; }; // wood letters have their own shape, so fonts only show for ink
   const cur = it.type === 'wood' ? 'wood:' + (it.tone || 'birch') : (it.ink || 'ink');
   const inkSec = el('div', 'sec'); inkSec.append(el('h3', null, 'Color or material'), inkPicker(cur, id => {
@@ -3271,7 +3284,8 @@ async function drawPiece(x, it, U, hasFilter){
     x.textAlign = 'center'; x.textBaseline = 'middle';
     const tw = x.measureText(txt).width, px = (f === 'label' ? .7 : .55) * fs, py = (f === 'label' ? .32 : .22) * fs;
     const bw = tw + px * 2, bh = fs * 1 + py * 2;
-    if (f === 'label'){ x.save(); if (!flat) softShadow(x, fs * .14, fs * .07); x.fillStyle = ink.tape; x.beginPath(); x.roundRect ? x.roundRect(-bw / 2, -bh / 2, bw, bh, fs * .12) : x.rect(-bw / 2, -bh / 2, bw, bh); x.fill(); x.restore(); x.fillStyle = '#F6F3EE'; }
+    if (it.plain){ x.fillStyle = ink.c; if (!flat){ x.shadowColor = 'rgba(44,30,50,.35)'; x.shadowBlur = fs * .05; x.shadowOffsetY = fs * .03; } }
+    else if (f === 'label'){ x.save(); if (!flat) softShadow(x, fs * .14, fs * .07); x.fillStyle = ink.tape; x.beginPath(); x.roundRect ? x.roundRect(-bw / 2, -bh / 2, bw, bh, fs * .12) : x.rect(-bw / 2, -bh / 2, bw, bh); x.fill(); x.restore(); x.fillStyle = '#F6F3EE'; }
     else { if (!flat){ x.save(); softShadow(x, fs * .14, fs * .07); x.fillStyle = '#fff'; x.fillRect(-bw / 2, -bh / 2, bw, bh); x.restore(); } x.fillStyle = ink.c; }
     x.fillText(txt, 0, fs * .04);
   } else if (it.type === 'wood'){
