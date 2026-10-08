@@ -1697,6 +1697,12 @@ function onItemDown(e, it){
     else if (pickMode){ if (inSel) tapAfter = { off:it.id }; else select(it.id, { toggle:true }); }  // picking on a phone: taps add or remove
     else if (!inSel) select(it.id);
     else if (isMulti()) tapAfter = { solo:it.id }; // a tap on one of several picks just that one (a drag moves them all)
+    // ⌥-drag (Figma): drag out a copy and leave the original where it was. ⌥-click without dragging nudges the copy aside.
+    if (e.altKey && e.pointerType === 'mouse' && selIds().includes(it.id)){
+      const copies = clonePieces(selItems());
+      page().items.push(...copies); setSelection(copies.map(c => c.id));
+      renderFront(); tapAfter = { altCopy:true };
+    }
     // Phones: press and hold a piece to start picking several
     if (e.pointerType === 'touch' && !pickMode){
       const x0 = e.clientX, y0 = e.clientY, pid = e.pointerId;
@@ -1814,6 +1820,12 @@ function moveGroup(g, pts){
 function endPointer(e){
   if (!pointers.delete(e.pointerId)) return;
   clearTimeout(holdTimer);
+  if (tapAfter && tapAfter.altCopy && !pointers.size){
+    tapAfter = null;
+    if (!moved){ const items = selItems(), n = items.length, mx = items.reduce((t, i) => t + i.x, 0) / n, my = items.reduce((t, i) => t + i.y, 0) / n, sp = copySpot({ x:mx, y:my });
+      items.forEach(i => { i.x += sp.x - mx; i.y += sp.y - my; }); renderFront(); }
+    moved = false; commit(); track('alt_copy');
+  }
   if (!moved && tapAfter && !pointers.size){ const t = tapAfter; tapAfter = null; if (t.off) select(t.off, { toggle:true }); else if (t.solo) select(t.solo, { force:true }); }
   tapAfter = null;
   if (gesture && gesture.type === 'handle'){ pointers.clear(); gesture = null; }
@@ -1849,6 +1861,45 @@ function copySpot(it){
   const x = it.x + 5 > 94 ? it.x - 5 : it.x + 5, y = it.y + 4 > 94 ? it.y - 4 : it.y + 4;
   return { x:clamp(x, 4, 96), y:clamp(y, 4, 96) };
 }
+/* Figma-style shortcuts: ⌘A, ⌘C / ⌘X / ⌘V, ⌘D, ⌘G / ⇧⌘G, ⌘] ⌘[ (⇧ for all the way), ⇧H, ⌥-drag */
+function setSelection(ids){ ids = ids.filter(Boolean); multi = ids.length > 1 ? new Set(ids) : new Set(); selectedId = ids.length ? ids[ids.length - 1] : null; if (pageSel) pageSel = false; }
+function selectAll(){ setSelection(page().items.map(i => i.id)); markSelection(); }
+// Copies of pieces with new ids (pieces that were grouped stay grouped, in a new group)
+function clonePieces(items, dx = 0, dy = 0){
+  const groups = {};
+  return items.map(i => { const c = JSON.parse(JSON.stringify(i)); c.id = nextId++; c.x += dx; c.y += dy; if (c.group) c.group = groups[c.group] || (groups[c.group] = newGroupId()); return c; });
+}
+let pieceClip = null; // what ⌘C copied: the pieces, and which page they came from
+function copyPieces(){ const items = selItems(); if (!items.length) return false; pieceClip = { items:JSON.parse(JSON.stringify(items)), from:onCover ? 'cover' : book.current + ':' + book.id }; return true; }
+function pastePieces(){
+  if (!pieceClip) return;
+  const here = onCover ? 'cover' : book.current + ':' + book.id, src = pieceClip.items;
+  let dx = 0, dy = 0;
+  if (here === pieceClip.from){ const n = src.length, mx = src.reduce((t, i) => t + i.x, 0) / n, my = src.reduce((t, i) => t + i.y, 0) / n, sp = copySpot({ x:mx, y:my }); dx = sp.x - mx; dy = sp.y - my; }
+  const copies = clonePieces(src, dx, dy);
+  page().items.push(...copies); setSelection(copies.map(c => c.id));
+  renderFront(); commit(); track('paste_pieces', { pieces:copies.length });
+}
+function removeSelected(){
+  const ids = new Set(selIds()), all = page().items;
+  for (let k = all.length - 1; k >= 0; k--) if (ids.has(all[k].id)) all.splice(k, 1);
+  setSelection([]); pickMode = false; renderFront(); commit();
+}
+// Stacking: one step forward/back, or all the way (⇧)
+function restack(dir, allTheWay){
+  const all = page().items, ids = new Set(selIds()); if (!ids.size) return;
+  if (allTheWay){ const picked = all.filter(i => ids.has(i.id)), rest = all.filter(i => !ids.has(i.id)); all.length = 0; all.push(...(dir > 0 ? [...rest, ...picked] : [...picked, ...rest])); }
+  else if (dir > 0){ for (let k = all.length - 2; k >= 0; k--) if (ids.has(all[k].id) && !ids.has(all[k + 1].id)) [all[k], all[k + 1]] = [all[k + 1], all[k]]; }
+  else { for (let k = 1; k < all.length; k++) if (ids.has(all[k].id) && !ids.has(all[k - 1].id)) [all[k], all[k - 1]] = [all[k - 1], all[k]]; }
+  renderFront(); commit();
+}
+// Mirror: one piece flips; several also swap sides around their middle
+function mirrorSelected(){
+  const items = selItems(); if (!items.length) return;
+  if (items.length > 1){ const xs = items.map(i => i.x), mid = (Math.min(...xs) + Math.max(...xs)) / 2; items.forEach(i => { i.x = mid * 2 - i.x; i.rot = -i.rot; }); }
+  items.forEach(i => { if (!['word', 'wood', 'title'].includes(i.type)) i.flip = !i.flip; });
+  renderFront(); commit();
+}
 // What you can do with several pieces at once
 function multiActions(){
   const items = selItems(), all = page().items, grouped = oneGroup(items);
@@ -1879,9 +1930,9 @@ function scaleSelection(s, daDeg){
 function itemActions(it){
   const items = page().items, i = items.indexOf(it);
   const acts = [
-    { id:'forward', label:'Forward', icon:'up', key:']', disabled:i === items.length - 1, run:() => { [items[i], items[i + 1]] = [items[i + 1], items[i]]; } },
-    { id:'back', label:'Back', icon:'down', key:'[', disabled:i === 0, run:() => { [items[i], items[i - 1]] = [items[i - 1], items[i]]; } },
-    { id:'mirror', label:'Mirror', icon:'mirror', disabled:['word', 'wood', 'title'].includes(it.type), run:() => { it.flip = !it.flip; } },
+    { id:'forward', label:'Forward', icon:'up', key:'⌘]', disabled:i === items.length - 1, run:() => { [items[i], items[i + 1]] = [items[i + 1], items[i]]; } },
+    { id:'back', label:'Back', icon:'down', key:'⌘[', disabled:i === 0, run:() => { [items[i], items[i - 1]] = [items[i - 1], items[i]]; } },
+    { id:'mirror', label:'Mirror', icon:'mirror', key:'⇧H', disabled:['word', 'wood', 'title'].includes(it.type), run:() => { it.flip = !it.flip; } },
     { id:'shadow', label:'Shadow', icon:'shadow', pressed:it.shadow !== false, run:() => { it.shadow = it.shadow === false; } },
     { id:'copy', label:'Copy', icon:'copy', key:'⌘D', run:() => { const c = { ...it, id:nextId++, ...copySpot(it) }; items.splice(i + 1, 0, c); selectedId = c.id; return c.id; } }
   ];
@@ -4402,8 +4453,13 @@ function takeFiles(files){
   if (cutJob) queue.unshift(first); else openFile(first);
 }
 $('#fileInput').onchange = e => { takeFiles(e.target.files); e.target.value = ''; };
+const CLIP_MARK = 'kamira-pieces';
+const pieceKeysOn = () => !sheetKind && reader.hidden && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('input, textarea, [contenteditable="true"]'));
+addEventListener('copy', e => { if (!pieceKeysOn() || !selItems().length) return; copyPieces(); e.clipboardData.setData('text/plain', CLIP_MARK); e.preventDefault(); track('copy_pieces'); });
+addEventListener('cut', e => { if (!pieceKeysOn() || !selItems().length) return; copyPieces(); e.clipboardData.setData('text/plain', CLIP_MARK); e.preventDefault(); removeSelected(); });
 addEventListener('paste', e => {
   if (e.target.closest && e.target.closest('input, textarea')) return;
+  if (pieceKeysOn() && pieceClip && (e.clipboardData.getData('text/plain') || '') === CLIP_MARK){ e.preventDefault(); pastePieces(); return; }
   const files = [...(e.clipboardData?.items || [])].filter(i => i.kind === 'file').map(i => i.getAsFile()).filter(Boolean);
   if (files.length){ e.preventDefault(); gate(() => takeFiles(files)); }
 });
@@ -4710,12 +4766,16 @@ addEventListener('keydown', e => {
   if (mod && e.key.toLowerCase() === 'z' && !typing){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && e.key.toLowerCase() === 'y' && !typing){ e.preventDefault(); redo(); return; }
   if (typing || sheetKind) return;
+  if (mod && e.code === 'KeyA'){ e.preventDefault(); selectAll(); return; }
   const it = selItem(); if (!it) return;
+  if (mod && e.code === 'KeyG'){ e.preventDefault(); if (e.shiftKey){ if (isMulti() && oneGroup(selItems())) doAction(multiActions().find(a => a.id === 'ungroup')); } else if (isMulti() && !oneGroup(selItems())) doAction(multiActions().find(a => a.id === 'group')); return; }
+  if (mod && (e.code === 'BracketRight' || e.code === 'BracketLeft')){ e.preventDefault(); restack(e.code === 'BracketRight' ? 1 : -1, e.shiftKey); return; }
+  if (!mod && e.shiftKey && e.code === 'KeyH'){ e.preventDefault(); mirrorSelected(); return; }
+  if (!mod && (e.code === 'BracketRight' || e.code === 'BracketLeft')){ restack(e.code === 'BracketRight' ? 1 : -1, false); return; }
   if (isMulti()){
     const ma = multiActions(), findM = id => ma.find(a => a.id === id);
     if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); doAction(findM('remove')); return; }
     if (mod && e.key.toLowerCase() === 'd'){ e.preventDefault(); doAction(findM('copy')); return; }
-    if (mod && e.key.toLowerCase() === 'g'){ e.preventDefault(); const a = findM(e.shiftKey ? 'ungroup' : 'group'); if (a) doAction(a); return; }
     if (!mod && ['=', '+', '-', ',', '.'].includes(e.key)){
       e.preventDefault(); scaleSelection(e.key === '-' ? .94 : e.key === '=' || e.key === '+' ? 1.06 : 1, e.key === ',' ? -5 : e.key === '.' ? 5 : 0);
       clearTimeout(wheelTimer); wheelTimer = setTimeout(commit, 400); return;
@@ -4727,8 +4787,6 @@ addEventListener('keydown', e => {
   const find = id => itemActions(it).find(a => a.id === id);
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); doAction(find('remove')); return; }
   if (mod && e.key.toLowerCase() === 'd'){ e.preventDefault(); doAction(find('copy')); return; }
-  if (e.key === ']'){ const a = find('forward'); if (!a.disabled) doAction(a); return; }
-  if (e.key === '['){ const a = find('back'); if (!a.disabled) doAction(a); return; }
   if (!mod && ['=', '+', '-', ',', '.'].includes(e.key)){
     e.preventDefault();
     const [lo, hi] = SIZE[it.type];
