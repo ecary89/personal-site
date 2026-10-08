@@ -196,6 +196,10 @@ body{ display:flex; flex-direction:column; }
 .handle{ position:absolute; z-index:35; width:28px; height:28px; transform:translate(-50%,-50%); border-radius:50%; background:var(--accent); border:2.5px solid #fff; box-shadow:0 2px 6px rgba(44,30,50,.3); touch-action:none; cursor:nwse-resize; display:grid; place-items:center; padding:0; }
 .handle::before{ content:""; position:absolute; inset:-9px; border-radius:50%; }
 .handle[hidden]{ display:none; }
+.dock-count{ flex:none; align-self:center; padding:0 10px 0 6px; font-size:12.5px; font-weight:600; color:var(--muted); white-space:nowrap; }
+.marquee{ position:fixed; z-index:40; pointer-events:none; border:1.5px dashed var(--accent); background:rgba(17,17,17,.04); border-radius:2px; }
+.group-box{ position:absolute; z-index:34; pointer-events:none; outline:1.5px dashed var(--accent); border-radius:4px; }
+.group-box[hidden]{ display:none; }
 .handle.corner{ width:14px; height:14px; background:#fff; border:2px solid var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.18); }
 .handle.corner::before{ inset:-12px; }
 .handle svg{ width:13px; height:13px; color:#fff; }
@@ -1066,6 +1070,8 @@ const ICONS = {
   cutouts: '<circle cx="6.5" cy="7" r="2.5"/><circle cx="6.5" cy="17" r="2.5"/><path d="M8.6 8.5 20 17M8.6 15.5 20 7"/>',
   paper:   '<path d="M4 9.5 14.5 4l2 4L6 13.5Z"/><path d="M12 20l-1.2-3.4L7.5 15.5l3.3-1.2L12 11l1.2 3.3 3.3 1.2-3.3 1.1Z"/>',
   textstyle:'<path d="M6.5 16 12 4l5.5 12"/><path d="M8.6 11.5h6.8"/><rect x="4" y="18.6" width="16" height="2.8" rx="1.2" fill="#D9467F" stroke="none"/>',
+  group:   '<rect x="3" y="3" width="18" height="18" rx="2.5" stroke-dasharray="3 2.6"/><rect x="7" y="7" width="6.5" height="6.5" rx="1"/><rect x="10.5" y="10.5" width="6.5" height="6.5" rx="1"/>',
+  ungroup: '<rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.2"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.2"/><path d="M14 4h6v6M10 20H4v-6" stroke-dasharray="2 2"/>',
   pen:     '<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
   pages:   '<rect x="7" y="3.5" width="12" height="15" rx="1.5"/><path d="M5 6.5v12.5a1.5 1.5 0 0 0 1.5 1.5H15"/>',
   up:      '<path d="M12 20V9"/><path d="m7 13 5-5 5 5"/><path d="M5 4h14"/>',
@@ -1254,6 +1260,15 @@ const page = () => onCover ? book.cover : book.pages[book.current];
 const curPage = () => book.pages[book.current];
 let selectedId = null;
 const selItem = () => page().items.find(i => i.id === selectedId);
+/* Several pieces at once: Shift-click, drag a box on the page, or (phones) press and hold.
+   multi holds the ids picked together (2 or more); pieces joined with Group share a group id. */
+let multi = new Set(), pickMode = false;
+const selIds = () => { if (selectedId == null) return []; const on = new Set(page().items.map(i => i.id)); const ids = multi.size ? [...multi] : [selectedId]; return ids.filter(id => on.has(id)); };
+const isMulti = () => selIds().length > 1;
+const selItems = () => { const ids = new Set(selIds()); return page().items.filter(i => ids.has(i.id)); };
+const groupOf = id => { const it = page().items.find(i => i.id === id); return it && it.group ? page().items.filter(i => i.group === it.group).map(i => i.id) : [id]; };
+const oneGroup = items => items.length > 1 && items[0].group && items.every(i => i.group === items[0].group);
+const newGroupId = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 
 /* =========================================================
    Undo / redo and autosave
@@ -1276,7 +1291,7 @@ function restore(s){
   book.pages = d.pages; book.current = clamp(d.current, 0, book.pages.length - 1);
   if (d.title) book.title = d.title;
   if (d.cover) book.cover = d.cover;
-  selectedId = null; renderAll(); scheduleSave();
+  selectedId = null; multi = new Set(); renderAll(); scheduleSave();
 }
 function undo(){ if (hist.at > 0){ hist.at--; restore(hist.stack[hist.at]); updateUndo(); } }
 function redo(){ if (hist.at < hist.stack.length - 1){ hist.at++; restore(hist.stack[hist.at]); updateUndo(); } }
@@ -1496,8 +1511,10 @@ function renderFront(newId){
 }
 function markSelection(){
   canvas.querySelectorAll('.sel').forEach(n => n.classList.remove('sel'));
-  const c = els.get(selectedId);
-  if (c) c.classList.add('sel');
+  const items = selItems();
+  // a group shows one box around it; a loose pick shows each piece's outline too
+  if (!(items.length > 1 && oneGroup(items))) items.forEach(i => { const c = els.get(i.id); if (c) c.classList.add('sel'); });
+  canvas.classList.toggle('picking', pickMode);
   renderDock();
   renderItemBar();
   renderBgBar();
@@ -1523,9 +1540,30 @@ const cornerHandles = [[-1, -1], [1, -1], [-1, 1]].map(([sx, sy]) => {
   const h = el('div', 'handle corner'); h.hidden = true; h.dataset.sx = sx; h.dataset.sy = sy; h.title = 'Drag to resize and turn';
   h.addEventListener('pointerdown', e => onHandleDown(e)); handle.after(h); return h;
 });
+// The dashed box around several selected pieces (in page pixels)
+const groupBox = el('div', 'group-box'); groupBox.hidden = true; handle.before(groupBox);
+function selBounds(){
+  const cr = canvas.getBoundingClientRect(), k = canvas.clientWidth / (cr.width || 1);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  selItems().forEach(i => { const c = els.get(i.id); if (!c) return; const r = c.getBoundingClientRect();
+    x0 = Math.min(x0, (r.left - cr.left) * k); y0 = Math.min(y0, (r.top - cr.top) * k); x1 = Math.max(x1, (r.right - cr.left) * k); y1 = Math.max(y1, (r.bottom - cr.top) * k); });
+  return x1 < x0 ? null : { x0, y0, x1, y1, cx:(x0 + x1) / 2, cy:(y0 + y1) / 2 };
+}
 handle.title = 'Drag to resize and turn';
 handle.addEventListener('pointerdown', e => onHandleDown(e));
 function positionHandle(){
+  if (isMulti() && !isFlipped()){
+    const b = selBounds(); if (!b){ groupBox.hidden = true; return; }
+    const W = canvas.clientWidth, H = canvas.clientHeight, pad = 8;
+    groupBox.style.left = (b.x0 - pad) + 'px'; groupBox.style.top = (b.y0 - pad) + 'px';
+    groupBox.style.width = (b.x1 - b.x0 + pad * 2) + 'px'; groupBox.style.height = (b.y1 - b.y0 + pad * 2) + 'px'; groupBox.hidden = false;
+    const at = (h, x, y) => { h.style.left = clamp(x, 8, W - 8) + 'px'; h.style.top = clamp(y, 8, H - 8) + 'px'; h.hidden = false; };
+    at(handle, b.x1 + pad, b.y1 + pad);
+    handle.querySelector('.rot-hint').style.transform = 'rotate(45deg)';
+    cornerHandles.forEach(h => at(h, +h.dataset.sx < 0 ? b.x0 - pad : b.x1 + pad, +h.dataset.sy < 0 ? b.y0 - pad : b.y1 + pad));
+    return;
+  }
+  groupBox.hidden = true;
   const it = selItem(), c = it && els.get(it.id);
   if (!c || isFlipped()){ handle.hidden = true; cornerHandles.forEach(h => h.hidden = true); return; }
   const W = canvas.clientWidth, H = canvas.clientHeight;
@@ -1542,7 +1580,24 @@ function positionHandle(){
   handle.querySelector('.rot-hint').style.transform = `rotate(${Math.atan2(hy - cy, hx - cx) * 180 / Math.PI}deg)`;
   handle.hidden = false;
 }
-function select(id){ if (id && pageSel){ pageSel = false; selectedId = id; markSelection(); return; } if (selectedId === id) return; selectedId = id; markSelection(); }
+function select(id, opts = {}){
+  if (id == null){ pickMode = false; if (selectedId == null && !multi.size) return; selectedId = null; multi = new Set(); markSelection(); return; }
+  if (pageSel) pageSel = false;
+  const ids = groupOf(id);
+  if (opts.toggle){
+    // Shift-click (or a tap while picking): add the piece (or its group), or take it out again
+    const cur = new Set(selIds()), allIn = ids.every(x => cur.has(x));
+    ids.forEach(x => allIn ? cur.delete(x) : cur.add(x));
+    multi = cur.size > 1 ? cur : new Set();
+    selectedId = cur.size ? (allIn ? [...cur].pop() : id) : null;
+    if (!cur.size) pickMode = false;
+    markSelection(); return;
+  }
+  const same = selectedId === id && ((ids.length > 1) === (multi.size > 0));
+  multi = ids.length > 1 ? new Set(ids) : new Set();
+  selectedId = id;
+  if (!same || opts.force) markSelection();
+}
 /* The page's background settings sit beside the page: colors and gradients for a blank page,
    color strength for a painted or photo background. On desktop they show whenever the Background
    tab is open. On phones, tapping an empty spot selects the page and puts them in the dock. */
@@ -1562,6 +1617,16 @@ function beginGesture(kind){
   const pts = [...pointers.values()];
   if (!it || !pts.length){ gesture = null; return; }
   const r = canvas.getBoundingClientRect();
+  if (isMulti()){
+    // Several pieces: they move together, and resize and turn around the middle of the group
+    const b = selBounds(), k = r.width / (canvas.clientWidth || 1);
+    const bases = selItems().map(i => ({ it:i, x:i.x, y:i.y, size:i.size, rot:i.rot }));
+    const cx = r.left + b.cx * k, cy = r.top + b.cy * k;
+    if (kind === 'handle'){ const p = pts[0]; gesture = { multi:true, type:'handle', it, r, bases, cx, cy, d0:Math.hypot(p.x - cx, p.y - cy) || 1, a0:Math.atan2(p.y - cy, p.x - cx) }; }
+    else if (pts.length >= 2){ const [a, c] = pts; gesture = { multi:true, type:'pinch', it, r, bases, cx, cy, d0:Math.hypot(c.x - a.x, c.y - a.y) || 1, a0:Math.atan2(c.y - a.y, c.x - a.x), mx:(a.x + c.x) / 2, my:(a.y + c.y) / 2 }; }
+    else gesture = { multi:true, type:'drag', it, r, bases, cx, cy, sx:pts[0].x, sy:pts[0].y };
+    return;
+  }
   const base = { it, r, x:it.x, y:it.y, size:it.size, rot:it.rot };
   if (kind === 'handle'){
     const cx = r.left + it.x / 100 * r.width, cy = r.top + it.y / 100 * r.height, p = pts[0];
@@ -1604,18 +1669,36 @@ function pieceUnder(x, y, skipId){
   for (const n of document.elementsFromPoint(x, y)){
     const c = n.closest && n.closest('.cut'); if (!c || !canvas.contains(c)) continue;
     const it = page().items.find(i => els.get(i.id) === c); if (!it || it.id === skipId) continue;
-    if (it.type !== 'photo' || it.id === selectedId || photoSolidAt(c, it, x, y)) return it;
+    if (it.type !== 'photo' || selIds().includes(it.id) || photoSolidAt(c, it, x, y)) return it;
   }
   return null;
 }
+let tapAfter = null, holdTimer = null; // what a tap (no drag) does when the pointer comes up
 function onItemDown(e, it){
-  if (it.id !== selectedId && !pointers.size && it.type === 'photo' && !photoSolidAt(els.get(it.id), it, e.clientX, e.clientY)){
+  if (!selIds().includes(it.id) && !pointers.size && it.type === 'photo' && !photoSolidAt(els.get(it.id), it, e.clientX, e.clientY)){
     const under = pieceUnder(e.clientX, e.clientY, it.id);
     if (!under) return; // nothing there: let the click reach the page itself
     it = under;
   }
   e.preventDefault(); e.stopPropagation();
-  if (selectedId !== it.id) select(it.id);
+  tapAfter = null; clearTimeout(holdTimer);
+  const inSel = selIds().includes(it.id);
+  if (!pointers.size){
+    if (e.shiftKey){ select(it.id, { toggle:true }); if (!selIds().includes(it.id)) return; }      // Shift-click adds or removes
+    else if (pickMode){ if (inSel) tapAfter = { off:it.id }; else select(it.id, { toggle:true }); }  // picking on a phone: taps add or remove
+    else if (!inSel) select(it.id);
+    else if (isMulti()) tapAfter = { solo:it.id }; // a tap on one of several picks just that one (a drag moves them all)
+    // Phones: press and hold a piece to start picking several
+    if (e.pointerType === 'touch' && !pickMode){
+      const x0 = e.clientX, y0 = e.clientY, pid = e.pointerId;
+      holdTimer = setTimeout(() => {
+        const p = pointers.get(pid); if (!p || pointers.size !== 1 || Math.hypot(p.x - x0, p.y - y0) > 10) return;
+        pickMode = true; gesture = null; moved = false; tapAfter = null;
+        try { navigator.vibrate && navigator.vibrate(12); } catch (err){}
+        markSelection();
+      }, 450);
+    }
+  }
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
   moved = false;
   beginGesture();
@@ -1637,9 +1720,34 @@ canvas.addEventListener('pointerdown', e => {
   else if (!pointers.size){
     const hadItem = !!selectedId;
     if (!hadItem && !isDesk() && e.isPrimary) sceneTap = { x:e.clientX, y:e.clientY, t:Date.now() };
-    select(null);
+    if (!(e.shiftKey && e.pointerType === 'mouse')) select(null);
+    if (e.pointerType === 'mouse' && e.button === 0 && !isFlipped()) startMarquee(e);
   }
 });
+// Drag across an empty part of the page to draw a box; everything it touches gets picked
+function startMarquee(e){
+  const x0 = e.clientX, y0 = e.clientY, keep = e.shiftKey ? selIds() : [];
+  let box = null;
+  const move = ev => {
+    const x1 = ev.clientX, y1 = ev.clientY;
+    if (!box && Math.hypot(x1 - x0, y1 - y0) < 5) return;
+    if (!box){ box = el('div', 'marquee'); document.body.append(box); }
+    Object.assign(box.style, { left:Math.min(x0, x1) + 'px', top:Math.min(y0, y1) + 'px', width:Math.abs(x1 - x0) + 'px', height:Math.abs(y1 - y0) + 'px' });
+  };
+  const up = ev => {
+    removeEventListener('pointermove', move); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
+    if (!box) return;
+    const r = box.getBoundingClientRect(); box.remove();
+    const ids = new Set(keep);
+    page().items.forEach(i => { const c = els.get(i.id); if (!c) return; const q = c.getBoundingClientRect();
+      if (q.right > r.left && q.left < r.right && q.bottom > r.top && q.top < r.bottom) groupOf(i.id).forEach(id => ids.add(id)); });
+    if (!ids.size) return;
+    const list = [...ids]; multi = list.length > 1 ? new Set(list) : new Set(); selectedId = list[list.length - 1];
+    if (pageSel) pageSel = false;
+    markSelection();
+  };
+  addEventListener('pointermove', move); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+}
 // Open on "click" (not pointerup) so the tap's own click can't land on the new overlay and close it
 canvas.addEventListener('click', e => {
   const tap = sceneTap; sceneTap = null;
@@ -1656,6 +1764,7 @@ addEventListener('pointermove', e => {
   if (!gesture) return;
   moved = true;
   const g = gesture, it = g.it, pts = [...pointers.values()];
+  if (g.multi){ moveGroup(g, pts); return; }
   const [lo, hi] = SIZE[it.type];
   if (g.type === 'drag'){
     it.x = clamp(g.x + (pts[0].x - g.sx) / g.r.width * 100, -5, 105);
@@ -1674,8 +1783,30 @@ addEventListener('pointermove', e => {
   place(els.get(it.id), it);
   positionItemBar();
 });
+// Move, or resize and turn, every selected piece together
+function moveGroup(g, pts){
+  let s = 1, da = 0, tx = 0, ty = 0;
+  if (g.type === 'drag'){ tx = pts[0].x - g.sx; ty = pts[0].y - g.sy; }
+  else if (g.type === 'handle'){ const p = pts[0]; s = Math.hypot(p.x - g.cx, p.y - g.cy) / g.d0; da = Math.atan2(p.y - g.cy, p.x - g.cx) - g.a0; }
+  else if (g.type === 'pinch' && pts.length >= 2){ const [a, c] = pts; s = Math.hypot(c.x - a.x, c.y - a.y) / g.d0; da = Math.atan2(c.y - a.y, c.x - a.x) - g.a0; tx = (a.x + c.x) / 2 - g.mx; ty = (a.y + c.y) / 2 - g.my; }
+  else return;
+  const W = g.r.width, H = g.r.height, cos = Math.cos(da), sin = Math.sin(da);
+  g.bases.forEach(b => {
+    const [lo, hi] = SIZE[b.it.type];
+    // where this piece sits from the group's middle, in screen pixels, turned and stretched with the group
+    const px = g.r.left + b.x / 100 * W - g.cx, py = g.r.top + b.y / 100 * H - g.cy;
+    const nx = (px * cos - py * sin) * s + g.cx + tx, ny = (px * sin + py * cos) * s + g.cy + ty;
+    b.it.x = clamp((nx - g.r.left) / W * 100, -5, 105); b.it.y = clamp((ny - g.r.top) / H * 100, -5, 105);
+    b.it.size = clamp(b.size * s, lo, hi); b.it.rot = b.rot + da * 180 / Math.PI;
+    place(els.get(b.it.id), b.it);
+  });
+  positionItemBar();
+}
 function endPointer(e){
   if (!pointers.delete(e.pointerId)) return;
+  clearTimeout(holdTimer);
+  if (!moved && tapAfter && !pointers.size){ const t = tapAfter; tapAfter = null; if (t.off) select(t.off, { toggle:true }); else if (t.solo) select(t.solo, { force:true }); }
+  tapAfter = null;
   if (gesture && gesture.type === 'handle'){ pointers.clear(); gesture = null; }
   else beginGesture();
   if (!pointers.size && moved){ moved = false; commit(); }
@@ -1687,6 +1818,7 @@ let wheelTimer;
 canvas.addEventListener('wheel', e => {
   const it = selItem(); if (!it) return;
   e.preventDefault();
+  if (isMulti()){ scaleSelection(e.shiftKey ? 1 : (e.deltaY < 0 ? 1.05 : .95), e.shiftKey ? (e.deltaY < 0 ? -3 : 3) : 0); clearTimeout(wheelTimer); wheelTimer = setTimeout(commit, 400); return; }
   const [lo, hi] = SIZE[it.type];
   if (e.shiftKey) it.rot += e.deltaY < 0 ? -3 : 3;
   else it.size = clamp(it.size * (e.deltaY < 0 ? 1.05 : .95), lo, hi);
@@ -1707,6 +1839,33 @@ function shopInfo(it){
 function copySpot(it){
   const x = it.x + 5 > 94 ? it.x - 5 : it.x + 5, y = it.y + 4 > 94 ? it.y - 4 : it.y + 4;
   return { x:clamp(x, 4, 96), y:clamp(y, 4, 96) };
+}
+// What you can do with several pieces at once
+function multiActions(){
+  const items = selItems(), all = page().items, grouped = oneGroup(items);
+  return [
+    grouped ? { id:'ungroup', label:'Ungroup', icon:'ungroup', key:'⇧⌘G', run:() => { items.forEach(i => { delete i.group; }); track('ungroup'); } }
+            : { id:'group', label:'Group', icon:'group', key:'⌘G', run:() => { const g = newGroupId(); items.forEach(i => { i.group = g; }); track('group', { pieces:items.length }); } },
+    { id:'copy', label:'Copy', icon:'copy', key:'⌘D', run:() => {
+      const n = items.length, mx = items.reduce((t, i) => t + i.x, 0) / n, my = items.reduce((t, i) => t + i.y, 0) / n;
+      const spot = copySpot({ x:mx, y:my }), dx = spot.x - mx, dy = spot.y - my, g = grouped ? newGroupId() : null;
+      const copies = items.map(i => { const c = { ...i, id:nextId++, x:i.x + dx, y:i.y + dy }; if (g) c.group = g; else delete c.group; return c; });
+      all.push(...copies); multi = new Set(copies.map(c => c.id)); selectedId = copies[copies.length - 1].id;
+    } },
+    { id:'remove', label:'Remove', icon:'trash', key:'Delete', danger:true, run:() => {
+      const ids = new Set(items.map(i => i.id));
+      for (let k = all.length - 1; k >= 0; k--) if (ids.has(all[k].id)) all.splice(k, 1);
+      selectedId = null; multi = new Set(); pickMode = false;
+    } }
+  ];
+}
+// Resize and turn the whole selection around its middle (keyboard and mouse wheel)
+function scaleSelection(s, daDeg){
+  const r = canvas.getBoundingClientRect(), b = selBounds(); if (!b) return;
+  const k = r.width / (canvas.clientWidth || 1);
+  const g = { type:'handle', r, cx:r.left + b.cx * k, cy:r.top + b.cy * k, d0:100, a0:0, bases:selItems().map(i => ({ it:i, x:i.x, y:i.y, size:i.size, rot:i.rot })) };
+  const a = daDeg * Math.PI / 180;
+  moveGroup(g, [{ x:g.cx + 100 * s * Math.cos(a), y:g.cy + 100 * s * Math.sin(a) }]);
 }
 function itemActions(it){
   const items = page().items, i = items.indexOf(it);
@@ -1764,6 +1923,16 @@ function renderDock(){
     return;
   }
   const it = selItem();
+  if (it && (isMulti() || pickMode)){
+    // Picking several pieces (press and hold one, then tap others)
+    dock.classList.add('items');
+    const sc = el('div', 'scroller'), n = selIds().length;
+    sc.append(el('span', 'dock-count', n + ' selected'));
+    multiActions().forEach(a => sc.append(dockBtn(a.label, a.icon, () => doAction(a), { danger:a.danger, disabled:n < 2 && (a.id === 'group' || a.id === 'ungroup') })));
+    const done = el('button', 'done'); done.innerHTML = icon('check', 2.2); done.setAttribute('aria-label', 'Done'); done.onclick = () => select(null);
+    dock.append(sc, done);
+    return;
+  }
   if (it){
     dock.classList.add('items');
     const sc = el('div', 'scroller');
@@ -1791,7 +1960,7 @@ function renderItemBar(){
   const it = selItem();
   itemBar.innerHTML = '';
   if (!isDesk() || !it){ itemBar.hidden = true; return; }
-  itemActions(it).forEach((a, k, all) => {
+  (isMulti() ? multiActions() : itemActions(it)).forEach((a, k, all) => {
     const prev = all[k - 1];
     if (a.id === 'remove' || ((a.id === 'edit' || a.id === 'recut' || a.id === 'shop') && prev && prev.id === 'copy')) itemBar.append(el('span', 'bar-sep'));
     const b = el('button', 'bar-btn' + (a.danger ? ' danger' : '') + (a.id === 'shop' ? ' wide' : ''));
@@ -1814,7 +1983,7 @@ function renderItemBar(){
 function positionItemBar(){
   positionHandle(); if (typeof positionBgBar === 'function') positionBgBar();
   if (itemBar.hidden) return;
-  const c = els.get(selectedId); if (!c) return;
+  const c = isMulti() ? groupBox : els.get(selectedId); if (!c) return;
   const r = c.getBoundingClientRect(), sr = stage.getBoundingClientRect();
   const bw = itemBar.offsetWidth, bh = itemBar.offsetHeight;
   const st = stage.scrollTop, sl = stage.scrollLeft;
@@ -4511,6 +4680,19 @@ addEventListener('keydown', e => {
   if (mod && e.key.toLowerCase() === 'y' && !typing){ e.preventDefault(); redo(); return; }
   if (typing || sheetKind) return;
   const it = selItem(); if (!it) return;
+  if (isMulti()){
+    const ma = multiActions(), findM = id => ma.find(a => a.id === id);
+    if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); doAction(findM('remove')); return; }
+    if (mod && e.key.toLowerCase() === 'd'){ e.preventDefault(); doAction(findM('copy')); return; }
+    if (mod && e.key.toLowerCase() === 'g'){ e.preventDefault(); const a = findM(e.shiftKey ? 'ungroup' : 'group'); if (a) doAction(a); return; }
+    if (!mod && ['=', '+', '-', ',', '.'].includes(e.key)){
+      e.preventDefault(); scaleSelection(e.key === '-' ? .94 : e.key === '=' || e.key === '+' ? 1.06 : 1, e.key === ',' ? -5 : e.key === '.' ? 5 : 0);
+      clearTimeout(wheelTimer); wheelTimer = setTimeout(commit, 400); return;
+    }
+    const st = e.shiftKey ? 3 : .6, dr = { ArrowLeft:[-1, 0], ArrowRight:[1, 0], ArrowUp:[0, -1], ArrowDown:[0, 1] }[e.key];
+    if (dr){ e.preventDefault(); selItems().forEach(i => { i.x += dr[0] * st; i.y += dr[1] * st; place(els.get(i.id), i); }); positionItemBar(); clearTimeout(wheelTimer); wheelTimer = setTimeout(commit, 400); }
+    return;
+  }
   const find = id => itemActions(it).find(a => a.id === id);
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); doAction(find('remove')); return; }
   if (mod && e.key.toLowerCase() === 'd'){ e.preventDefault(); doAction(find('copy')); return; }
