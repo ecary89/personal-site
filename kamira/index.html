@@ -196,6 +196,8 @@ body{ display:flex; flex-direction:column; }
 .handle{ position:absolute; z-index:35; width:28px; height:28px; transform:translate(-50%,-50%); border-radius:50%; background:var(--accent); border:2.5px solid #fff; box-shadow:0 2px 6px rgba(44,30,50,.3); touch-action:none; cursor:nwse-resize; display:grid; place-items:center; padding:0; }
 .handle::before{ content:""; position:absolute; inset:-9px; border-radius:50%; }
 .handle[hidden]{ display:none; }
+.handle.corner{ width:14px; height:14px; background:#fff; border:2px solid var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.18); }
+.handle.corner::before{ inset:-12px; }
 .handle svg{ width:13px; height:13px; color:#fff; }
 
 /* ---------- Story block (back of the page on phones, the Story tab on desktop) ---------- */
@@ -1510,14 +1512,25 @@ const ROT_HINT = (() => {
   return `<svg class="rot-hint" viewBox="-38 -38 76 76" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${arrow(-38, -108)}"/><path d="${arrow(38, 108)}"/></svg>`;
 })();
 handle.innerHTML = icon('resize', 2.6) + ROT_HINT;
+// The other three corners resize and turn too (the pink dot stays as the obvious one)
+const cornerHandles = [[-1, -1], [1, -1], [-1, 1]].map(([sx, sy]) => {
+  const h = el('div', 'handle corner'); h.hidden = true; h.dataset.sx = sx; h.dataset.sy = sy; h.title = 'Drag to resize and turn';
+  h.addEventListener('pointerdown', e => onHandleDown(e)); handle.after(h); return h;
+});
 handle.title = 'Drag to resize and turn';
 handle.addEventListener('pointerdown', e => onHandleDown(e));
 function positionHandle(){
   const it = selItem(), c = it && els.get(it.id);
-  if (!c || isFlipped()){ handle.hidden = true; return; }
+  if (!c || isFlipped()){ handle.hidden = true; cornerHandles.forEach(h => h.hidden = true); return; }
   const W = canvas.clientWidth, H = canvas.clientHeight;
   const cx = it.x / 100 * W, cy = it.y / 100 * H;
   const lx = c.offsetWidth / 2 + 12, ly = c.offsetHeight / 2 + 12, a = it.rot * Math.PI / 180;
+  cornerHandles.forEach(h => {
+    const sx = +h.dataset.sx * (c.offsetWidth / 2 + 7), sy = +h.dataset.sy * (c.offsetHeight / 2 + 7);
+    h.style.left = clamp(cx + sx * Math.cos(a) - sy * Math.sin(a), 8, W - 8) + 'px';
+    h.style.top = clamp(cy + sx * Math.sin(a) + sy * Math.cos(a), 8, H - 8) + 'px';
+    h.hidden = false;
+  });
   const hx = clamp(cx + lx * Math.cos(a) - ly * Math.sin(a), 16, W - 16), hy = clamp(cy + lx * Math.sin(a) + ly * Math.cos(a), 16, H - 16);
   handle.style.left = hx + 'px'; handle.style.top = hy + 'px';
   handle.querySelector('.rot-hint').style.transform = `rotate(${Math.atan2(hy - cy, hx - cx) * 180 / Math.PI}deg)`;
@@ -1554,7 +1567,47 @@ function beginGesture(kind){
     gesture = { ...base, type:'drag', sx:pts[0].x, sy:pts[0].y };
   }
 }
+/* Pictures are see-through around the object. When a picture isn't selected, a click on its
+   see-through part goes to whatever is underneath, so pieces behind it can still be picked. */
+const alphaMaps = new WeakMap();
+function photoSolidAt(c, it, x, y){
+  const im = c.querySelector('img'); if (!im || !im.complete || !im.naturalWidth) return true;
+  let m = alphaMaps.get(im);
+  if (!m){
+    const k = Math.min(1, 256 / Math.max(im.naturalWidth, im.naturalHeight)), w = Math.max(1, Math.round(im.naturalWidth * k)), h = Math.max(1, Math.round(im.naturalHeight * k));
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d', { willReadFrequently:true });
+    try { g.drawImage(im, 0, 0, w, h); m = { w, h, d:g.getImageData(0, 0, w, h).data }; } catch (err){ m = { solid:true }; }
+    alphaMaps.set(im, m);
+  }
+  if (m.solid) return true;
+  const r = c.getBoundingClientRect(), k = canvas.getBoundingClientRect().width / (canvas.offsetWidth || 1);
+  const W = c.offsetWidth * k, H = c.offsetHeight * k, a = -it.rot * Math.PI / 180;
+  const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2);
+  let ux = dx * Math.cos(a) - dy * Math.sin(a); const uy = dx * Math.sin(a) + dy * Math.cos(a);
+  if (it.flip) ux = -ux;
+  const px = Math.floor((ux / W + .5) * m.w), py = Math.floor((uy / H + .5) * m.h);
+  // a little give around the edges, so thin things are still easy to grab
+  for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++){
+    const qx = px + i, qy = py + j; if (qx < 0 || qy < 0 || qx >= m.w || qy >= m.h) continue;
+    if (m.d[(qy * m.w + qx) * 4 + 3] > 40) return true;
+  }
+  return false;
+}
+// The piece that's really under the pointer: the front-most one whose solid part is there
+function pieceUnder(x, y, skipId){
+  for (const n of document.elementsFromPoint(x, y)){
+    const c = n.closest && n.closest('.cut'); if (!c || !canvas.contains(c)) continue;
+    const it = page().items.find(i => els.get(i.id) === c); if (!it || it.id === skipId) continue;
+    if (it.type !== 'photo' || it.id === selectedId || photoSolidAt(c, it, x, y)) return it;
+  }
+  return null;
+}
 function onItemDown(e, it){
+  if (it.id !== selectedId && !pointers.size && it.type === 'photo' && !photoSolidAt(els.get(it.id), it, e.clientX, e.clientY)){
+    const under = pieceUnder(e.clientX, e.clientY, it.id);
+    if (!under) return; // nothing there: let the click reach the page itself
+    it = under;
+  }
   e.preventDefault(); e.stopPropagation();
   if (selectedId !== it.id) select(it.id);
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
@@ -1644,6 +1697,11 @@ function shopInfo(it){
   const a = asset(it.value);
   return a && a.url ? a : null;
 }
+// Where a copy goes: a little down and to the right, or the other way near the edge, so it never lands off the page
+function copySpot(it){
+  const x = it.x + 5 > 94 ? it.x - 5 : it.x + 5, y = it.y + 4 > 94 ? it.y - 4 : it.y + 4;
+  return { x:clamp(x, 4, 96), y:clamp(y, 4, 96) };
+}
 function itemActions(it){
   const items = page().items, i = items.indexOf(it);
   const acts = [
@@ -1651,7 +1709,7 @@ function itemActions(it){
     { id:'back', label:'Back', icon:'down', key:'[', disabled:i === 0, run:() => { [items[i], items[i - 1]] = [items[i - 1], items[i]]; } },
     { id:'mirror', label:'Mirror', icon:'mirror', disabled:['word', 'wood', 'title'].includes(it.type), run:() => { it.flip = !it.flip; } },
     { id:'shadow', label:'Shadow', icon:'shadow', pressed:it.shadow !== false, run:() => { it.shadow = it.shadow === false; } },
-    { id:'copy', label:'Copy', icon:'copy', key:'⌘D', run:() => { const c = { ...it, id:nextId++, x:it.x + 5, y:it.y + 4 }; items.splice(i + 1, 0, c); selectedId = c.id; return c.id; } }
+    { id:'copy', label:'Copy', icon:'copy', key:'⌘D', run:() => { const c = { ...it, id:nextId++, ...copySpot(it) }; items.splice(i + 1, 0, c); selectedId = c.id; return c.id; } }
   ];
   if (it.type === 'word') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
   if (it.type === 'wood') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
