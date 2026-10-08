@@ -2932,7 +2932,6 @@ function textComposer(box){
   const phrases = el('div', 'phrase-row');
   const drawPhrases = () => {
     phrases.innerHTML = '';
-    fontBlock.hidden = isWood(textInk);
     if (isWood(textInk)){
       const tone = WOOD_TONES.find(w => 'wood:' + w.id === textInk);
       ['love', 'xo', 'hello', 'Paris', 'us', 'dream', ...WORDS.slice(0, 3)].forEach(w => { const b = el('button', 'wood-chip', w); b.style.setProperty('--wood-c', tone.c === '#F5F0E6' ? '#B9AE9C' : tone.c); b.onclick = () => addWords(w); phrases.append(b); });
@@ -2941,10 +2940,9 @@ function textComposer(box){
     const ink = INKS.find(k => k.id === textInk);
     WORDS.forEach(w => { const b = el('button', 'wf-' + textFont, w); b.style.setProperty('--ink', ink.c); b.style.setProperty('--tape', ink.tape); b.onclick = () => addWords(w); phrases.append(b); });
   };
-  const fontBlock = el('div', 'ink-fonts'); fontBlock.append(fontPicker(textFont, id => { textFont = id; drawPhrases(); }));
-  const inkSec = el('div', 'sec'); inkSec.append(el('h3', null, 'Color or material'), inkPicker(textInk, id => { textInk = id; drawPhrases(); }, fontBlock));
+  // Color, material and font are changed on the page itself (select the words, then Words and color)
   const quick = el('div', 'sec'); quick.append(el('h3', null, 'Quick words'), phrases);
-  wrap.append(f, inkSec, quick);
+  wrap.append(f, quick);
   box.append(wrap);
   drawPhrases();
 }
