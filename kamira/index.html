@@ -499,6 +499,7 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .reorder-hint{ margin:-4px 0 0; font-size:13px; color:var(--muted); }
 .page-del{ position:absolute; top:-7px; right:-7px; width:28px; height:28px; border-radius:50%; border:1.5px solid var(--line); background:var(--bg); color:var(--accent); display:grid; place-items:center; box-shadow:0 2px 6px rgba(17,17,17,.18); z-index:2; padding:0; }
+.page-dup{ top:26px; }
 .page-del:hover{ background:var(--accent-soft); }
 .page-del svg{ width:15px; height:15px; }
 
@@ -2984,6 +2985,21 @@ function deletePage(i = book.current){
   commit();
   toast('Page deleted', { label:'Undo', run:undo });
 }
+// Copy a page: everything on it (pieces, background, words) as a new page right after it
+function duplicatePage(i = book.current){
+  track('duplicate_page');
+  const copy = JSON.parse(JSON.stringify(book.pages[i])), groups = {};
+  copy.items.forEach(it => { it.id = nextId++; if (it.group) it.group = groups[it.group] || (groups[it.group] = newGroupId()); });
+  book.pages.splice(i + 1, 0, copy);
+  goToPage(i + 1);
+  commit();
+  toast('Page copied');
+}
+function dupBtn(i){
+  const d = el('button', 'page-del page-dup'); d.innerHTML = icon('copy', 2); d.setAttribute('aria-label', `Copy page ${i + 1}`); d.title = 'Copy this page';
+  d.onclick = e => { e.stopPropagation(); duplicatePage(i); refreshViews(); };
+  return d;
+}
 function delBtn(i){
   const d = el('button', 'page-del'); d.innerHTML = icon('trash', 2); d.setAttribute('aria-label', `Delete page ${i + 1}`); d.title = 'Delete this page';
   d.onclick = e => { e.stopPropagation(); deletePage(i); refreshViews(); };
@@ -3002,7 +3018,7 @@ function fillPages(box){
     b.append(miniPage(p), el('span', null, p.title || 'Untitled'), el('small', null, 'Page ' + (i + 1)));
     b.onclick = () => { goToPage(i); closeSheet(); };
     item.append(b);
-    if (i === book.current && !onCover && book.pages.length > 1) item.append(delBtn(i));
+    if (i === book.current && !onCover){ if (book.pages.length > 1) item.append(delBtn(i)); item.append(dupBtn(i)); }
     sortablePage(item, i, sheetBody);
     grid.append(item);
   });
@@ -3107,7 +3123,7 @@ function renderRail(){
     b.append(miniPage(p), el('span', null, `${i + 1}. ${p.title || 'Untitled'}`));
     b.onclick = () => goToPage(i);
     item.append(b);
-    if (i === book.current && !onCover && book.pages.length > 1) item.append(delBtn(i));
+    if (i === book.current && !onCover){ if (book.pages.length > 1) item.append(delBtn(i)); item.append(dupBtn(i)); }
     sortablePage(item, i, rail);
     rail.append(item);
   });
