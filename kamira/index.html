@@ -1717,6 +1717,11 @@ function itemActions(it){
   const mine = it.type === 'photo' && USER.get(it.value);
   if (mine && mine.cut && mine.orig && !mine.kind) acts.push({ id:'recut', label:'Edit cutout', icon:'wand',
     open:() => gate(() => openCutter(mine.orig, mine, mine.id, { edit:true, state:mine.cutState, item:it })) });
+  // Ready-made pieces (shop items, people, decorations) can be masked too, like hiding the back of a jacket.
+  // Editing one makes your own copy for this piece; it keeps its shop link.
+  const ready = it.type === 'photo' && !mine && asset(it.value);
+  if (ready && ready.src) acts.push({ id:'recut', label:'Edit cutout', icon:'wand',
+    open:() => gate(() => openCutter(ready.src, { name:ready.name, brand:ready.brand, price:ready.price, url:ready.url, source:'shop' }, null, { edit:true, item:it, tool:'erase' })) });
   acts.push({ id:'remove', label:'Remove', icon:'trash', key:'Delete', danger:true, run:() => { items.splice(i, 1); selectedId = null; } });
   return acts;
 }
@@ -3630,7 +3635,10 @@ async function openCutter(src, meta = {}, existingId = null, opts = {}){
     if (s){
       cutJob.mode = s.mode || cutJob.mode; cutJob.tol = s.tol || 34; if (s.q) cutJob.q = s.q;
       if (s.path && s.path.length > 5){ cutJob.path = s.path.map(([x, y]) => ({ x:x * w, y:y * h })); cutJob.pathId = 1; cutJob.paint = null; cutJob.tool = 'add'; cutJob.brush = 22; cutJob.history = []; }
+      if (s.paint && s.pw === w && s.ph === h){ if (cutJob.path === undefined){ cutJob.path = null; cutJob.tool = 'add'; cutJob.brush = 22; cutJob.history = []; } cutJob.paint = unpackPaint(s.paint, w * h); }
     }
+    // Masking a ready-made piece (a jacket, say): open with the Remove more brush ready
+    if (opts.tool){ if (cutJob.path === undefined){ cutJob.path = null; cutJob.paint = cutJob.paint || null; cutJob.brush = 22; cutJob.history = []; } cutJob.tool = opts.tool; }
     openView('cutter');
   } catch (e){ toast("That picture couldn't be opened. Try a JPG or PNG."); nextQueued(); }
 }
@@ -3721,6 +3729,7 @@ function trim(imgData){
   const full = document.createElement('canvas'); full.width = w; full.height = h; full.getContext('2d').putImageData(imgData, 0, 0);
   const out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1;
   out.getContext('2d').drawImage(full, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+  out.box = { x:x0, y:y0, w:out.width, h:out.height, W:w, H:h }; // where the trimmed part sits in the whole picture
   return out;
 }
 // The loop you drew, as a yes/no mask the size of the picture
@@ -3880,8 +3889,12 @@ async function runAI(j, kind, onDone){
 // Work out the cutout at full size (not trimmed), then apply any brush touch-ups.
 // Returns null while the picture still needs a loop, or while the AI is working.
 function computeCut(j){
-  if (j.mode === 'keep') return j.original;
   let data;
+  if (j.mode === 'keep'){
+    data = new ImageData(new Uint8ClampedArray(j.original.data), j.w, j.h);
+    if (j.paint){ const d = data.data, p = j.paint; for (let i = 0; i < p.length; i++) if (p[i] === 2) d[i * 4 + 3] = 0; }
+    return data;
+  }
   if (j.mode === 'remove'){
     if (j.q === 'best'){ if (!j.aiWhole) return null; data = alphaFrom(j.original, j.aiWhole, j.tol); }
     else data = removeBackground(j.original, j.tol);
@@ -3949,29 +3962,34 @@ function fillCutter(box){
     return f;
   };
   const tool = (name, label, val) => { const b = el('button', 'tool'); b.innerHTML = icon(name) + (label ? '<span>' + label + '</span>' : ''); b.onclick = () => { j.tool = val; sync(); }; b.dataset.tool = val; return b; };
+  // Keep more / Remove more brushes, shared by "Draw around it" and "Keep it all"
+  const brushes = onReset => {
+    const f = el('div', 'lasso-body');
+    const tools = el('div', 'tools');
+    const undo = el('button', 'tool'); undo.innerHTML = icon('undo'); undo.setAttribute('aria-label', 'Undo last brush stroke');
+    undo.onclick = () => { if (!j.history.length) return; j.paint = j.history.pop(); runCut(cv); sync(); };
+    tools.append(tool('brush', 'Keep more', 'add'), tool('eraser', 'Remove more', 'erase'));
+    const size = el('label', 'slider brush-size');
+    const r = el('input'); r.type = 'range'; r.min = 6; r.max = 70; r.value = j.brush; r.oninput = () => { j.brush = +r.value; };
+    size.append(el('span', null, 'Brush size'), r);
+    const again = el('button', 'btn', 'Reset');
+    again.onclick = () => { onReset(); j.paint = null; j.history = []; runCut(cv); sync(); };
+    const endRow = el('div', 'lasso-end'); endRow.append(again, undo);
+    f.append(tools, size, endRow);
+    return f;
+  };
   const MODES = [
     { key:'remove', icon:'wand', title:'Remove background', sub:'',
       body:() => { const f = document.createDocumentFragment(); f.append(quality(), sliderFor('How much to remove')); return f; } },
     { key:'lasso', icon:'lasso', title:'Draw around it', sub:'Circling snaps to the edges.',
       body:() => {
         const wrapL = document.createDocumentFragment(); wrapL.append(quality());
-        const f = el('div', 'lasso-body');
-        const tools = el('div', 'tools');
-        const undo = el('button', 'tool'); undo.innerHTML = icon('undo'); undo.setAttribute('aria-label', 'Undo last brush stroke');
-        undo.onclick = () => { if (!j.history.length) return; j.paint = j.history.pop(); runCut(cv); sync(); };
-        tools.append(tool('brush', 'Keep more', 'add'), tool('eraser', 'Remove more', 'erase'));
-        const size = el('label', 'slider brush-size');
-        const r = el('input'); r.type = 'range'; r.min = 6; r.max = 70; r.value = j.brush; r.oninput = () => { j.brush = +r.value; };
-        size.append(el('span', null, 'Brush size'), r);
-        const again = el('button', 'btn', 'Reset');
-        again.onclick = () => { j.path = null; j.inside = null; j.quickLoop = null; j.aiLoop = null; j.paint = null; j.history = []; runCut(cv); sync(); };
-        const endRow = el('div', 'lasso-end'); endRow.append(again, undo);
-        f.append(tools, size, endRow);
+        const f = brushes(() => { j.path = null; j.inside = null; j.quickLoop = null; j.aiLoop = null; });
         f.dataset.after = '1';
         wrapL.append(f);
         return wrapL;
       } },
-    { key:'keep', icon:'image', title:'Keep it all', sub:'Adds the whole picture as it is.', body:null }
+    { key:'keep', icon:'image', title:'Keep it all', sub:'', body:() => brushes(() => {}) }
   ];
   const opts = el('div', desk ? 'cut-opts' : 'cut-phone');
   const bodies = {};
@@ -3997,17 +4015,18 @@ function fillCutter(box){
     else segRow.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === j.mode)));
     Object.entries(bodies).forEach(([k, b]) => { b.hidden = k !== j.mode; });
     const lb = bodies.lasso.querySelector('.lasso-body'); if (lb) lb.hidden = !j.path;
-    bodies.lasso.querySelectorAll('.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === j.tool));
+    opts.querySelectorAll('.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === j.tool));
     opts.querySelectorAll('.q-seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.q === j.q)));
     opts.querySelectorAll('.q-note').forEach(n => { n.textContent = j.q === 'best'
       ? (AI.ready ? 'Cleaner edges on busy photos. Takes a few seconds.' : 'Cleaner edges on busy photos. Slower, and downloads about 55 MB the first time.')
       : 'Instant. Works best on plain backgrounds.'; });
     chip.hidden = !drawing;
-    prev.classList.toggle('photo', j.mode === 'keep' || drawing);
+    prev.classList.toggle('photo', drawing);
     cv.classList.toggle('drawing', drawing);
-    cv.classList.toggle('painting', j.mode === 'lasso' && !!j.path);
+    cv.classList.toggle('painting', canPaint());
   };
   const setMode = k => { j.mode = k; sync(); runCut(cv); };
+  const canPaint = () => (j.mode === 'lasso' && !!j.path) || j.mode === 'keep';
 
   // Drawing the loop, then painting touch-ups with the brushes
   let pts = null, painting = false;
@@ -4031,7 +4050,7 @@ function fillCutter(box){
   const LOUPE = 136, ZOOM = 3;
   let checker = null;
   const showLoupe = e => {
-    if (!(j.mode === 'lasso' && j.path && j.full)){ loupe.hidden = true; return; }
+    if (!(canPaint() && j.full)){ loupe.hidden = true; return; }
     const dpr = window.devicePixelRatio || 1, size = Math.round(LOUPE * dpr);
     if (loupe.width !== size){ loupe.width = loupe.height = size; }
     const x = loupe.getContext('2d'), p = at(e), src = LOUPE * p.k / ZOOM;
@@ -4053,15 +4072,15 @@ function fillCutter(box){
     loupe.hidden = false;
   };
   const moveRing = e => {
-    if (!(j.mode === 'lasso' && j.path)) { ring.hidden = true; return; }
+    if (!canPaint()) { ring.hidden = true; return; }
     const r = prev.getBoundingClientRect(); ring.hidden = false;
     ring.style.width = ring.style.height = j.brush + 'px';
     ring.style.left = (e.clientX - r.left) + 'px'; ring.style.top = (e.clientY - r.top) + 'px';
   };
   cv.addEventListener('pointerdown', e => {
-    if (j.mode !== 'lasso') return;
+    if (j.mode !== 'lasso' && j.mode !== 'keep') return;
     e.preventDefault(); cv.setPointerCapture(e.pointerId);
-    if (!j.path){ pts = [at(e)]; return; }
+    if (j.mode === 'lasso' && !j.path){ pts = [at(e)]; return; }
     if (!j.full) return;
     j.history.push(j.paint ? j.paint.slice() : new Uint8Array(j.w * j.h)); if (j.history.length > 12) j.history.shift();
     if (!j.paint) j.paint = new Uint8Array(j.w * j.h);
@@ -4078,7 +4097,7 @@ function fillCutter(box){
   cv.addEventListener('pointerup', done); cv.addEventListener('pointercancel', done);
 
   const row = el('div', 'row-end cut-foot');
-  const cancel = el('button', 'btn', 'Cancel'), add = el('button', 'btn primary', 'Add to page');
+  const cancel = el('button', 'btn', 'Cancel'), add = el('button', 'btn primary', j.edit ? 'Save' : 'Add to page');
   cancel.onclick = closeSheet; add.onclick = () => finishCut();
   row.append(cancel, add);
   if (desk){ const side = el('div', 'cut-side'); side.append(opts); wrap.append(prev, side); box.append(wrap, row); }
@@ -4087,6 +4106,18 @@ function fillCutter(box){
   // Show the photo right away, then work out the cutout a beat later
   cv.width = j.w; cv.height = j.h; cv.getContext('2d').putImageData(j.original, 0, 0);
   requestAnimationFrame(() => setTimeout(() => { if (cutJob === j) runCut(cv); }, 0));
+}
+// Brush strokes, stored as runs ("value,count,value,count…") so editing again brings them back
+function packPaint(p){
+  if (!p || !p.some(v => v)) return null;
+  const out = []; let v = p[0], n = 0;
+  for (let i = 0; i < p.length; i++){ if (p[i] === v) n++; else { out.push(v, n); v = p[i]; n = 1; } }
+  out.push(v, n); return out.join(',');
+}
+function unpackPaint(str, len){
+  const a = String(str).split(',').map(Number), p = new Uint8Array(len); let o = 0;
+  for (let i = 0; i + 1 < a.length && o < len; i += 2){ if (a[i]) p.fill(a[i], o, Math.min(len, o + a[i + 1])); o += a[i + 1]; }
+  return p;
 }
 // The photo a cutout was made from (kept small), so it can be edited again later
 function keepOriginal(j){
@@ -4108,8 +4139,22 @@ function finishCut(){
   // Editing one piece on the page? If other pieces use the same picture, this one
   // becomes its own cutout so the others stay as they were.
   if (j.edit && j.item && photoUses(id) > 1){ id = 'u_' + uid(); j.item.value = id; }
-  const cutState = { mode:j.mode, q:j.q, tol:j.tol, path:j.path ? j.path.filter((p, i) => i % Math.ceil(j.path.length / 300) === 0).map(p => [+(p.x / j.w).toFixed(4), +(p.y / j.h).toFixed(4)]) : null };
-  const u = { ...prev, ...pickMeta(j.meta), id, src, orig:prev.orig || keepOriginal(j), cutState, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload', t:Date.now() };
+  if (j.edit && j.item && j.item.value !== id) j.item.value = id; // a ready-made piece: this item now shows your copy
+  // Editing a piece on the page: keep what's left exactly where it was and the same size,
+  // so a jacket with its back painted away still lines up with the person wearing it
+  const oldBox = !j.edit ? null : prev.box || (!j.existingId ? { x:0, y:0, w:j.w, h:j.h, W:j.w, H:j.h } : null); // a ready-made piece shows its whole picture
+  if (j.edit && j.item && oldBox && j.out.box){
+    const f = j.w / (oldBox.W || j.w), ob = { x:oldBox.x * f, y:oldBox.y * f, w:oldBox.w * f, h:oldBox.h * f }, nb = j.out.box, it = j.item;
+    const sc = it.size / ob.w; // page width-percent per picture pixel
+    let dx = (nb.x + nb.w / 2) - (ob.x + ob.w / 2); const dy = (nb.y + nb.h / 2) - (ob.y + ob.h / 2);
+    if (it.flip) dx = -dx;
+    const a = (it.rot || 0) * Math.PI / 180, ar = canvas.clientWidth / (canvas.clientHeight || 1);
+    it.x += (dx * Math.cos(a) - dy * Math.sin(a)) * sc;
+    it.y += (dx * Math.sin(a) + dy * Math.cos(a)) * sc * ar;
+    it.size = nb.w * sc;
+  }
+  const cutState = { paint:packPaint(j.paint), pw:j.w, ph:j.h, mode:j.mode, q:j.q, tol:j.tol, path:j.path ? j.path.filter((p, i) => i % Math.ceil(j.path.length / 300) === 0).map(p => [+(p.x / j.w).toFixed(4), +(p.y / j.h).toFixed(4)]) : null };
+  const u = { ...prev, ...pickMeta(j.meta), id, src, orig:prev.orig || keepOriginal(j), cutState, box:j.out.box, w:j.out.width, h:j.out.height, cut:true, source:prev.source || j.meta.source || 'upload', t:Date.now() };
   if (prev.name && !j.meta.name) u.name = prev.name;
   USER.set(id, u); shareUser(u);
   const ratio = j.out.height / j.out.width;
