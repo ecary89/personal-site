@@ -648,6 +648,11 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .piece-well.on-light{ background:var(--well); }
 .piece-well .cut{ cursor:inherit; pointer-events:none; }
 .piece-opt[aria-pressed="true"] .piece-well{ outline:2.5px solid var(--accent); outline-offset:2px; }
+.ink-fonts{ margin:2px 0 12px 44px; }
+.ink-fonts[hidden]{ display:none; }
+.word-preview{ position:relative; height:120px; margin-bottom:14px; border-radius:12px; overflow:hidden; container-type:inline-size; background:var(--paper); border:1px solid var(--line); }
+.word-preview .scene{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.word-preview .cut{ pointer-events:none; }
 .wood-preview{ position:relative; height:84px; border-radius:12px; background:var(--well); container-type:inline-size; overflow:hidden; }
 .wood-preview .cut{ pointer-events:none; }
 .tone-row{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -1060,6 +1065,7 @@ const ICONS = {
   scene:   '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m4 17 5-4.5 4 3.5 2.5-2 4.5 3.5"/>',
   cutouts: '<circle cx="6.5" cy="7" r="2.5"/><circle cx="6.5" cy="17" r="2.5"/><path d="M8.6 8.5 20 17M8.6 15.5 20 7"/>',
   paper:   '<path d="M4 9.5 14.5 4l2 4L6 13.5Z"/><path d="M12 20l-1.2-3.4L7.5 15.5l3.3-1.2L12 11l1.2 3.3 3.3 1.2-3.3 1.1Z"/>',
+  textstyle:'<path d="M6.5 16 12 4l5.5 12"/><path d="M8.6 11.5h6.8"/><rect x="4" y="18.6" width="16" height="2.8" rx="1.2" fill="#D9467F" stroke="none"/>',
   pen:     '<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
   pages:   '<rect x="7" y="3.5" width="12" height="15" rx="1.5"/><path d="M5 6.5v12.5a1.5 1.5 0 0 0 1.5 1.5H15"/>',
   up:      '<path d="M12 20V9"/><path d="m7 13 5-5 5 5"/><path d="M5 4h14"/>',
@@ -1711,8 +1717,7 @@ function itemActions(it){
     { id:'shadow', label:'Shadow', icon:'shadow', pressed:it.shadow !== false, run:() => { it.shadow = it.shadow === false; } },
     { id:'copy', label:'Copy', icon:'copy', key:'⌘D', run:() => { const c = { ...it, id:nextId++, ...copySpot(it) }; items.splice(i + 1, 0, c); selectedId = c.id; return c.id; } }
   ];
-  if (it.type === 'word') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
-  if (it.type === 'wood') acts.push({ id:'edit', label:'Edit words', icon:'pen', view:'word' });
+  if (it.type === 'word' || it.type === 'wood') acts.push({ id:'edit', label:'Words and color', icon:'textstyle', view:'word' });
   if (it.type === 'title') acts.push({ id:'edit', label:'Title style', icon:'pen', view:'titleStyle' });
   const mine = it.type === 'photo' && USER.get(it.value);
   if (mine && mine.cut && mine.orig && !mine.kind) acts.push({ id:'recut', label:'Edit cutout', icon:'wand',
@@ -1762,7 +1767,7 @@ function renderDock(){
   if (it){
     dock.classList.add('items');
     const sc = el('div', 'scroller');
-    const order = ['shop', 'remove', 'copy', 'recut', 'mirror', 'shadow', 'edit', 'forward', 'back'];
+    const order = ['shop', 'edit', 'remove', 'copy', 'recut', 'mirror', 'shadow', 'forward', 'back'];
     itemActions(it).sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))
       .forEach(a => sc.append(dockBtn(a.label, a.icon, () => doAction(a), { disabled:a.disabled, danger:a.danger, pressed:a.pressed })));
     const done = el('button', 'done'); done.innerHTML = icon('check', 2.2); done.setAttribute('aria-label', 'Done'); done.onclick = () => select(null);
@@ -2016,7 +2021,7 @@ function gate(next, why){
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Background']];
 const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Edit words', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title', feedback:'Send feedback' };
+const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Words and color', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title', feedback:'Send feedback' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
@@ -2726,7 +2731,8 @@ function fontPicker(cur, onPick){
 }
 // Colors for words, plus wood: the same words, cut from wood instead of written
 const isWood = v => typeof v === 'string' && v.startsWith('wood:');
-function inkPicker(cur, onPick){
+// fonts (optional): the font choices, shown right under the Ink row since they only apply to ink
+function inkPicker(cur, onPick, fonts){
   const wrap = el('div', 'ink-wrap');
   const row = (label, opts) => {
     const r = el('div', 'ink-row'); r.setAttribute('role', 'group'); r.setAttribute('aria-label', label);
@@ -2739,8 +2745,9 @@ function inkPicker(cur, onPick){
     });
     return r;
   };
-  wrap.append(row('Ink', INKS.map(k => ({ id:k.id, name:k.name, c:k.c }))),
-              row('Wood', WOOD_TONES.map(w => ({ id:'wood:' + w.id, name:w.name + ' wood', c:w.c, cls:'wood-sw' }))));
+  wrap.append(row('Ink', INKS.map(k => ({ id:k.id, name:k.name, c:k.c }))));
+  if (fonts) wrap.append(fonts);
+  wrap.append(row('Wood', WOOD_TONES.map(w => ({ id:'wood:' + w.id, name:w.name + ' wood', c:w.c, cls:'wood-sw' }))));
   return wrap;
 }
 function textComposer(box){
@@ -2756,8 +2763,7 @@ function textComposer(box){
   const phrases = el('div', 'phrase-row');
   const drawPhrases = () => {
     phrases.innerHTML = '';
-    fontSec.classList.toggle('off', isWood(textInk));
-    fontNote.hidden = !isWood(textInk);
+    fontBlock.hidden = isWood(textInk);
     if (isWood(textInk)){
       const tone = WOOD_TONES.find(w => 'wood:' + w.id === textInk);
       ['love', 'xo', 'hello', 'Paris', 'us', 'dream', ...WORDS.slice(0, 3)].forEach(w => { const b = el('button', 'wood-chip', w); b.style.setProperty('--wood-c', tone.c === '#F5F0E6' ? '#B9AE9C' : tone.c); b.onclick = () => addWords(w); phrases.append(b); });
@@ -2766,11 +2772,10 @@ function textComposer(box){
     const ink = INKS.find(k => k.id === textInk);
     WORDS.forEach(w => { const b = el('button', 'wf-' + textFont, w); b.style.setProperty('--ink', ink.c); b.style.setProperty('--tape', ink.tape); b.onclick = () => addWords(w); phrases.append(b); });
   };
-  const fontSec = el('div', 'sec'); fontSec.append(el('h3', null, 'Font'), fontPicker(textFont, id => { textFont = id; drawPhrases(); }));
-  const fontNote = el('p', 'hint', 'Wood letters have their own chunky shape.'); fontSec.append(fontNote);
-  const inkSec = el('div', 'sec'); inkSec.append(el('h3', null, 'Color or material'), inkPicker(textInk, id => { textInk = id; drawPhrases(); }));
+  const fontBlock = el('div', 'ink-fonts'); fontBlock.append(fontPicker(textFont, id => { textFont = id; drawPhrases(); }));
+  const inkSec = el('div', 'sec'); inkSec.append(el('h3', null, 'Color or material'), inkPicker(textInk, id => { textInk = id; drawPhrases(); }, fontBlock));
   const quick = el('div', 'sec'); quick.append(el('h3', null, 'Quick words'), phrases);
-  wrap.append(f, inkSec, fontSec, quick);
+  wrap.append(f, inkSec, quick);
   box.append(wrap);
   drawPhrases();
 }
@@ -2959,23 +2964,33 @@ function fillShop(box){
 /* ---------- Edit words: text, font and color ---------- */
 function fillWord(box){
   const it = selItem(); if (!it || (it.type !== 'word' && it.type !== 'wood')){ closeSheet(); return; }
+  // A live preview on this page's own background, so changes show even though the window covers the page
+  const pv = el('div', 'word-preview');
+  const drawPreview = () => {
+    pv.innerHTML = onCover ? `<div class="scene cover-bg mat-${book.cover.material}"></div>` : sceneMarkup(page().scene, satOf(page()), page().bg);
+    if (onCover) pv.dataset.onCover = ''; else delete pv.dataset.onCover;
+    const c = cutEl({ ...it, id:0, x:50, y:50, rot:0, flip:false });
+    pv.append(c);
+    // big enough to read, small enough to fit
+    let fs = it.size * 1.6; c.style.fontSize = fs + 'cqw';
+    requestAnimationFrame(() => { const maxW = pv.clientWidth * .88; if (c.offsetWidth > maxW){ fs *= maxW / c.offsetWidth; c.style.fontSize = fs + 'cqw'; } });
+  };
   const f = el('form', 'own-words');
   const input = el('input', 'field'); input.id = 'editWords'; input.value = it.value; input.maxLength = 40; input.setAttribute('aria-label', 'Words');
   const save = el('button', 'btn primary', 'Done'); save.type = 'submit';
   f.append(input, save);
-  input.oninput = () => { const v = input.value.trim(); if (v){ it.value = v; renderFront(); } };
+  input.oninput = () => { const v = input.value.trim(); if (v){ it.value = v; renderFront(); drawPreview(); } };
   f.onsubmit = e => { e.preventDefault(); it.value = input.value.trim() || it.value; closeSheet(); renderFront(); commit(); renderRail(); };
-  const fontSec = el('div', 'sec'); fontSec.append(el('h3', null, 'Font'), fontPicker(it.font || 'hand', id => { it.font = id; if (it.type === 'word') it.size = WORD_SIZE[id] || it.size; renderFront(); commit(); }));
-  const fontNote = el('p', 'hint', 'Wood letters have their own chunky shape.'); fontSec.append(fontNote);
-  const sync = () => { fontSec.classList.toggle('off', it.type === 'wood'); fontNote.hidden = it.type !== 'wood'; };
+  const fontBlock = el('div', 'ink-fonts'); fontBlock.append(fontPicker(it.font || 'hand', id => { it.font = id; if (it.type === 'word') it.size = WORD_SIZE[id] || it.size; renderFront(); commit(); drawPreview(); }));
+  const sync = () => { fontBlock.hidden = it.type === 'wood'; }; // wood letters have their own shape, so fonts only show for ink
   const cur = it.type === 'wood' ? 'wood:' + (it.tone || 'birch') : (it.ink || 'ink');
   const inkSec = el('div', 'sec'); inkSec.append(el('h3', null, 'Color or material'), inkPicker(cur, id => {
     if (isWood(id)){ if (it.type !== 'wood') it.size = woodSize(it.value); it.type = 'wood'; it.tone = id.slice(5); }
     else { if (it.type !== 'word') it.size = WORD_SIZE[it.font || 'hand'] || 5.5; it.type = 'word'; it.ink = id; it.font = it.font || 'hand'; }
-    sync(); renderFront(); commit(); renderRail();
-  }));
-  box.append(f, inkSec, fontSec);
-  sync();
+    sync(); renderFront(); commit(); renderRail(); drawPreview();
+  }, fontBlock));
+  box.append(pv, f, inkSec);
+  sync(); drawPreview();
   if (isDesk()) setTimeout(() => input.select(), 60);
 }
 
