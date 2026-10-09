@@ -3514,7 +3514,6 @@ function shareText(p, cover){
     lines.push('Items on this page');
     items.forEach(a => lines.push(`- ${[a.brand, a.name].filter(Boolean).join(', ') || 'From the web'}${a.price ? ' (' + a.price + ')' : ''}\n  ${a.url}`));
   }
-  lines.push('', 'Made with Kamira');
   return lines.join('\n');
 }
 
@@ -3558,8 +3557,7 @@ async function renderShareImage(p, cover){
   if (titleLines.length) y += titleLines.length * TITLE * 1.15 + (storyLines.length ? 28 : 0);
   if (storyLines.length) y += storyLines.length * LH;
   if (items.length){ if (story) y += 72; y += 56 + 28 + rows * CARD_H + (rows - 1) * GAP; }
-  const FOOT = 120;
-  H = (story || items.length) ? y + PAD * .6 + FOOT : H + FOOT;
+  H = (story || items.length) ? y + PAD : H;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = Math.ceil(H);
   const x = cv.getContext('2d');
   x.fillStyle = '#FFFCF7'; x.fillRect(0, 0, W, cv.height);
@@ -3595,9 +3593,6 @@ async function renderShareImage(p, cover){
       if (a.price){ x.fillStyle = '#111111'; x.font = '500 28px Figtree, system-ui, sans-serif'; x.fillText(a.price, cx, cy + THUMB + 104); }
     });
   }
-  // A quiet sign-off, light enough to stay out of the way
-  x.fillStyle = '#C4BFB8'; x.font = '400 24px Figtree, system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.fillText('Made with Kamira', W / 2, cv.height - FOOT / 2);
   return cv;
 }
 
