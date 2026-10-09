@@ -1292,7 +1292,24 @@ const newGroupId = () => 'g' + Date.now().toString(36) + Math.random().toString(
 const hist = { stack:[], at:-1 };
 const snapshot = () => JSON.stringify({ pages:book.pages, current:book.current, title:book.title, cover:book.cover });
 function resetHistory(){ hist.stack = [snapshot()]; hist.at = 0; updateUndo(); }
+/* ---------- How many pieces people put on a page ----------
+   page_size fires the first time a page reaches 10, 25, 50, 100, 250, 500 or 1000 pieces
+   (pasted and duplicated pieces count too). The highest step reported is kept on the page as
+   "sizeMark", so undo or a reload doesn't report the same step twice.
+   Find it in Google Analytics under Events > page_size. */
+const SIZE_STEPS = [10, 25, 50, 100, 250, 500, 1000];
+function checkPageSize(){
+  const p = page(); if (!p || !p.items) return;
+  const n = p.items.length, step = SIZE_STEPS.filter(x => n >= x && x > (p.sizeMark || 0)).pop();
+  if (step){ p.sizeMark = step; track('page_size', { pieces:step, on_cover:onCover }); }
+}
+// The biggest page and the total pieces in this scrapbook, added to Read, Share and Save events
+function bookSize(){
+  const all = [book.cover, ...book.pages].filter(p => p && p.items), counts = all.map(p => p.items.length);
+  return { most_pieces:Math.max(0, ...counts), total_pieces:counts.reduce((t, n) => t + n, 0) };
+}
 function commit(){
+  checkPageSize();
   const s = snapshot();
   if (hist.stack[hist.at] === s) return;
   hist.stack = hist.stack.slice(0, hist.at + 1);
@@ -2359,7 +2376,7 @@ function refreshViews(){
 
 function addItem(props){
   { const a = props.type === 'photo' ? asset(props.value) : null;
-    track('add_piece', { piece_type:props.type, piece_source:a ? (PRODUCT[props.value] ? 'shop' : FIG[props.value] ? 'figure' : a.source === 'web' ? 'clipper' : 'yours') : props.type, piece_id:a && PRODUCT[props.value] ? props.value : undefined, brand:a && a.brand || undefined, on_cover:onCover }); }
+    track('add_piece', { piece_type:props.type, piece_source:a ? (PRODUCT[props.value] ? 'shop' : FIG[props.value] ? 'figure' : a.source === 'web' ? 'clipper' : 'yours') : props.type, piece_id:a && PRODUCT[props.value] ? props.value : undefined, brand:a && a.brand || undefined, on_cover:onCover, pieces_on_page:page().items.length + 1 }); }
   const it = { id:nextId++, x:50 + (Math.random() * 16 - 8), y:46 + (Math.random() * 16 - 8), rot:Math.round(Math.random() * 10 - 5), flip:false, shadow:true, ...props };
   page().items.push(it);
   selectedId = it.id;
@@ -3464,7 +3481,7 @@ function fillExport(box){
     if (!blob) throw new Error('no image');
     const im = new Image(); im.src = URL.createObjectURL(blob); im.alt = 'Your page as a picture';
     prev.innerHTML = ''; prev.append(im);
-    save.disabled = false; save.onclick = () => { track('export_image', { what:cover ? 'cover' : 'page' }); saveBlob(blob, name); };
+    save.disabled = false; save.onclick = () => { track('export_image', { what:cover ? 'cover' : 'page', ...bookSize() }); saveBlob(blob, name); };
   }).catch(() => { prev.innerHTML = ''; prev.append(el('p', null, 'Sorry, that picture couldn\'t be made. Try again in a moment.')); });
 }
 
@@ -3603,7 +3620,7 @@ async function renderShareImage(p, cover){
 
 function fillShare(box){
   const cover = onCover, p = page(), parts = shareParts(p, cover);
-  track('share_open', { where:cover ? 'cover' : 'page' });
+  track('share_open', { where:cover ? 'cover' : 'page', ...bookSize() });
   sharePagePic = null; shareOut = null;
   if (cover){ shareState.picture = true; }
   const s = shareState;
@@ -3652,7 +3669,7 @@ function fillShare(box){
       const pngP = isImg ? (out.png ? Promise.resolve(out.png) : new Promise(res => out.canvas.toBlob(res, 'image/png'))) : null;
       // Phones: the share sheet, with the picture attached, so it can go straight to the Reddit app
       if (isImg && out.png && phoneShare(out.png)){
-        track('share_reddit', { what:shareWhat(), how:'share_sheet' });
+        track('share_reddit', { what:shareWhat(), how:'share_sheet', ...bookSize() });
         const file = new File([out.png], `${title.replace(/[\\/:*?"<>|]+/g, '')}.png`, { type:'image/png' });
         navigator.share({ files:[file], title }).catch(() => {});
         return;
@@ -3660,7 +3677,7 @@ function fillShare(box){
       // Computers: copy the picture first (the copy fails if Reddit takes focus too soon), then open Reddit
       let copied = false;
       if (pngP){ try { await navigator.clipboard.write([new ClipboardItem({ 'image/png':pngP })]); copied = true; } catch (err){} }
-      track('share_reddit', { what:shareWhat(), how:copied ? 'copy_and_open' : 'open' });
+      track('share_reddit', { what:shareWhat(), how:copied ? 'copy_and_open' : 'open', ...bookSize() });
       const openReddit = () => { const w = window.open(url, '_blank'); if (w) w.opener = null; return w; };
       const msg = copied ? 'Picture copied. Paste it into your Reddit post.' : isImg ? 'Couldn\'t copy the picture. Use Download, then add it to your post.' : '';
       if (openReddit()){ if (msg) toast(msg); }
@@ -3741,7 +3758,7 @@ function fillShare(box){
     // First time: the support prompt, then back here to finish what they tapped
     if (!supporter && !supportSeen){ gate(() => { openView('share'); setTimeout(() => { const b = sheetBody.querySelector(kind === 'copy' ? '.share-acts .btn:first-child' : '.share-acts .btn:last-child'); b && b.click(); }, 400); }, 'Kamira is a passion project built with love.'); return; }
     const what = shareWhat(), out = shareOut;
-    track(kind === 'copy' ? 'share_copy' : 'share_save', { what, where:cover ? 'cover' : 'page' });
+    track(kind === 'copy' ? 'share_copy' : 'share_save', { what, where:cover ? 'cover' : 'page', ...bookSize() });
     const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}`.replace(/[\\/:*?"<>|]+/g, '');
     if (out.kind === 'text'){
       if (kind === 'save') return saveBlob(new Blob([out.text], { type:'text/plain' }), name + '.txt', 'Text downloaded');
@@ -4606,7 +4623,7 @@ function newLeaf(cls){
 }
 let endTracked = false;
 function openReader(){
-  track('open_reader', { pages:book.pages.length }); endTracked = false;
+  track('open_reader', { pages:book.pages.length, ...bookSize() }); endTracked = false;
   $('#readerTitle').textContent = book.title || 'Untitled';
   select(null);
   bookEl.innerHTML = ''; leaves = []; leafAt = 0; turning = false;
