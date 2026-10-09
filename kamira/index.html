@@ -679,6 +679,8 @@ body.page-dragging, body.page-dragging *{ cursor:grabbing !important; }
 .share-prev.busy{ opacity:.6; }
 .share-prev img{ display:block; max-width:100%; max-height:calc(36vh - 32px); width:auto; height:auto; border-radius:4px; box-shadow:0 8px 24px rgba(17,17,17,.16); }
 .share-prev p{ margin:0; color:var(--muted); font-size:14px; }
+.making{ display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; max-width:34ch; }
+.making .fb-wait{ width:22px; height:22px; }
 .share-textcard{ align-self:start; justify-self:stretch; max-height:100%; overflow:auto; box-sizing:border-box; margin:0; background:#FFFCF7; color:#2C2A4A; border-radius:8px; padding:16px 20px; font:400 14px/1.5 var(--ui); white-space:pre-wrap; word-break:break-word; box-shadow:0 8px 24px rgba(17,17,17,.12); }
 .share-right{ display:flex; flex-direction:column; gap:16px; }
 .share-ctrls{ display:flex; flex-direction:column; gap:12px; }
@@ -3417,6 +3419,24 @@ const DECO_SHADOW = { lace:[1.2, .9, .28], paper:[.9, .6, .24] };
 let grainP = null;
 const grainImg = () => grainP || (grainP = (() => { const m = getComputedStyle(document.documentElement).getPropertyValue('--grain-light').match(/url\("?(.+?)"?\)\s*$/);
   return m ? loadImage(m[1]).catch(() => null) : Promise.resolve(null); })());
+/* ---------- Big pages take a while to turn into a picture ----------
+   More than 300 pieces can take a minute or two. Say so (with a spinner, so it clearly isn't stuck),
+   and ask before leaving or reloading the page while the picture is still being made. */
+const BIG_PAGE = 300;
+const isBigPage = p => !!(p && p.items && p.items.length > BIG_PAGE);
+function makingMsg(p){
+  if (!isBigPage(p)) return [el('p', null, 'Making your picture…')];
+  const box = el('div', 'making');
+  box.append(el('span', 'fb-wait'), el('p', null, `This page has ${p.items.length.toLocaleString()} pieces, so making the picture can take a minute or two. Please keep this page open.`));
+  return [box];
+}
+let drawingBig = 0;
+const holdPage = e => { e.preventDefault(); e.returnValue = ''; };
+function whileDrawing(p, job){
+  if (!isBigPage(p)) return job;
+  if (!drawingBig++) addEventListener('beforeunload', holdPage);
+  return job.finally(() => { if (!--drawingBig) removeEventListener('beforeunload', holdPage); });
+}
 async function renderPageImage(p, cover){
   await document.fonts.ready.catch(() => {});
   const W = 1500, H = 1875, U = W / 100;
@@ -3604,12 +3624,12 @@ async function saveBlob(blob, filename, okMsg = 'Picture saved'){
 }
 function fillExport(box){
   const cover = onCover, p = page();
-  const prev = el('div', 'export-prev'); prev.append(el('p', null, 'Making your picture…'));
+  const prev = el('div', 'export-prev'); prev.append(...makingMsg(p));
   const save = el('button', 'btn primary'); save.innerHTML = icon('download') + 'Save picture'; save.disabled = true;
   const row = el('div', 'row-end'); const close = el('button', 'btn', 'Close'); close.onclick = closeSheet; row.append(close, save);
   box.append(prev, row, el('p', 'hint', isDesk() ? 'Saves a high-resolution JPG of this page.' : 'Or press and hold the picture to save it to your photos.'));
   const name = `${book.title || 'kamira'} - ${cover ? 'cover' : 'page ' + (book.current + 1)}.jpg`.replace(/[\\/:*?"<>|]+/g, '');
-  renderPageImage(p, cover).then(cv => new Promise(res => cv.toBlob(res, 'image/jpeg', .92))).then(blob => {
+  whileDrawing(p, renderPageImage(p, cover)).then(cv => new Promise(res => cv.toBlob(res, 'image/jpeg', .92))).then(blob => {
     if (!blob) throw new Error('no image');
     const im = new Image(); im.src = URL.createObjectURL(blob); im.alt = 'Your page as a picture';
     prev.innerHTML = ''; prev.append(im);
@@ -3874,9 +3894,9 @@ function fillShare(box){
       prev.innerHTML = ''; const card = el('pre', 'share-textcard', t); prev.append(card);
       shareOut = { kind:'text', text:t }; copy.disabled = save.disabled = false; return;
     }
-    if (!prev.querySelector('img')){ prev.innerHTML = ''; prev.append(el('p', null, 'Making your picture…')); }
+    if (!prev.querySelector('img')){ prev.innerHTML = ''; prev.append(...makingMsg(p)); }
     prev.classList.add('busy');
-    renderShareImage(p, cover).then(cv => new Promise(res => cv.toBlob(b => res([cv, b]), 'image/jpeg', .92))).then(([cv, blob]) => {
+    whileDrawing(p, renderShareImage(p, cover)).then(cv => new Promise(res => cv.toBlob(b => res([cv, b]), 'image/jpeg', .92))).then(([cv, blob]) => {
       if (job !== shareJob) return;
       if (!blob) throw new Error('no image');
       const im = new Image(); im.src = URL.createObjectURL(blob); im.alt = 'Preview of what you\'ll share';
