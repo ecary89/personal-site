@@ -325,7 +325,7 @@ body.sheet-open .toast{ top:calc(14px + env(safe-area-inset-top, 0px)); bottom:a
 .btn:disabled{ opacity:.45; cursor:default; }
 .product-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px 10px; }
 .tile{ border:none; background:none; padding:0; text-align:left; display:flex; flex-direction:column; gap:5px; min-width:0; }
-.tile .well{ position:relative; display:block; aspect-ratio:1; border-radius:14px; background:var(--well); transition:background .15s; }
+.tile .well{ position:relative; display:block; width:100%; height:0; padding-top:100%; border-radius:14px; background:var(--well); transition:background .15s; }
 .tile:hover .well{ background:var(--well-hover); }
 .tile img{ position:absolute; inset:11%; width:78%; height:78%; object-fit:contain; }
 .tile .brand{ font-size:13.5px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
