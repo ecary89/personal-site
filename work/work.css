@@ -797,6 +797,14 @@ img { max-width: 100%; display: block; }
     background: var(--btn-wash);
 }
 
+/* A phone video inside a case-study figure keeps its phone shape, centred on the wash */
+.cs-figure .wk-hero--video video {
+    width: auto;
+    height: 88%;
+    border-radius: 11.5% / 5.3%;
+    background: #fff;
+}
+
 .cs-figure figcaption,
 .cs-caption {
     margin: 14px 0 0;
