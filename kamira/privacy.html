@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kamira Privacy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#FFFFFF; --ink:#111111; --muted:#555555; --line:#E6E6E6; color-scheme:light; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#161616; --ink:#F2F2F2; --muted:#B0B0B0; --line:#333333; color-scheme:dark; } }
+  :root[data-theme="dark"]{ --bg:#161616; --ink:#F2F2F2; --muted:#B0B0B0; --line:#333333; color-scheme:dark; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 "Figtree", system-ui, sans-serif; }
+  main{ max-width:640px; margin:0 auto; padding:48px 16px 64px; }
+  h1{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:34px; line-height:1.2; margin:0 0 8px; }
+  h2{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:21px; margin:32px 0 8px; }
+  p, li{ margin:0 0 12px; }
+  ul{ padding-left:20px; margin:0 0 12px; }
+  .date{ color:var(--muted); font-size:14px; margin-bottom:24px; }
+  a{ color:inherit; text-underline-offset:3px; }
+  .back{ display:inline-block; margin-top:32px; font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kamira privacy</h1>
+  <p class="date">Last updated October 14, 2026</p>
+
+  <p>Kamira is a free passion project for making picture stories. Here is what it keeps, who can see it, and how to delete it.</p>
+
+  <h2>If you don't sign in</h2>
+  <p>Everything you make stays in your own browser. Nothing is sent to us. If you clear your browser's data, your stories are gone.</p>
+
+  <h2>If you sign in with Google</h2>
+  <p>We get your name, your email address, and your Google profile picture link from Google. We use your first name to label pages you make public, and your email so you can sign in again. We never see your Google password.</p>
+  <p>Your stories and your own cutouts are saved to your Kamira account, so you can open them on another computer. They're private. Only you can see them.</p>
+
+  <h2>Public pages</h2>
+  <ul>
+    <li>A page is only public if you turn on "Show in the Kamira feed" for it. You can turn it off any time, and it's removed from the feed.</li>
+    <li>Anyone can see a public page, your first name, and any of your own cutouts on it. Other people can heart it or copy its pieces into their own stories.</li>
+    <li>Only people 13 or older can make pages public.</li>
+    <li>Public pages can't contain anything explicit. Before a page goes public, Kamira checks the pictures you added yourself. The check runs in your own browser; your pictures aren't sent anywhere for it.</li>
+    <li>If people report a page, it's hidden until we look at it. We may remove pages that break the rules.</li>
+  </ul>
+
+  <h2>What we don't do</h2>
+  <p>We don't sell your information, show ads, or share your stories with anyone.</p>
+
+  <h2>Where things are kept</h2>
+  <p>Accounts, saved stories and public pages are stored with Supabase, our database service. We use Google Analytics to count things like how many people make a page or open the feed. It doesn't include your stories or pictures.</p>
+
+  <h2>Deleting your things</h2>
+  <p>You can delete any story from your profile, and make any public page private again. To delete your whole account and everything in it, email <a href="mailto:erika.mi.cary@gmail.com">erika.mi.cary@gmail.com</a> from the address you sign in with. We'll delete it within 30 days.</p>
+
+  <h2>Questions</h2>
+  <p>Email <a href="mailto:erika.mi.cary@gmail.com">erika.mi.cary@gmail.com</a>.</p>
+
+  <a class="back" href="./">Back to Kamira</a>
+</main>
+</body>
+</html>

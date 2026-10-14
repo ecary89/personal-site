@@ -972,6 +972,7 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
     <button class="icon-btn" id="undoBtn" aria-label="Undo" title="Undo"></button>
     <button class="icon-btn desk-only" id="redoBtn" aria-label="Redo" title="Redo"></button>
     <button class="icon-btn" id="menuBtn" aria-label="More options" title="More"></button>
+    <button class="pill-btn explore-btn desk-only" id="exploreBtn" aria-label="Explore" hidden></button>
     <button class="pill-btn" id="readBtn"></button>
     <button class="pill-btn share-btn desk-only" id="shareBtn" aria-label="Share"></button>
     <button class="avatar-btn" id="profileBtn" aria-label="Your profile" title="Your profile"></button>
@@ -1054,6 +1055,10 @@ body.tw-picking .tw-panel, body.tw-picking .tw-panel *{ cursor:auto !important; 
 <div class="drop-zone" id="dropZone" hidden>Drop to add it to this page</div>
 <div class="toast" id="toast" role="status"></div>
 
+<!-- Sign-in, saving to your account, and the public feed (off until cloud/cloud.js has its keys) -->
+<link rel="stylesheet" href="cloud/cloud.css">
+<script src="cloud/cloud.js"></script>
+<script src="cloud/cloud-ui.js"></script>
 <script>
 /* =========================================================
    Little helpers
@@ -1380,7 +1385,7 @@ function scheduleSave(){
     syncLibrary();
     try { const s = await DB.get('state'); (s && s.user || []).forEach(u => { if (u && u.id && newer(u, USER.get(u.id))) USER.set(u.id, u); }); } catch (e){}
     DB.set('state', { v:2, active:book.id, books:library, user:[...USER.values()] })
-      .then(() => { $('#saveState').textContent = 'Saved'; })
+      .then(() => { $('#saveState').textContent = 'Saved'; Cloud.pushSoon(); })
       .catch(() => { $('#saveState').textContent = ''; });
   }, 700);
 }
@@ -2277,8 +2282,8 @@ function gate(next, why){
 }
 
 const panelTabs = () => onCover ? [['add', 'Add'], ['cover', 'Cover material']] : [['story', 'Story'], ['add', 'Add'], ['scene', 'Background']];
-const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter'];
-const TITLES = { support:'Support the project', community:'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Words and color', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title', feedback:'Send feedback' };
+const TALL_SHEETS = ['add', 'scene', 'cover', 'pages', 'word', 'titleStyle', 'clipper', 'profile', 'cutter', 'community'];
+const TITLES = { support:'Support the project', community:Cloud.on ? 'Explore' : 'See what others made', welcome:'Welcome', scene:'Background', add:'Add to your page', pages:'Pages', shop:'Shop this piece', cutter:'Make a cutout', word:'Words and color', menu:'More', clipper:'Kamira Clipper', cover:'Cover material', export:'Save as an image', share:'Share', deleteBook:'Delete this?', profile:'Your profile', titleStyle:'Cover title', feedback:'Send feedback' };
 let panelTab = 'add', sheetKind = null, lastFocus = null, shopAsset = null;
 
 function fill(kind, box){
@@ -2292,7 +2297,7 @@ function openView(kind){
   if (isDesk() && kind === 'pages'){ $('#pageRail').querySelector('[aria-current="true"]')?.focus(); return; }
   if (!sheetKind) lastFocus = document.activeElement;
   sheetKind = kind;
-  sheet.classList.toggle('wide', kind === 'profile');
+  sheet.classList.toggle('wide', kind === 'profile' || (kind === 'community' && Cloud.on));
   sheet.classList.toggle('cutw', kind === 'cutter');
   sheet.classList.toggle('mid', kind === 'clipper');
   sheet.classList.toggle('sharew', kind === 'share');
@@ -2421,6 +2426,7 @@ function fillSupport(box){
    Find it in Google Analytics under Events > community_interest. */
 let communityTapped = false;
 function fillCommunity(box){
+  if (Cloud.on){ CloudUI.fillFeed(box); return; } // the real feed, once the cloud is set up
   const art = el('div', 'support-art'); art.innerHTML = icon('people', 1.6);
   const tag = el('span', 'alpha-tag soon-tag', 'Coming soon');
   box.append(art, tag, el('p', 'lede', 'Soon you\'ll be able to read what other people made, and share yours with them. Thanks for tapping. It tells us this is worth building.'));
@@ -3199,6 +3205,7 @@ function deletePage(i = book.current){
 function duplicatePage(i = book.current){
   track('duplicate_page');
   const copy = JSON.parse(JSON.stringify(book.pages[i])), groups = {};
+  delete copy.pid; // a copy of a public page starts private
   copy.items.forEach(it => { it.id = nextId++; if (it.group) it.group = groups[it.group] || (groups[it.group] = newGroupId()); });
   book.pages.splice(i + 1, 0, copy);
   goToPage(i + 1);
@@ -3643,6 +3650,7 @@ function fillProfile(box){
   const head = el('div', 'profile-head');
   const av = el('span', 'avatar big'); av.innerHTML = icon('user', 1.8);
   const who = el('div'); who.append(el('b', null, 'You'), el('span', null, 'Saved in this browser'));
+  CloudUI.profileWho(who); // signed in: your name and "Saved to your account"; signed out: Sign in with Google
   head.append(av, who);
   const grid = el('div', 'shelf-grid');
   const add = el('button', 'shelf-card'); const t = el('div', 'new-page shelf-new'); t.innerHTML = icon('plus') + '<span>Start a new one</span>';
@@ -3804,7 +3812,10 @@ function fillShare(box){
   copy.onclick = () => shareAct('copy', copy); save.onclick = () => shareAct('save', save);
 
   const left = el('div', 'share-left'); left.append(prev);
-  const right = el('div', 'share-right'); right.append(ctrls);
+  const right = el('div', 'share-right');
+  const pub = CloudUI.shareSection(p, cover); // the Public switch: show this page in the Kamira feed
+  if (pub) right.append(pub);
+  right.append(ctrls);
   // Share with others: the subreddit
   {
     const so = el('div', 'share-out');
@@ -3941,6 +3952,7 @@ function clipperBtn(){
 function menuItems(){
   const items = [];
   if (!isDesk()) items.push({ icon:'share', label:'Share', run:() => openView('share') });
+  if (!isDesk() && Cloud.on) items.push({ icon:'people', label:'Explore', run:() => { track('feed_open_menu'); openView('community'); } });
   items.push({ icon:'trash', label:'Delete', run:() => openView('deleteBook') });
   items.push({ icon:'download', label:'Get the Kamira Clipper', run:() => openView('clipper') });
   if (FEEDBACK_URL) items.push({ icon:'chat', label:'Send feedback', run:startFeedback });
@@ -5145,6 +5157,10 @@ const syncNoteH = () => document.documentElement.style.setProperty('--note-h', $
 syncNoteH(); addEventListener('resize', syncNoteH);
 $('#shareBtn').innerHTML = $('#readerShare').innerHTML = icon('share') + '<span class="share-label">Share</span>'; $('#shareBtn').onclick = () => openView('share');
 $('#profileBtn').innerHTML = $('#readerProfile').innerHTML = icon('user', 1.9); $('#profileBtn').onclick = () => openView('profile');
+// Explore: the feed of public pages (only once the cloud is set up)
+{ const x = $('#exploreBtn');
+  if (Cloud.on){ x.hidden = false; x.innerHTML = icon('people', 1.9) + 'Explore'; x.onclick = () => { track('feed_open_header'); openView('community'); }; }
+  else x.remove(); }
 $('#closeReader').innerHTML = icon('pen') + 'Edit';
 $('#prevSlide').innerHTML = icon('left', 2); $('#nextSlide').innerHTML = icon('right', 2);
 $('#pagePill').onclick = () => openView('pages');
@@ -5189,9 +5205,10 @@ function showCutouts(fromLink){
   else refreshViews();
 }
 loadSaved().then(found => {
+  Cloud.localLoaded(found);
   if (found){ renderAll(); resetHistory(); } else if (!seen && !openCutouts) openView('welcome');
   if (openCutouts) showCutouts(true);
-}).finally(() => { document.documentElement.classList.remove('booting'); setTimeout(tagCutoutsSoon, 1500); });
+}).finally(() => { document.documentElement.classList.remove('booting'); Cloud.localLoaded(false); setTimeout(tagCutoutsSoon, 1500); });
 // Say hello to the Kamira Clipper extension, if it's installed
 window.postMessage({ source:'daydream-page', type:'hello' }, '*');
 </script>
