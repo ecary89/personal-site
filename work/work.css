@@ -712,6 +712,9 @@ img { max-width: 100%; display: block; }
     color: var(--rose);
 }
 
+/* In a tile, the case-study link sits under the title, in the left column */
+.wk-tile-head .wk-more { margin: 22px 0 0; }
+
 .wk-more a { color: var(--rose); border-bottom: 1px solid transparent; transition: border-color 200ms ease; }
 .wk-more a:hover { border-color: var(--rose); }
 
@@ -795,6 +798,14 @@ img { max-width: 100%; display: block; }
     display: block;
     border-radius: 14px;
     background: var(--btn-wash);
+}
+
+/* A phone video inside a case-study figure keeps its phone shape, centred on the wash */
+.cs-figure .wk-hero--video video {
+    width: auto;
+    height: 88%;
+    border-radius: 11.5% / 5.3%;
+    background: #fff;
 }
 
 .cs-figure figcaption,
