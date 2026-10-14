@@ -57,6 +57,24 @@ for (const p of PAGES) {
     if (s !== before) { fs.writeFileSync(f, s); changed.push(p); }
 }
 
+// Kamira loads a few files by paths relative to its own folder (src="cloud/cloud.js")
+const KAMIRA = { page:'kamira/index.html', assets:['cloud/cloud.js', 'cloud/cloud-ui.js', 'cloud/cloud.css'] };
+{
+    const f = path.join(ROOT, KAMIRA.page);
+    if (fs.existsSync(f)) {
+        let s = fs.readFileSync(f, 'utf8');
+        const before = s;
+        for (const a of KAMIRA.assets) {
+            const af = path.join(ROOT, 'kamira', a);
+            if (!fs.existsSync(af)) continue;
+            const v = crypto.createHash('sha1').update(fs.readFileSync(af)).digest('hex').slice(0, 7);
+            const re = new RegExp('((?:href|src)=")(' + a.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + ')(\\?v=[0-9a-f]+)?(")', 'g');
+            s = s.replace(re, (m, pre, file, _old, post) => pre + file + '?v=' + v + post);
+        }
+        if (s !== before) { fs.writeFileSync(f, s); changed.push(KAMIRA.page); }
+    }
+}
+
 if (process.argv.includes('--stage') && changed.length) {
     // plaintext sources are gitignored; only stage tracked files
     const tracked = changed.filter(p => !p.startsWith('work/_src/'));
