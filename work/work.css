@@ -712,6 +712,9 @@ img { max-width: 100%; display: block; }
     color: var(--rose);
 }
 
+/* In a tile, the case-study link sits under the title, in the left column */
+.wk-tile-head .wk-more { margin: 22px 0 0; }
+
 .wk-more a { color: var(--rose); border-bottom: 1px solid transparent; transition: border-color 200ms ease; }
 .wk-more a:hover { border-color: var(--rose); }
 
