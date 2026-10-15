@@ -1,0 +1,208 @@
+/* erikacary.com design system: tokens
+   The single source for color, type, space, shape, depth and motion on the portfolio
+   (home page, /work gate, audience pages, case studies). Kamira is out of scope.
+
+   Values match style.css and work/work.css on main as of 2026-10-15. Names match the live
+   site where it already had one (--paper, --ink, --rose ...), so a page can link this file
+   and drop its own :root block without renaming anything. See README.md for the rules. */
+
+:root {
+    /* ---------- Color: base ---------- */
+    --paper: #F9F4F6;           /* page background, warm rose-tinted */
+    --surface: #FFFFFF;         /* inputs, frames and cards that sit on paper */
+    --ink: #2B2130;             /* default text, primary button */
+    --muted: #6E6072;           /* reading text: ledes, story, facts, captions */
+    --subtle: #8D7E91;          /* meta, nav links, cites. 3.5:1 on paper, so not for body text */
+    --rose: #B4547E;            /* the one accent: labels, links, cursor, curtain, hover fill */
+
+    /* ---------- Color: lines and washes ---------- */
+    --hairline: #E2D6DC;        /* frame borders */
+    --border: #D5C4CD;          /* ghost button, input, tag, dotted dividers, chart grid */
+    --wash: #F2E8ED;            /* hover wash, empty media */
+    --wash-deep: #E7D6DF;       /* far end of the media gradient */
+    --wash-gradient: linear-gradient(135deg, var(--wash) 0%, var(--wash-deep) 100%);
+    --paper-glass: rgba(249, 244, 246, 0.94);  /* sticky header bar, over an 8px blur */
+
+    /* ---------- Color: case-study charts and controls ---------- */
+    --rose-tint: #F6EAF0;       /* highlighted chart area */
+    --neutral-tint: #ECEBEC;    /* de-emphasized chart area */
+    --neutral: #7A7479;         /* de-emphasized chart label */
+    --control-off-bg: #EFE9EC;  /* disabled arrow */
+    --control-off-fg: #A69DA3;
+    --control-pending: #C8C2C6; /* the arrow that is about to turn the page while a carousel cycles */
+    --stage-dark: #121212;      /* behind a dark slide */
+    --stage-graphite: #2C2C2C;  /* behind dark UI screenshots that crossfade */
+    --surface-veil: rgba(255, 255, 255, 0.55);  /* a placeholder sitting on the wash */
+
+    /* Channels for tinted shadows and halos */
+    --ink-rgb: 43, 33, 48;
+    --rose-rgb: 180, 84, 126;
+
+    /* Old names, kept so style.css and work.css keep working */
+    --btn-border: var(--border);
+    --btn-wash: var(--wash);
+
+    /* ---------- Type: families and weights ---------- */
+    --font-display: 'Bricolage Grotesque', sans-serif;          /* names, titles, headings, quotes */
+    --font-text: 'Schibsted Grotesk', system-ui, sans-serif;    /* reading text, UI and labels */
+
+    --weight-regular: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --weight-black: 800;
+
+    /* ---------- Type: sizes ----------
+       Fluid sizes run from the min at phone width to the max on desktop.
+       Display family */
+    --size-hero: min(112px, 14vw);              /* home page name */
+    --size-title-lg: clamp(36px, 5.6vw, 64px);  /* entry page title */
+    --size-title: clamp(34px, 5vw, 56px);       /* case-study title */
+    --size-title-sm: clamp(30px, 4.4vw, 42px);  /* gate title */
+    --size-heading-lg: clamp(24px, 2.8vw, 34px);/* tile title */
+    --size-heading: clamp(22px, 2.4vw, 30px);   /* case-study section title */
+    --size-heading-sm: clamp(22px, 2.4vw, 28px);/* footer headline */
+    --size-heading-xs: clamp(21px, 2.2vw, 26px);/* home claim title */
+    --size-subheading: clamp(20px, 1.8vw, 24px);/* tile subheader */
+    --size-quote: clamp(18px, 1.7vw, 21px);     /* peer quote */
+    --size-quote-lg: clamp(19px, 1.8vw, 22px);  /* a quote that stands alone beside media */
+    --size-wordmark: 22px;                      /* "Erika Cary" in the nav */
+    /* Text family */
+    --size-statement: clamp(22px, 2.6vw, 30px); /* home positioning line */
+    --size-lede: clamp(18px, 2vw, 22px);        /* entry page intro */
+    --size-body-lg: clamp(17px, 1.6vw, 19px);   /* case-study story and section text */
+    --size-claim: clamp(16px, 1.6vw, 19px);     /* home claim evidence (body-lg with a 16px floor) */
+    --size-body: 17px;                          /* facts, gate subline, home role label */
+    --size-ui: 16px;                            /* buttons, inputs, tile meta line */
+    --size-small: 15px;                         /* nav, captions, case-study facts, fact labels */
+    --size-meta: 14px;                          /* meta, cites, back link, gate contact and error */
+    --size-fine: 13px;                          /* footer copy, "Copied", header-bar role */
+    --size-label: 12px;                         /* eyebrows, tags, Before / After */
+
+    /* ---------- Type: line height ---------- */
+    --leading-hero: 0.96;
+    --leading-title-lg: 1.02;
+    --leading-title: 1.04;
+    --leading-title-sm: 1.05;
+    --leading-heading-lg: 1.12;
+    --leading-heading: 1.15;
+    --leading-snug: 1.3;
+    --leading-quote: 1.4;
+    --leading-statement: 1.42;
+    --leading-text: 1.5;
+    --leading-relaxed: 1.55;
+    --leading-read: 1.6;
+
+    /* ---------- Type: letter spacing ---------- */
+    --tracking-display: -0.03em;    /* names and titles */
+    --tracking-heading: -0.02em;    /* tile and section titles */
+    --tracking-heading-sm: -0.015em;/* footer headline, claim title */
+    --tracking-statement: -0.012em; /* home positioning line */
+    --tracking-sub: -0.01em;        /* subheaders, quotes, fact labels */
+    --tracking-label: 0.12em;       /* small caps labels */
+    --tracking-label-wide: 0.14em;  /* the role label on home and the gate eyebrow */
+
+    /* ---------- Space ----------
+       A 4px grid. Half steps (6, 10, 14 ...) are optical offsets the site uses next to type. */
+    --space-0-5: 2px;
+    --space-1: 4px;
+    --space-1-5: 6px;
+    --space-2: 8px;
+    --space-2-5: 10px;
+    --space-3: 12px;
+    --space-3-5: 14px;
+    --space-4: 16px;
+    --space-4-5: 18px;
+    --space-5: 20px;
+    --space-5-5: 22px;
+    --space-6: 24px;
+    --space-6-5: 26px;
+    --space-7: 28px;
+    --space-8: 32px;
+    --space-9: 36px;
+    --space-10: 40px;
+    --space-11: 44px;
+    --space-12: 48px;
+    --space-14: 56px;
+    --space-16: 64px;
+
+    /* Fluid rhythm between big blocks */
+    --space-page-top: clamp(64px, 10vh, 120px);     /* nav to the page intro */
+    --space-statement-top: clamp(56px, 9vh, 110px); /* home hero to the positioning line */
+    --space-claims-top: clamp(64px, 10vh, 104px);   /* positioning line to the claims */
+    --space-tiles-top: clamp(64px, 10vh, 112px);    /* page intro to the first tile */
+    --space-tiles: clamp(64px, 9vh, 112px);         /* between project tiles */
+    --space-section: clamp(64px, 9vh, 104px);       /* between case-study sections */
+    --space-quotes: clamp(80px, 12vh, 128px);       /* last tile to the quotes */
+    --space-footer: clamp(72px, 12vh, 120px);       /* content to the footer */
+    --space-block: clamp(36px, 5vw, 56px);          /* case-study title to hero, hero to story */
+    --space-tile-body: clamp(24px, 3vw, 36px);      /* tile hero to its text */
+    --space-hero-top: clamp(48px, 8vh, 96px);       /* home nav to the name */
+    --space-cs-head: clamp(24px, 4vh, 40px);        /* back link to the case-study title */
+    --gap-columns: clamp(28px, 5vw, 72px);          /* the 5:7 split's gutter */
+
+    /* ---------- Layout ---------- */
+    --content-max: 1200px;      /* every page */
+    --intro-max: 860px;         /* page intro and case-study head */
+    --reading-max: 720px;       /* paragraphs */
+    --gate-max: 560px;          /* the password form and the footer lockup */
+    --pad-x: clamp(24px, 6vw, 64px);
+    --fact-label: 110px;        /* the label column in a facts list */
+    /* Breakpoints (CSS can't read variables in media queries, so these are for reference):
+       860px  two columns stack, dotted dividers appear
+       700px  wide diagrams scroll sideways, charts reflow
+       560px  fact labels sit above their text */
+
+    /* ---------- Shape ---------- */
+    --radius-pill: 999px;       /* buttons, inputs, tags, hover washes */
+    --radius-hero: 16px;        /* tile hero, wash panels */
+    --radius-figure: 14px;      /* case-study figures, frames, placeholders, embeds */
+    --radius-card: 12px;        /* a graphic or screenshot shown as a card */
+    --radius-screen: 10px;      /* a desktop screen; often top corners only */
+    --radius-control: 9px;      /* carousel arrows */
+    --radius-phone: 22px;       /* a phone video or phone on the wash */
+    --radius-phone-lg: 28px;    /* phones in a row */
+    --radius-phone-frame: 11.5% / 5.3%; /* a phone recording, rounded in proportion to its own corners */
+    --radius-phone-shot: 8.5% / 4.3%;   /* a phone screenshot with its own rounded corners */
+    --radius-round: 50%;
+
+    --border-width: 1px;
+    --border-width-strong: 1.5px;   /* cursor ring, placeholder dash */
+
+    /* ---------- Depth ---------- */
+    --shadow-lift: 0 6px 18px rgba(var(--ink-rgb), 0.14);           /* hovered button */
+    --shadow-soft: 0 10px 30px rgba(var(--ink-rgb), 0.10);          /* phones in a row */
+    --shadow-float: 0 18px 48px rgba(var(--ink-rgb), 0.18);         /* screens on the wash */
+    --shadow-float-strong: 0 18px 48px rgba(var(--ink-rgb), 0.22);  /* phones on the wash */
+    --halo-rose: 0 0 0 5px rgba(var(--rose-rgb), 0.18);             /* a chart dot that is open */
+    --focus-ring: 2px solid var(--rose);
+    --focus-offset: 2px;
+
+    --z-header: 10;
+    --z-curtain: 50;
+    --z-cursor: 9999;
+
+    /* ---------- Motion ----------
+       Rounded, never straight lines. Things fade and rise, wash in behind, or lift. */
+    --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);     /* entrance, reveal, lifts, cursor */
+    --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);  /* curtain rise and drop, gate recede */
+    --ease-sweep: cubic-bezier(0.65, 0, 0.35, 1);   /* curtain covers the page */
+    --ease-leave: cubic-bezier(0.7, 0, 0.2, 1);     /* curtain lifts off the top */
+    --ease-spring: cubic-bezier(0.2, 0.8, 0.3, 1.1);/* letters in the home name */
+    --ease-pop: cubic-bezier(0.45, 0, 0.25, 1);     /* a chart dot opening into a clip */
+
+    --dur-micro: 180ms;         /* cursor fade */
+    --dur-hover: 200ms;         /* color, wash, border */
+    --dur-lift: 220ms;          /* button lift */
+    --dur-cursor: 260ms;        /* cursor ring grows */
+    --dur-header: 380ms;        /* home header bar slides in */
+    --dur-crossfade: 500ms;     /* carousel slides */
+    --dur-reveal-child: 600ms;  /* parts of a tile landing in turn */
+    --dur-entrance: 640ms;      /* blocks on page load */
+    --dur-reveal: 700ms;        /* blocks on scroll */
+    --dur-curtain: 900ms;       /* curtain rise */
+    --stagger: 70ms;            /* delay between blocks on entrance */
+    --rise: 14px;               /* entrance travel */
+    --rise-reveal: 24px;        /* scroll reveal travel */
+    --dwell: 7000ms;            /* carousel time per slide */
+}

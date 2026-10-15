@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1300" width="750" height="1300" role="img" aria-label="Placeholder phone screen">
+  <rect width="750" height="1300" fill="#FFFFFF"/>
+  <rect x="48" y="40" width="96" height="16" rx="8" fill="#E2D6DC"/>
+  <rect x="610" y="40" width="92" height="16" rx="8" fill="#E2D6DC"/>
+  <rect x="48" y="108" width="300" height="36" rx="18" fill="#D5C4CD"/>
+  <rect x="48" y="176" width="654" height="560" rx="28" fill="#F2E8ED"/>
+  <circle cx="375" cy="440" r="64" fill="#E7D6DF"/>
+  <rect x="48" y="776" width="460" height="28" rx="14" fill="#D5C4CD"/>
+  <rect x="48" y="826" width="600" height="20" rx="10" fill="#E2D6DC"/>
+  <rect x="48" y="862" width="520" height="20" rx="10" fill="#E2D6DC"/>
+  <rect x="48" y="930" width="200" height="200" rx="22" fill="#F2E8ED"/>
+  <rect x="275" y="930" width="200" height="200" rx="22" fill="#F2E8ED"/>
+  <rect x="502" y="930" width="200" height="200" rx="22" fill="#F2E8ED"/>
+  <rect x="0" y="1196" width="750" height="104" fill="#F9F4F6"/>
+  <circle cx="125" cy="1248" r="18" fill="#B4547E"/>
+  <circle cx="292" cy="1248" r="18" fill="#D5C4CD"/>
+  <circle cx="458" cy="1248" r="18" fill="#D5C4CD"/>
+  <circle cx="625" cy="1248" r="18" fill="#D5C4CD"/>
+</svg>

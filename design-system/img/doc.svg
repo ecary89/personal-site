@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" width="1200" height="1600" role="img" aria-label="Placeholder document">
+  <rect width="1200" height="1600" fill="#FFFFFF"/>
+  <rect x="96" y="96" width="520" height="44" rx="22" fill="#D5C4CD"/>
+  <rect x="96" y="168" width="300" height="20" rx="10" fill="#B4547E" opacity="0.55"/>
+  <rect x="96" y="248" width="1008" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="288" width="940" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="328" width="980" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="368" width="620" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="440" width="1008" height="360" rx="20" fill="#F2E8ED"/>
+  <rect x="96" y="848" width="380" height="28" rx="14" fill="#D5C4CD"/>
+  <rect x="96" y="906" width="1008" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="946" width="960" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="986" width="990" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1026" width="900" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1066" width="1008" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1106" width="700" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1146" width="980" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1186" width="940" height="18" rx="9" fill="#E2D6DC"/>
+  <rect x="96" y="1260" width="490" height="240" rx="20" fill="#F2E8ED"/>
+  <rect x="614" y="1260" width="490" height="240" rx="20" fill="#F2E8ED"/>
+</svg>
