@@ -47,7 +47,7 @@ Page-only styles go in the page and use tokens only. No raw hex values, pixel si
 
 **Labels.** A label names the block below it, in a few words and sentence case: 15px, semibold, rose text. A tag rides at the end of a meta line in rose, after a middle dot. No outlined pills.
 
-**Links.** Nav links and links inside a sentence get a soft wash pill on hover. The back link and calls to action ("See the case study") underline instead. Buttons lift 1px.
+**Links.** Every text link underlines on hover. The line draws in from left to right in 320ms and goes back out on leave. Under Reduce Motion it appears without the animation. A call to action ("See the case study") is a primary button. Buttons lift 1px.
 
 **Media.** Screens float on the rose wash with a soft ink shadow. They are never stretched to fill. Every video autoplays muted, loops, plays inline and has an `aria-label` that says what happens in it.
 
@@ -119,7 +119,7 @@ Text styles pair a size with a family, weight and color. Each has a `.t-*` class
 
 - **Space.** A 4px grid (`--space-1` = 4px up to `--space-16` = 64px), with 2px half steps (`--space-1-5` = 6px and so on) next to type. Gaps between big blocks grow with the screen: `--space-tiles` 64 → 112px, `--space-section` 64 → 104px, `--space-footer` 72 → 120px.
 - **Layout.** Content 1200px wide, page intro 860px, paragraphs 720px, gate 640px, footer lockup 560px. Side padding 24 → 64px. Tiles and two-quote rows split 5:7 with a 28 → 72px gutter. Columns stack at 860px.
-- **Shape.** Pills (999px) for buttons, inputs and hover washes. 16px for tile heroes, 14px for figures, 12px for cards, 10px for desktop screens, 22–28px for phones.
+- **Shape.** Pills (999px) for buttons and inputs. 16px for tile heroes, 14px for figures, 12px for cards, 10px for desktop screens, 22–28px for phones.
 - **Depth.** Four ink-tinted shadows: `lift` (hovered button), `soft` (phones in a row), `float` (screens on the wash), `float-strong` (phones on the wash).
 - **Motion.** `--ease-out` for entrances, reveals and lifts. `--ease-settle`, `--ease-sweep` and `--ease-leave` for the curtain. `--ease-spring` for the letters in the home name. Hovers take 200ms, entrances 640ms, reveals 700ms, the curtain 900ms. Carousels hold each slide 7 seconds.
 
@@ -128,10 +128,10 @@ Text styles pair a size with a family, weight and color. Each has a `.t-*` class
 | Component | Classes | Variants and states |
 |---|---|---|
 | Button | `.btn` + `.btn-primary` / `.btn-ghost` | Hover: primary washes to the darker rose, ghost fills with the wash, both lift 1px. Disabled: 55% opacity, no lift. One size, 54px tall. |
-| Nav link | `.nav a`, `.wk-links a`, `.link-pill` | Muted text. Hover: wash pill, ink text. |
-| Back link | `.cs-back` | Muted, flush with the wordmark above it. Hover: ink text and an underline. |
-| Inline link | `.link-inline`, `.lock-contact a` | Ink text in a sentence, tighter pill on hover. |
-| Call to action | `.wk-more` | Rose text, semibold. Hover: underline. |
+| Nav link | `.nav a`, `.wk-links a`, `.link-pill` | Muted text. Hover: ink text, underline draws in from the left. |
+| Back link | `.cs-back` | Muted, flush with the wordmark above it. Hover: same underline as every link. |
+| Inline link | `.link-inline`, `.lock-contact a` | Ink text in a sentence. Hover: same underline. |
+| Call to action | `.wk-more` | A primary button: ink, washes to the darker rose and lifts 1px on hover. The markup stays a plain link. |
 | Wordmark | `.wk-brand`, `.lock-home`, `.header-bar-name` | Never breaks onto two lines. |
 | Labels | `.wk-eyebrow`, `.t-label` | Sentence case, 15px semibold, rose text. Names the block below. |
 | Home role | `.hero-role`, `.header-bar-role` | A 21px subtitle under the home name. The sticky header bar repeats it as a label. |
@@ -176,7 +176,8 @@ The live pages still use `style.css` and `work.css`. Moving them onto the system
   - Buttons and inputs 16 → 17px. Footer copy 13 → 12px.
 - **No caps.** Eyebrows, Before / After labels and the header-bar role are sentence case. The home role becomes a 21px subtitle.
 - **Tag.** "Confidential, in flight" is rose text after a middle dot instead of an outlined pill.
-- **Back link.** Lines up with the wordmark and underlines on hover instead of showing a pill.
+- **Links.** Every text link, from the nav to the back link, underlines on hover with a line that draws in from the left. No more wash pills behind links. The back link lines up with the wordmark.
+- **Call to action.** "See the case study" becomes a primary button.
 - **Tile header.** The meta line sits 8px under the subheader, so the header reads as one block.
 - **Gate.** 640px wide (was 560px), so its title sits on two lines.
 - **Wordmark.** Never breaks onto two lines, even on a 375px phone.

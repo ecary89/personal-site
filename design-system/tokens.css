@@ -176,6 +176,7 @@
     --dur-micro: 180ms;         /* cursor fade */
     --dur-hover: 200ms;         /* color, wash, border */
     --dur-lift: 220ms;          /* button lift */
+    --dur-underline: 320ms;     /* link underline draws in */
     --dur-cursor: 260ms;        /* cursor ring grows */
     --dur-header: 380ms;        /* home header bar slides in */
     --dur-crossfade: 500ms;     /* carousel slides */

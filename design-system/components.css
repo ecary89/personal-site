@@ -122,8 +122,8 @@ img { max-width: 100%; display: block; }
 
 /* ==========================================================
    4  Nav and links
-   Nav and inline links: a soft pill washes in behind them on hover.
-   The back link and calls to action underline instead.
+   Every text link underlines on hover, drawn from left to right.
+   A call to action is a primary button.
    ========================================================== */
 .nav-row {
     max-width: var(--content-max);
@@ -150,50 +150,63 @@ img { max-width: 100%; display: block; }
     color: var(--muted);
 }
 
-/* Pill link: nav items */
+/* Every text link: an underline that draws in from left to right on hover, and back out on leave.
+   It's a 1px gradient under the text, so it follows the words when a link wraps. */
 .nav a,
 .wk-links a,
-.link-pill {
-    color: var(--muted);
-    padding: var(--space-1-5) var(--space-3);
-    margin: calc(var(--space-1-5) * -1) calc(var(--space-2) * -1);
-    border-radius: var(--radius-pill);
-    transition: background var(--dur-hover) ease, color var(--dur-hover) ease;
+.link-pill,
+.link-inline,
+.lock-contact a,
+.wk-bonus-quote cite a,
+.cs-back {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0% var(--border-width);
+    padding-bottom: 1px;
+    transition: background-size var(--dur-underline) var(--ease-out), color var(--dur-hover) ease;
 }
 
 .nav a:hover,
 .wk-links a:hover,
-.link-pill:hover { background: var(--wash); color: var(--ink); }
-
-/* Inline link inside a sentence (gate contact, quote cites): tighter pill. Ink in a sentence,
-   the cite's own subtle color in a cite. */
-.link-inline,
-.lock-contact a,
-.wk-bonus-quote cite a {
-    padding: var(--space-0-5) var(--space-2);
-    margin: calc(var(--space-0-5) * -1) calc(var(--space-2) * -1);
-    border-radius: var(--radius-pill);
-    transition: background var(--dur-hover) ease, color var(--dur-hover) ease;
-}
-
-.link-inline,
-.lock-contact a { color: var(--ink); }
-
+.link-pill:hover,
 .link-inline:hover,
 .lock-contact a:hover,
-.wk-bonus-quote cite a:hover { background: var(--wash); color: var(--ink); }
+.wk-bonus-quote cite a:hover,
+.cs-back:hover { background-size: 100% var(--border-width); color: var(--ink); }
 
-/* Call-to-action link in rose ("See the case study"): underlines on hover */
+/* Nav and back links are muted; links inside a sentence are ink */
+.nav a, .wk-links a, .link-pill, .cs-back { color: var(--muted); }
+.link-inline, .lock-contact a { color: var(--ink); }
+
+/* Call to action ("See the case study"): a primary button. The page markup stays a plain link. */
 .wk-more {
     grid-column: 2;
     margin: var(--space-1) 0 0;
-    font-size: var(--size-small);
-    font-weight: var(--weight-semibold);
-    color: var(--rose-text);
 }
 
-.wk-more a { color: var(--rose-text); border-bottom: var(--border-width) solid transparent; transition: border-color var(--dur-hover) ease; }
-.wk-more a:hover { border-color: var(--rose-text); }
+.wk-more a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 54px;
+    padding: 0 var(--space-8);
+    border-radius: var(--radius-pill);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--size-body);
+    font-weight: var(--weight-semibold);
+    transition:
+        background var(--dur-hover) ease,
+        transform var(--dur-lift) var(--ease-out),
+        box-shadow var(--dur-lift) ease;
+}
+
+.wk-more a:hover { background: var(--rose-text); transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+
+@media (prefers-reduced-motion: reduce) {
+    .nav a, .wk-links a, .link-pill, .link-inline, .lock-contact a, .wk-bonus-quote cite a, .cs-back { transition: color var(--dur-hover) ease; }
+}
 
 
 /* ==========================================================
@@ -685,16 +698,11 @@ img { max-width: 100%; display: block; }
    Back link · eyebrow · title · facts row · hero · story, then numbered sections:
    a heading, reading text, and figures with captions.
    ========================================================== */
-/* Back link: flush with the wordmark above it. Underlines on hover, like "See the case study". */
+/* Back link: flush with the wordmark above it. Underline rules live with the other links (section 4). */
 .cs-back {
     display: inline-block;
     font-size: var(--size-small);
-    color: var(--muted);
-    border-bottom: var(--border-width) solid transparent;
-    transition: color var(--dur-hover) ease, border-color var(--dur-hover) ease;
 }
-
-.cs-back:hover { color: var(--ink); border-color: currentColor; }
 
 .cs-head { padding-top: var(--space-cs-head); max-width: var(--intro-max); }
 
