@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * version-assets.js — stamps every stylesheet and script reference with a short hash of the
- * file's contents (e.g. /work/work.css?v=a1b2c3d), so a changed asset gets a new URL and
+ * file's contents (e.g. /design-system/components.css?v=a1b2c3d), so a changed asset gets a new URL and
  * Cloudflare's long cache never serves a stale copy. Runs from the pre-commit hook before
  * lock.js, so the plaintext pages under work/_src pick up the new URLs before encryption.
  *
@@ -15,7 +15,7 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const ASSETS = ['style.css', 'site.js', 'analytics.js', 'cursor.js', 'reveal.js', 'copy-email.js', 'work/work.css', 'work/locked.js'];
+const ASSETS = ['design-system/tokens.css', 'design-system/components.css', 'design-system/carousel.js', 'site.js', 'analytics.js', 'cursor.js', 'reveal.js', 'copy-email.js', 'work/locked.js'];
 function listPages() {
     const pages = ['index.html', 'work/index.html', 'scripts/lock.js'];
     const work = path.join(ROOT, 'work');
