@@ -2,15 +2,15 @@
 
 The tokens, components and rules behind the portfolio: the home page, the `/work` gate, the audience pages and the case studies. Kamira is a separate product with its own look, so nothing here comes from it or applies to it.
 
-I extracted the system from the live CSS on `main` on October 15, 2026, then revised it with Erika on October 16. The live pages don't load these files yet. Moving the site onto them changes how the pages look. [What changes on the live site](#what-changes-on-the-live-site) lists every change.
+I extracted the system from the live CSS on `main` on October 15, 2026, revised it with Erika on October 16, and moved the site onto it the same day. Every portfolio page now loads `tokens.css` and `components.css`. The old `style.css` and `work/work.css` are gone. [What changed on the site](#what-changed-on-the-site) lists every visible change.
 
-Open `index.html` to see every token and component, or `preview.html` to flip real pages between the current site and the design system:
+Open `index.html` to see every token and component:
 
 ```bash
 npx serve -p 4173 .
 ```
 
-Then go to `http://localhost:4173/design-system/` or `http://localhost:4173/design-system/preview`.
+Then go to `http://localhost:4173/design-system/`.
 
 ## Files
 
@@ -22,7 +22,7 @@ Then go to `http://localhost:4173/design-system/` or `http://localhost:4173/desi
 | `tokens.json` | The same tokens in the W3C design tokens format, for Figma (Tokens Studio) or Style Dictionary. Generated. |
 | `build-tokens.js` | Regenerates `tokens.json` from `tokens.css`. Run `node design-system/build-tokens.js` after any token edit. |
 | `index.html` | The specimen page. |
-| `preview.html` | Flips the home page, gate and portfolio pages between the current site and the design system. The locked pages come from `work/_src`, so they only open on Erika's laptop. |
+| `preview.html` | Used to review the move: flipped pages between the old CSS and the system. Now that the site loads the system, both sides look the same. |
 | `img/` | Placeholder screens for the specimen. No real work appears in this folder. |
 
 ## Use it
@@ -162,9 +162,9 @@ Text styles pair a size with a family, weight and color. Each has a `.t-*` class
 - **Copy email.** The icon button has `aria-label="Copy email address"`, which becomes "Copied" while the check shows.
 - **Cursor and curtain.** Decorative and `aria-hidden`. Both turn off under Reduce Motion, and the cursor turns off on touch.
 
-## What changes on the live site
+## What changed on the site
 
-The live pages still use `style.css` and `work.css`. Moving them onto the system changes these things, and nothing else:
+Moving the pages from `style.css` and `work.css` onto the system on October 16 changed these things, and nothing else:
 
 - **Color.** Nav links, meta lines, cites, captions and the input placeholder go from the old gray (`#8D7E91`, 3.5:1) to `--muted`. Rose text (labels, links, the tag, errors, "Copied") and the primary button's hover use the darker `--rose-text`.
 - **Type sizes.**
@@ -182,8 +182,6 @@ The live pages still use `style.css` and `work.css`. Moving them onto the system
 - **Gate.** 640px wide (was 560px), so its title sits on two lines.
 - **Wordmark.** Never breaks onto two lines, even on a 375px phone.
 - **Fixes.** THE YES carousel no longer makes the page scroll sideways on phones. Case-study figure styles no longer leak into heroes. Every control gets a rose focus ring.
-
-`preview.html` shows all of it on the real pages.
 
 ## Audit
 
@@ -210,9 +208,12 @@ The five phone corner rules stay. Each one matches the corners drawn into its ow
 - **October 15, extraction.** I opened every portfolio page from `main`, swapped `style.css` or `work.css` for the system, and compared 38 computed properties on every element. The pages were home, the gate, the three audience pages and the four case studies (decrypted through the local gate), at 1280px and 390px wide. Every element matched, except the ones the two bug fixes change.
 - **October 16, revision.** Erika reviewed the changes in `preview.html`. I snapshotted that approved preview on eight pages at both widths, moved it into `tokens.css` and `components.css`, and compared again. Every element matched.
 
-## Next step
+## How the site uses it
 
-**Move the live site onto the system.** Link the two files from every page and delete the duplicated rules in `style.css` and `work.css`. In THE YES and Creator Hub, delete the page styles the system now covers. Swap THE YES's carousel script for `carousel.js`. Creator Hub's script also pauses clips, so check it before swapping. Before any commit that touches the work pages, make sure `work/_src` matches `main`, since the pre-commit hook re-encrypts from it.
+- Every page head links `/design-system/tokens.css` and `/design-system/components.css`. The shells under `/work/` get the same links from `shellHtml` in `scripts/lock.js`, and the locked page sources in `work/_src` link them too, so the gate doesn't load anything twice.
+- `scripts/version-assets.js` stamps both files (and `carousel.js`) with a content hash, so Cloudflare never serves a stale copy.
+- THE YES and Creator Hub keep their own carousel scripts. Both mark the arrow that will turn the page with `.is-filling`, which the system's carousel styles expect. Creator Hub's also pauses clips. New pages can use `carousel.js`.
+- Page `<style>` blocks hold only what the system doesn't cover: THE YES's signal quadrant and quiz crop, Creator Hub's side-menu row, and Account Linking's draft figures.
 
 ## Not in the system
 
