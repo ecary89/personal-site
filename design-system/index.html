@@ -16,7 +16,8 @@
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
         .ds-part { margin-top: var(--space-tiles); }
-        .ds-part > .cs-section-title { font-size: var(--size-title-sm); font-weight: var(--weight-black); letter-spacing: var(--tracking-display); }
+        .ds-h { margin: 0; font-family: var(--font-display); font-size: var(--size-subheading); font-weight: var(--weight-bold); letter-spacing: var(--tracking-sub); }
+        .ds-sub { margin: var(--space-10) 0 0; }
         .ds-part > .cs-text:first-of-type { margin-top: var(--space-3-5); }
 
         .ds-block { position: relative; margin-top: var(--space-section); padding-top: var(--space-8); }
@@ -24,7 +25,7 @@
         .ds-block > .cs-text { margin-top: var(--space-2-5); }
         .ds-demo { margin-top: var(--space-7); }
 
-        .ds-note { margin: var(--space-3) 0 0; font-size: var(--size-meta); line-height: var(--leading-text); color: var(--subtle); }
+        .ds-note { margin: var(--space-3) 0 0; font-size: var(--size-small); line-height: var(--leading-text); color: var(--muted); }
         .ds-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.86em; color: var(--ink); }
 
         /* Color */
@@ -33,10 +34,10 @@
         .ds-chip { height: 88px; border-radius: var(--radius-card); border: var(--border-width) solid var(--hairline); }
         .ds-swatch figcaption { margin-top: var(--space-2-5); display: flex; flex-direction: column; gap: var(--space-0-5); }
         .ds-swatch .ds-name { font-size: var(--size-small); font-weight: var(--weight-semibold); color: var(--ink); }
-        .ds-swatch .ds-hex { font-size: var(--size-meta); color: var(--muted); font-variant-numeric: tabular-nums; }
-        .ds-swatch .ds-role { font-size: var(--size-meta); line-height: var(--leading-text); color: var(--subtle); }
-        .ds-ratio { align-self: flex-start; margin-top: var(--space-1); }
-        .ds-ratio.is-fail { color: var(--ink); border-style: dashed; }
+        .ds-swatch .ds-hex { font-size: var(--size-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+        .ds-swatch .ds-role { font-size: var(--size-small); line-height: var(--leading-text); color: var(--muted); }
+        .ds-ratio { margin-top: var(--space-1); font-size: var(--size-small); font-weight: var(--weight-semibold); color: var(--ink); }
+        .ds-ratio.is-fail { font-weight: var(--weight-regular); color: var(--muted); }
 
         /* Type */
         .ds-type { display: flex; flex-direction: column; }
@@ -50,18 +51,18 @@
         .ds-type-row + .ds-type-row { border-top: var(--border-width) solid var(--hairline); }
         .ds-type-spec { display: flex; flex-direction: column; gap: var(--space-0-5); }
         .ds-type-spec b { font-size: var(--size-small); font-weight: var(--weight-semibold); }
-        .ds-type-spec span { font-size: var(--size-meta); line-height: var(--leading-text); color: var(--subtle); }
+        .ds-type-spec span { font-size: var(--size-small); line-height: var(--leading-text); color: var(--muted); }
         .ds-type-sample { min-width: 0; overflow-wrap: anywhere; }
         .ds-type-sample .t-hero { font-size: min(112px, 12vw); }
 
         /* Space, shape, depth */
         .ds-space { display: flex; flex-direction: column; gap: var(--space-2-5); }
-        .ds-space div { display: grid; grid-template-columns: 96px 56px minmax(0, 1fr); gap: var(--space-4); align-items: center; font-size: var(--size-meta); color: var(--muted); }
+        .ds-space div { display: grid; grid-template-columns: 96px 56px minmax(0, 1fr); gap: var(--space-4); align-items: center; font-size: var(--size-small); color: var(--muted); }
         .ds-space i { display: block; height: 12px; border-radius: var(--radius-pill); background: var(--rose); opacity: 0.85; }
         .ds-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-6) var(--space-4); }
         .ds-tile-demo { margin: 0; }
         .ds-tile-demo > div { height: 104px; background: var(--surface); border: var(--border-width) solid var(--hairline); }
-        .ds-tile-demo figcaption { margin-top: var(--space-2-5); font-size: var(--size-meta); line-height: var(--leading-text); color: var(--muted); }
+        .ds-tile-demo figcaption { margin-top: var(--space-2-5); font-size: var(--size-small); line-height: var(--leading-text); color: var(--muted); }
         .ds-tile-demo figcaption b { display: block; font-size: var(--size-small); color: var(--ink); font-weight: var(--weight-semibold); }
         .ds-depth { padding: var(--space-6); border-radius: var(--radius-hero); background: var(--wash-gradient); }
         .ds-depth .ds-tile-demo > div { border: 0; border-radius: var(--radius-screen); }
@@ -70,7 +71,7 @@
         .ds-ease { display: flex; flex-direction: column; gap: var(--space-3-5); }
         .ds-ease-row { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: var(--space-4); align-items: center; }
         .ds-ease-row b { font-size: var(--size-small); font-weight: var(--weight-semibold); }
-        .ds-ease-row b span { display: block; font-weight: var(--weight-regular); font-size: var(--size-meta); color: var(--subtle); }
+        .ds-ease-row b span { display: block; font-weight: var(--weight-regular); font-size: var(--size-small); color: var(--muted); }
         .ds-track { position: relative; height: 34px; border-radius: var(--radius-pill); background: var(--wash); }
         .ds-track i { position: absolute; top: 5px; left: 5px; width: 24px; height: 24px; border-radius: var(--radius-round); background: var(--rose); transition: left 900ms; }
         .ds-ease.is-on .ds-track i { left: calc(100% - 29px); }
@@ -82,7 +83,7 @@
         .ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); }
         .ds-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-6) var(--space-4); }
         .ds-state { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
-        .ds-state > span { font-size: var(--size-meta); color: var(--subtle); }
+        .ds-state > span { font-size: var(--size-small); color: var(--muted); }
         .ds-heroes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--space-8) var(--space-6); }
         .ds-heroes figure { margin: 0; }
         .ds-heroes figcaption { margin-top: var(--space-3); font-size: var(--size-small); color: var(--muted); }
@@ -90,7 +91,7 @@
         .ds-stage { padding: var(--space-8) var(--space-6); border-radius: var(--radius-hero); border: var(--border-width) solid var(--hairline); }
         .ds-stage .lock { margin: 0; padding: 0; max-width: var(--gate-max); animation: none; }
         .ds-stage .lock-title { margin-top: var(--space-6); }
-        .ds-gates { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6); }
+        .ds-gates { display: grid; gap: var(--space-6); }
         .ds-tile-frame .wk-tile { padding-top: 0; }
         .ds-tile-frame .wk-tile::before { display: none; }
 
@@ -148,55 +149,50 @@
 
         <!-- Color -->
         <section class="ds-block" id="color">
-            <h3 class="t-heading-xs">Color</h3>
-            <p class="cs-text">Paper, plum ink and one rose accent. Rose marks what to look at or click. The tag under each text color is its contrast on paper. Body text needs <strong>4.5:1</strong>.</p>
+            <h3 class="ds-h">Color</h3>
+            <p class="cs-text">Paper, plum ink and one rose accent. Rose fills and large text use <span class="ds-code">--rose</span>. Rose text under 18px uses the darker <span class="ds-code">--rose-text</span>. Every secondary text is <span class="ds-code">--muted</span>. The number under each text color is its contrast on paper. Text under 18px needs <strong>4.5:1</strong>.</p>
             <div class="ds-demo ds-swatches" id="ds-swatches">
                 <figure class="ds-swatch" data-token="--paper"><div class="ds-chip"></div><figcaption><span class="ds-name">--paper</span><span class="ds-hex"></span><span class="ds-role">Page background</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--surface"><div class="ds-chip"></div><figcaption><span class="ds-name">--surface</span><span class="ds-hex"></span><span class="ds-role">Inputs, frames, cards</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--ink" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--ink</span><span class="ds-hex"></span><span class="ds-role">Text, primary button</span></figcaption></figure>
-                <figure class="ds-swatch" data-token="--muted" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--muted</span><span class="ds-hex"></span><span class="ds-role">Reading text</span></figcaption></figure>
-                <figure class="ds-swatch" data-token="--subtle" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--subtle</span><span class="ds-hex"></span><span class="ds-role">Meta, nav, cites</span></figcaption></figure>
-                <figure class="ds-swatch" data-token="--rose" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--rose</span><span class="ds-hex"></span><span class="ds-role">The accent</span></figcaption></figure>
+                <figure class="ds-swatch" data-token="--muted" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--muted</span><span class="ds-hex"></span><span class="ds-role">Reading text, meta, nav, cites</span></figcaption></figure>
+                <figure class="ds-swatch" data-token="--rose" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--rose</span><span class="ds-hex"></span><span class="ds-role">Fills and large text</span></figcaption></figure>
+                <figure class="ds-swatch" data-token="--rose-text" data-text><div class="ds-chip"></div><figcaption><span class="ds-name">--rose-text</span><span class="ds-hex"></span><span class="ds-role">Rose text under 18px</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--hairline"><div class="ds-chip"></div><figcaption><span class="ds-name">--hairline</span><span class="ds-hex"></span><span class="ds-role">Frame borders</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--border"><div class="ds-chip"></div><figcaption><span class="ds-name">--border</span><span class="ds-hex"></span><span class="ds-role">Ghost button, input, tag, dots</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--wash"><div class="ds-chip"></div><figcaption><span class="ds-name">--wash</span><span class="ds-hex"></span><span class="ds-role">Hover wash, empty media</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--wash-deep"><div class="ds-chip"></div><figcaption><span class="ds-name">--wash-deep</span><span class="ds-hex"></span><span class="ds-role">Gradient end</span></figcaption></figure>
                 <figure class="ds-swatch" data-token="--wash-gradient" data-bg="gradient"><div class="ds-chip"></div><figcaption><span class="ds-name">--wash-gradient</span><span class="ds-hex">wash → wash-deep, 135°</span><span class="ds-role">Behind every screen</span></figcaption></figure>
-                <figure class="ds-swatch" data-token="--stage-dark"><div class="ds-chip"></div><figcaption><span class="ds-name">--stage-dark</span><span class="ds-hex"></span><span class="ds-role">Behind a dark slide</span></figcaption></figure>
             </div>
-            <p class="ds-note">Supporting colors for charts and controls: <span class="ds-code">--rose-tint</span>, <span class="ds-code">--neutral-tint</span>, <span class="ds-code">--neutral</span>, <span class="ds-code">--control-off-bg</span>, <span class="ds-code">--control-off-fg</span>, <span class="ds-code">--control-pending</span>.</p>
+            <p class="ds-note">Supporting colors for charts and controls: <span class="ds-code">--rose-tint</span>, <span class="ds-code">--neutral-tint</span>, <span class="ds-code">--stage-graphite</span>, <span class="ds-code">--neutral</span>, <span class="ds-code">--control-off-bg</span>, <span class="ds-code">--control-off-fg</span>, <span class="ds-code">--control-pending</span>.</p>
         </section>
 
         <!-- Type -->
         <section class="ds-block" id="type">
-            <h3 class="t-heading-xs">Type</h3>
-            <p class="cs-text">Two families. <strong>Bricolage Grotesque</strong> for names, titles, headings and quotes. <strong>Schibsted Grotesk</strong> for everything you read. Sizes are fluid between phone and desktop. All caps only for short labels that name something.</p>
+            <h3 class="ds-h">Type</h3>
+            <p class="cs-text">Two families. <strong>Bricolage Grotesque</strong> for names, titles, headings and quotes. <strong>Schibsted Grotesk</strong> for everything you read. Eight sizes, fluid between phone and desktop. No all caps anywhere.</p>
             <div class="ds-demo ds-type">
-                <div class="ds-type-row"><div class="ds-type-spec"><b>hero</b><span>Display · 800 · 112px max · 0.96</span></div><div class="ds-type-sample"><p class="t-hero">Erika Cary</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>title-lg</b><span>Display · 800 · 36 → 64px</span></div><div class="ds-type-sample"><p class="t-title-lg">Audience page title</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>title</b><span>Display · 800 · 34 → 56px</span></div><div class="ds-type-sample"><p class="t-title">Case-study title</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>title-sm</b><span>Display · 800 · 30 → 42px</span></div><div class="ds-type-sample"><p class="t-title-sm">Enter password to view selected work.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>heading-lg</b><span>Display · 700 · 24 → 34px</span></div><div class="ds-type-sample"><p class="t-heading-lg">Project name</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>heading</b><span>Display · 700 · 22 → 30px</span></div><div class="ds-type-sample"><p class="t-heading">A case-study section title</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>heading-sm</b><span>Display · 600 · 22 → 28px</span></div><div class="ds-type-sample"><p class="t-heading-sm">Wrestling with a fuzzy problem? I'd love to hear about it.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>heading-xs</b><span>Display · 700 · 21 → 26px</span></div><div class="ds-type-sample"><p class="t-heading-xs">Thinks like a strategist</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>subheading</b><span>Display · 500 · 20 → 24px</span></div><div class="ds-type-sample"><p class="t-subheading">One first-person line on what I did and the outcome</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>quote</b><span>Display · 500 · 18 → 21px</span></div><div class="ds-type-sample"><p class="t-quote">A peer quote, spoken to a stranger, about Erika by name.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>statement</b><span>Text · 400 · 22 → 30px</span></div><div class="ds-type-sample"><div class="positioning" style="padding: 0; animation: none;"><p>My sharpest tool isn't a design file. It's the question: <em>"What are we actually trying to do?"</em></p></div></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>lede</b><span>Text · 400 · 18 → 22px · muted</span></div><div class="ds-type-sample"><p class="t-lede">An audience page intro, with <strong>ink for emphasis</strong>.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>body-lg</b><span>Text · 400 · 17 → 19px · 1.6</span></div><div class="ds-type-sample"><p class="t-body-lg">Case-study story and section text. Paragraphs stay under 720px wide.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>body</b><span>Text · 400 · 17px</span></div><div class="ds-type-sample"><p class="t-body">Facts in a tile and other short reads.</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>ui</b><span>Text · 16px</span></div><div class="ds-type-sample"><p class="t-ui">Buttons, inputs and the meta line in a tile header</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>small</b><span>Text · 15px</span></div><div class="ds-type-sample"><p class="t-small">Nav links, captions and case-study facts</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>meta</b><span>Text · 14px · subtle</span></div><div class="ds-type-sample"><p class="t-meta">Meta lines, cites, the back link</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>fine</b><span>Text · 13px · subtle</span></div><div class="ds-type-sample"><p class="t-fine">&copy; 2026 Erika Cary</p></div></div>
-                <div class="ds-type-row"><div class="ds-type-spec"><b>label</b><span>Text · 600 · 12px · caps · 0.12em</span></div><div class="ds-type-sample"><p class="t-label">Eyebrow label</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>hero · 112</b><span>Display 800 · the home name</span></div><div class="ds-type-sample"><p class="t-hero">Erika Cary</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>title · 56</b><span>Display 800 · every page title · 34 on phones</span></div><div class="ds-type-sample"><p class="t-title">Enter password to view selected work.</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>heading · 30</b><span>Display 700 · tile and section titles · 22 on phones</span></div><div class="ds-type-sample"><p class="t-heading">Project name</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>subheading · 21</b><span>Display 500 · tile subheader, quotes · 18 on phones</span></div><div class="ds-type-sample"><p class="t-subheading">One first-person line on what I did and the outcome</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>body-lg · 19</b><span>Text 400 · case-study reading text · 17 on phones</span></div><div class="ds-type-sample"><p class="t-body-lg">Case-study story and section text. Paragraphs stay under 720px wide.</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>body · 17</b><span>Text 400 · facts, buttons, inputs</span></div><div class="ds-type-sample"><p class="t-body">Facts in a tile and other short reads.</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>small · 15</b><span>Text · nav, labels, meta lines, captions</span></div><div class="ds-type-sample"><p class="t-small">Lead designer · 2024 to 2026</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>fine · 12</b><span>Text · footer copy, "Copied"</span></div><div class="ds-type-sample"><p class="t-fine">&copy; 2026 Erika Cary</p></div></div>
+            </div>
+            <h4 class="ds-h ds-sub">Same sizes, other roles</h4>
+            <div class="ds-demo ds-type">
+                <div class="ds-type-row"><div class="ds-type-spec"><b>statement</b><span>Text 400 · 30 · the home positioning line</span></div><div class="ds-type-sample"><div class="positioning" style="padding: 0; animation: none;"><p>My sharpest tool isn't a design file. It's the question: <em>"What are we actually trying to do?"</em></p></div></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>home role</b><span>Text 500 · 21 · rose text</span></div><div class="ds-type-sample"><p class="hero-role" style="margin: 0; white-space: normal;">Lead Product Designer</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>lede</b><span>Text 400 · 21 · muted</span></div><div class="ds-type-sample"><p class="t-lede">An audience page intro, with <strong>ink for emphasis</strong>.</p></div></div>
+                <div class="ds-type-row"><div class="ds-type-spec"><b>label</b><span>Text 600 · 15 · rose text · sentence case</span></div><div class="ds-type-sample"><p class="t-label">Selected work</p></div></div>
             </div>
         </section>
 
         <!-- Space -->
         <section class="ds-block" id="space">
-            <h3 class="t-heading-xs">Space</h3>
+            <h3 class="ds-h">Space</h3>
             <p class="cs-text">A 4px grid, with 2px half steps next to type. Big gaps between blocks grow with the screen.</p>
             <div class="ds-demo ds-space" id="ds-space"></div>
             <p class="ds-note">Fluid gaps: <span class="ds-code">--space-tiles</span> 64 → 112px, <span class="ds-code">--space-section</span> 64 → 104px, <span class="ds-code">--space-footer</span> 72 → 120px, <span class="ds-code">--gap-columns</span> 28 → 72px. Layout: content 1200px, intro 860px, reading 720px, side padding 24 → 64px.</p>
@@ -204,7 +200,7 @@
 
         <!-- Shape -->
         <section class="ds-block" id="shape">
-            <h3 class="t-heading-xs">Shape</h3>
+            <h3 class="ds-h">Shape</h3>
             <p class="cs-text">Rounded, never sharp. Anything you click is a pill.</p>
             <div class="ds-demo ds-tiles">
                 <figure class="ds-tile-demo"><div style="border-radius: var(--radius-pill); height: 54px;"></div><figcaption><b>pill</b>999px · buttons, inputs, tags</figcaption></figure>
@@ -218,7 +214,7 @@
 
         <!-- Depth -->
         <section class="ds-block" id="depth">
-            <h3 class="t-heading-xs">Depth</h3>
+            <h3 class="ds-h">Depth</h3>
             <p class="cs-text">Shadows are tinted with ink and only lift screens off the wash or a button off the page.</p>
             <div class="ds-demo ds-depth ds-tiles">
                 <figure class="ds-tile-demo"><div style="box-shadow: var(--shadow-lift);"></div><figcaption><b>lift</b>Hovered button</figcaption></figure>
@@ -230,7 +226,7 @@
 
         <!-- Motion -->
         <section class="ds-block" id="motion">
-            <h3 class="t-heading-xs">Motion</h3>
+            <h3 class="ds-h">Motion</h3>
             <p class="cs-text">Blocks fade in and rise. Washes fade in behind links. Buttons lift 1px. Under Reduce Motion, fades stay and movement stops.</p>
             <div class="ds-demo ds-ease" id="ds-ease">
                 <div class="ds-ease-row"><b>ease-out<span>Entrance, reveal, lifts</span></b><div class="ds-track"><i style="transition-timing-function: var(--ease-out);"></i></div></div>
@@ -255,7 +251,7 @@
 
         <!-- Buttons -->
         <section class="ds-block" id="buttons">
-            <h3 class="t-heading-xs">Buttons</h3>
+            <h3 class="ds-h">Buttons</h3>
             <p class="cs-text">One size, two kinds. Primary is ink and washes to rose on hover. Ghost is an outline that fills with the wash. Both lift 1px.</p>
             <div class="ds-demo ds-states">
                 <div class="ds-state"><span>Primary</span><button class="btn btn-primary" type="button">Email</button></div>
@@ -266,31 +262,31 @@
 
         <!-- Links -->
         <section class="ds-block" id="links">
-            <h3 class="t-heading-xs">Links</h3>
-            <p class="cs-text">Links never underline. A soft pill washes in behind them on hover.</p>
+            <h3 class="ds-h">Links</h3>
+            <p class="cs-text">Nav and inline links get a soft pill behind them on hover. The back link and calls to action underline instead.</p>
             <div class="ds-demo ds-states">
                 <div class="ds-state"><span>Nav</span><nav class="wk-links" aria-label="Example nav"><a href="#links">Work</a><a href="#links">Email</a><a href="#links">LinkedIn</a></nav></div>
                 <div class="ds-state"><span>Back link</span><a class="cs-back" href="#links" style="margin-top: 0;">← Selected work</a></div>
-                <div class="ds-state"><span>Inline, in a sentence</span><p class="t-meta">Need a password? <a class="link-inline" href="#links">Email me</a></p></div>
+                <div class="ds-state"><span>Inline, in a sentence</span><p class="t-small">Need a password? <a class="link-inline" href="#links">Email me</a></p></div>
                 <div class="ds-state"><span>Call to action</span><p class="wk-more" style="margin: 0;"><a href="#links">See the case study</a></p></div>
             </div>
         </section>
 
         <!-- Labels -->
         <section class="ds-block" id="labels">
-            <h3 class="t-heading-xs">Labels and tags</h3>
-            <p class="cs-text">Rose caps name the block below them. Keep them to a few words.</p>
-            <div class="ds-demo ds-states">
+            <h3 class="ds-h">Labels and tags</h3>
+            <p class="cs-text">Rose labels name the block below them, in a few words and sentence case. A tag rides at the end of a meta line, after a middle dot.</p>
+            <div class="ds-demo ds-states" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
                 <div class="ds-state"><span>Eyebrow</span><p class="wk-eyebrow" style="margin: 0;">Peer feedback</p></div>
                 <div class="ds-state"><span>Role label</span><div class="hero-role" style="margin: 0; white-space: normal;">Lead Product Designer</div></div>
-                <div class="ds-state"><span>Tag, inside a meta line</span><p class="wk-meta" style="margin: 0;">Lead designer · 2025<span class="wk-tag">Confidential, in flight</span></p></div>
+                <div class="ds-state"><span>Tag, inside a meta line</span><p class="wk-meta" style="margin: 0;">Lead designer · 2025 <span class="wk-tag">Confidential, in flight</span></p></div>
                 <div class="ds-state"><span>Divider, below 860px</span><span class="divider-dots" style="width: 100%;"></span></div>
             </div>
         </section>
 
         <!-- Project tile -->
         <section class="ds-block" id="tile">
-            <h3 class="t-heading-xs">Project tile</h3>
+            <h3 class="ds-h">Project tile</h3>
             <p class="cs-text">The unit of an audience page. The hero sits on top, then a 5:7 split: header left, facts right. A project reads word for word the same on every page it appears on.</p>
             <div class="ds-demo ds-tile-frame">
                 <article class="wk-tile">
@@ -301,7 +297,7 @@
                         <header class="wk-tile-head">
                             <h2 class="wk-tile-title">Project name</h2>
                             <p class="wk-tile-sub">One line in first person on what I did and the outcome I drove</p>
-                            <p class="wk-meta">Role · 2024 to 2026<span class="wk-tag">Tag</span></p>
+                            <p class="wk-meta">Role · 2024 to 2026 <span class="wk-tag">Tag</span></p>
                             <p class="wk-role">Acquired by Company. This line only appears for acquisitions.</p>
                             <p class="wk-more"><a href="#tile">See the case study</a></p>
                         </header>
@@ -318,26 +314,23 @@
 
         <!-- Media hero -->
         <section class="ds-block" id="heroes">
-            <h3 class="t-heading-xs">Media hero</h3>
+            <h3 class="ds-h">Media hero</h3>
             <p class="cs-text">A 16:10 rounded panel (4:3 on a phone). Screens float on the rose wash. Pick the variant by what the media is.</p>
             <div class="ds-demo ds-heroes">
                 <figure><div class="wk-hero wk-hero--desk"><div class="wk-desk"><img src="img/desktop.svg" alt=""></div></div><figcaption><b>--desk</b> · desktop screen running off the bottom</figcaption></figure>
                 <figure><div class="wk-hero wk-hero--recording"><img src="img/desktop.svg" alt=""></div><figcaption><b>--recording</b> · desktop shown whole</figcaption></figure>
                 <figure><div class="wk-hero wk-hero--video"><img src="img/phone.svg" alt=""></div><figcaption><b>--video</b> · one phone recording</figcaption></figure>
-                <figure><div class="wk-hero wk-hero--phones"><img src="img/phone.svg" alt=""><img src="img/phone.svg" alt=""><img src="img/phone.svg" alt=""></div><figcaption><b>--phones</b> · phones rising from the edge</figcaption></figure>
                 <figure><div class="wk-hero wk-hero--screens"><img src="img/phone.svg" alt=""><img src="img/phone.svg" alt=""><img src="img/phone.svg" alt=""></div><figcaption><b>--screens</b> · three phones shown whole</figcaption></figure>
                 <figure><div class="wk-hero wk-hero--compare"><figure><figcaption>Before</figcaption><img src="img/phone.svg" alt=""></figure><figure><figcaption>After</figcaption><img src="img/phone.svg" alt=""></figure></div><figcaption><b>--compare</b> · before and after</figcaption></figure>
                 <figure><div class="wk-hero wk-hero--card"><img src="img/wide.svg" alt=""></div><figcaption><b>--card</b> · a finished graphic</figcaption></figure>
-                <figure><div class="wk-hero wk-hero--cycle"><img src="img/desktop.svg" alt=""><img src="img/phone.svg" alt="" style="left: 34%; width: 32%;"><img src="img/desktop.svg" alt=""><img src="img/phone.svg" alt="" style="left: 34%; width: 32%;"></div><figcaption><b>--cycle</b> · screens crossfading in place</figcaption></figure>
-                <figure><div class="wk-hero wk-hero--dark"><img src="img/wide.svg" alt=""></div><figcaption><b>--dark</b> · a dark slide shown whole</figcaption></figure>
             </div>
             <p class="ds-note"><span class="ds-code">--film</span> fills the panel with a video that carries its own wash. Every video autoplays muted, loops, plays inline and has an aria-label that says what happens in it.</p>
         </section>
 
         <!-- Quotes -->
         <section class="ds-block" id="quotes">
-            <h3 class="t-heading-xs">Quotes</h3>
-            <p class="cs-text">Peer quotes sit on the tile grid: two quotes use the 5:7 split, four read two by two, three sit in a row.</p>
+            <h3 class="ds-h">Quotes</h3>
+            <p class="cs-text">Peer quotes sit on the tile grid: two quotes use the 5:7 split, three sit in a row.</p>
             <div class="ds-demo">
                 <section class="wk-quotes wk-quotes--2" aria-label="Example quotes" style="margin-top: 0; padding-top: 0;">
                     <p class="wk-eyebrow">Peer feedback</p>
@@ -356,7 +349,7 @@
 
         <!-- Case study -->
         <section class="ds-block" id="case-study">
-            <h3 class="t-heading-xs">Case study</h3>
+            <h3 class="ds-h">Case study</h3>
             <p class="cs-text">Back link, eyebrow, title, a facts row, the hero and a short story. Then numbered sections, each a heading with reading text and figures.</p>
             <div class="ds-demo ds-stage">
                 <a class="cs-back" href="#case-study" style="margin-top: 0;">← Selected work</a>
@@ -398,7 +391,7 @@
 
         <!-- Carousel -->
         <section class="ds-block" id="carousel">
-            <h3 class="t-heading-xs">Carousel</h3>
+            <h3 class="ds-h">Carousel</h3>
             <p class="cs-text">Slides crossfade. While the carousel is on screen, the arrow that will turn the page fills with rose. A click or a scroll inside stops it for good. It never cycles under Reduce Motion.</p>
             <figure class="ds-demo cs-figure cs-carousel" id="ds-carousel" aria-roledescription="carousel" aria-label="Example carousel" data-dwell="5000">
                 <div class="cs-carousel-track">
@@ -424,7 +417,7 @@
 
         <!-- Gate -->
         <section class="ds-block" id="gate">
-            <h3 class="t-heading-xs">Password gate</h3>
+            <h3 class="ds-h">Password gate</h3>
             <p class="cs-text">One field. The password decides which page opens. The error line holds its space so nothing jumps. While a page decrypts, a rose curtain rises, covers the page, then lifts off as the page rises in behind it.</p>
             <div class="ds-demo ds-gates">
                 <div class="ds-stage">
@@ -468,7 +461,7 @@
 
         <!-- Footer note -->
         <section class="ds-block" id="footer">
-            <h3 class="t-heading-xs">Footer</h3>
+            <h3 class="ds-h">Footer</h3>
             <p class="cs-text">Every page ends the same way: a two-line invitation, Email and LinkedIn buttons, and the copyright. Email buttons copy the address and say so. The footer below is the real one.</p>
         </section>
     </section>
@@ -517,9 +510,8 @@
         if (sw.hasAttribute('data-text')) {
             var r = ratio(value, paper);
             var tag = document.createElement('span');
-            tag.className = 'wk-tag ds-ratio' + (r < 4.5 ? ' is-fail' : '');
-            tag.style.marginLeft = '0';
-            tag.textContent = r.toFixed(2) + ':1' + (r < 4.5 ? ', large text only' : '');
+            tag.className = 'ds-ratio' + (r < 4.5 ? ' is-fail' : '');
+                        tag.textContent = r.toFixed(2) + ':1' + (r < 4.5 ? ', fills and large text only' : '');
             sw.querySelector('figcaption').appendChild(tag);
         }
     });

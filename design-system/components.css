@@ -50,34 +50,27 @@ img { max-width: 100%; display: block; }
 
 /* ==========================================================
    2  Text styles
-   One class per role. Components below use the same tokens directly.
+   Eight sizes (tokens.css). Each style is a size plus a family, weight and color.
+   Components below use the same tokens directly.
    ========================================================== */
-.t-hero, .t-title-lg, .t-title, .t-title-sm, .t-heading-lg, .t-heading, .t-heading-sm,
-.t-heading-xs, .t-subheading, .t-quote, .t-wordmark { font-family: var(--font-display); margin: 0; }
+.t-hero, .t-title, .t-heading, .t-subheading, .t-quote, .t-wordmark { font-family: var(--font-display); margin: 0; }
 
-.t-hero       { font-size: var(--size-hero);        font-weight: var(--weight-black);  line-height: var(--leading-hero);    letter-spacing: var(--tracking-display); }
-.t-title-lg   { font-size: var(--size-title-lg);    font-weight: var(--weight-black);  line-height: var(--leading-title-lg);   letter-spacing: var(--tracking-display); text-wrap: balance; }
-.t-title      { font-size: var(--size-title);       font-weight: var(--weight-black);  line-height: var(--leading-title);   letter-spacing: var(--tracking-display); text-wrap: balance; }
-.t-title-sm   { font-size: var(--size-title-sm);    font-weight: var(--weight-black);  line-height: var(--leading-title-sm);   letter-spacing: var(--tracking-display); text-wrap: balance; }
-.t-heading-lg { font-size: var(--size-heading-lg);  font-weight: var(--weight-bold);   line-height: var(--leading-heading-lg); letter-spacing: var(--tracking-heading); text-wrap: balance; }
-.t-heading    { font-size: var(--size-heading);     font-weight: var(--weight-bold);   line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); text-wrap: balance; }
-.t-heading-sm { font-size: var(--size-heading-sm);  font-weight: var(--weight-semibold); line-height: var(--leading-snug);  letter-spacing: var(--tracking-heading-sm); text-wrap: pretty; }
-.t-heading-xs { font-size: var(--size-heading-xs);  font-weight: var(--weight-bold);   letter-spacing: var(--tracking-heading-sm); }
-.t-subheading { font-size: var(--size-subheading);  font-weight: var(--weight-medium); line-height: var(--leading-snug);    letter-spacing: var(--tracking-sub); text-wrap: balance; }
-.t-quote      { font-size: var(--size-quote);       font-weight: var(--weight-medium); line-height: var(--leading-quote);   letter-spacing: var(--tracking-sub); text-wrap: pretty; }
-.t-wordmark   { font-size: var(--size-wordmark);    font-weight: var(--weight-black);  letter-spacing: var(--tracking-display); }
+.t-hero       { font-size: var(--size-hero);       font-weight: var(--weight-black);  line-height: var(--leading-hero);    letter-spacing: var(--tracking-display); }
+.t-title      { font-size: var(--size-title);      font-weight: var(--weight-black);  line-height: var(--leading-title);   letter-spacing: var(--tracking-display); text-wrap: balance; }
+.t-heading    { font-size: var(--size-heading);    font-weight: var(--weight-bold);   line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); text-wrap: balance; }
+.t-subheading { font-size: var(--size-subheading); font-weight: var(--weight-medium); line-height: var(--leading-snug);    letter-spacing: var(--tracking-sub); text-wrap: balance; }
+.t-quote      { font-size: var(--size-subheading); font-weight: var(--weight-medium); line-height: var(--leading-quote);   letter-spacing: var(--tracking-sub); text-wrap: pretty; }
+.t-wordmark   { font-size: var(--size-wordmark);   font-weight: var(--weight-black);  letter-spacing: var(--tracking-display); white-space: nowrap; }
 
-.t-statement  { margin: 0; font-size: var(--size-statement); line-height: var(--leading-statement); letter-spacing: var(--tracking-statement); text-wrap: pretty; }
-.t-lede       { margin: 0; font-size: var(--size-lede);    line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
-.t-body-lg    { margin: 0; font-size: var(--size-body-lg); line-height: var(--leading-read); color: var(--muted); text-wrap: pretty; }
-.t-body       { margin: 0; font-size: var(--size-body);    line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
-.t-ui         { margin: 0; font-size: var(--size-ui);      line-height: var(--leading-text); }
-.t-small      { margin: 0; font-size: var(--size-small);   line-height: var(--leading-text); color: var(--muted); }
-.t-meta       { margin: 0; font-size: var(--size-meta);    line-height: var(--leading-text); color: var(--subtle); }
-.t-fine       { margin: 0; font-size: var(--size-fine);    color: var(--subtle); }
+.t-statement  { margin: 0; font-size: var(--size-heading);    line-height: var(--leading-statement); letter-spacing: var(--tracking-statement); text-wrap: pretty; }
+.t-lede       { margin: 0; font-size: var(--size-subheading); line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
+.t-body-lg    { margin: 0; font-size: var(--size-body-lg);    line-height: var(--leading-read); color: var(--muted); text-wrap: pretty; }
+.t-body       { margin: 0; font-size: var(--size-body);       line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
+.t-small      { margin: 0; font-size: var(--size-small);      line-height: var(--leading-text); color: var(--muted); }
+.t-fine       { margin: 0; font-size: var(--size-fine);       color: var(--muted); }
 
-/* All caps only for short labels that name something. Never for a sentence. */
-.t-label      { margin: 0; font-size: var(--size-label); font-weight: var(--weight-semibold); letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--rose); }
+/* Label: names the block below it, in a few words. Sentence case. No all caps anywhere. */
+.t-label      { margin: 0; font-size: var(--size-small); font-weight: var(--weight-semibold); color: var(--rose-text); }
 
 /* Emphasis inside reading text: ink and semibold, never italic or underlined */
 .t-lede strong, .t-body-lg strong, .t-body strong { font-weight: var(--weight-semibold); color: var(--ink); }
@@ -85,7 +78,7 @@ img { max-width: 100%; display: block; }
 
 /* ==========================================================
    3  Button
-   One size (54px tall pill). Primary is ink and washes to rose; ghost is a 1px outline.
+   One size (54px tall pill). Primary is ink and washes to the darker rose; ghost is a 1px outline.
    ========================================================== */
 .btn {
     display: inline-flex;
@@ -96,7 +89,7 @@ img { max-width: 100%; display: block; }
     border-radius: var(--radius-pill);
     border: 0;
     font: inherit;
-    font-size: var(--size-ui);
+    font-size: var(--size-body);
     cursor: pointer;
     transition:
         background var(--dur-hover) ease,
@@ -113,7 +106,7 @@ img { max-width: 100%; display: block; }
     font-weight: var(--weight-semibold);
 }
 
-.btn-primary:hover { background: var(--rose); }
+.btn-primary:hover { background: var(--rose-text); }   /* paper on it: 5.0:1 */
 .btn-primary:disabled { opacity: 0.55; cursor: default; }
 .btn-primary:disabled:hover { background: var(--ink); transform: none; box-shadow: none; }
 
@@ -129,7 +122,8 @@ img { max-width: 100%; display: block; }
 
 /* ==========================================================
    4  Nav and links
-   Links never underline. On hover a soft pill washes in behind them.
+   Nav and inline links: a soft pill washes in behind them on hover.
+   The back link and calls to action underline instead.
    ========================================================== */
 .nav-row {
     max-width: var(--content-max);
@@ -153,15 +147,14 @@ img { max-width: 100%; display: block; }
     align-items: center;
     gap: var(--space-7);
     font-size: var(--size-small);
-    color: var(--subtle);
+    color: var(--muted);
 }
 
-/* Pill link: nav items and the case-study back link */
+/* Pill link: nav items */
 .nav a,
 .wk-links a,
-.cs-back,
 .link-pill {
-    color: var(--subtle);
+    color: var(--muted);
     padding: var(--space-1-5) var(--space-3);
     margin: calc(var(--space-1-5) * -1) calc(var(--space-2) * -1);
     border-radius: var(--radius-pill);
@@ -170,7 +163,6 @@ img { max-width: 100%; display: block; }
 
 .nav a:hover,
 .wk-links a:hover,
-.cs-back:hover,
 .link-pill:hover { background: var(--wash); color: var(--ink); }
 
 /* Inline link inside a sentence (gate contact, quote cites): tighter pill. Ink in a sentence,
@@ -191,17 +183,17 @@ img { max-width: 100%; display: block; }
 .lock-contact a:hover,
 .wk-bonus-quote cite a:hover { background: var(--wash); color: var(--ink); }
 
-/* Call-to-action link in rose ("See the case study") */
+/* Call-to-action link in rose ("See the case study"): underlines on hover */
 .wk-more {
     grid-column: 2;
     margin: var(--space-1) 0 0;
     font-size: var(--size-small);
     font-weight: var(--weight-semibold);
-    color: var(--rose);
+    color: var(--rose-text);
 }
 
-.wk-more a { color: var(--rose); border-bottom: var(--border-width) solid transparent; transition: border-color var(--dur-hover) ease; }
-.wk-more a:hover { border-color: var(--rose); }
+.wk-more a { color: var(--rose-text); border-bottom: var(--border-width) solid transparent; transition: border-color var(--dur-hover) ease; }
+.wk-more a:hover { border-color: var(--rose-text); }
 
 
 /* ==========================================================
@@ -214,42 +206,34 @@ img { max-width: 100%; display: block; }
     font-size: var(--size-wordmark);
     font-weight: var(--weight-black);
     letter-spacing: var(--tracking-display);
+    white-space: nowrap;        /* never breaks in two, even on a 375px phone */
     color: var(--ink);
 }
 
-/* Eyebrow: names the block below it */
+/* Eyebrow: names the block below it. Sentence case, a few words. */
 .wk-eyebrow {
     margin: 0 0 var(--space-4-5);
-    font-size: var(--size-label);
+    font-size: var(--size-small);
     font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: var(--rose);
+    color: var(--rose-text);
 }
 
-/* The wider role label: home hero and the sticky header bar */
+/* The role under the home name reads as a subtitle; the sticky header bar repeats it as a label */
 .hero-role,
-.header-bar-role {
-    font-weight: var(--weight-medium);
-    letter-spacing: var(--tracking-label-wide);
-    text-transform: uppercase;
-    color: var(--rose);
-}
+.header-bar-role { color: var(--rose-text); }
 
-.hero-role { margin-top: var(--space-5-5); font-size: var(--size-body); white-space: nowrap; }
-.header-bar-role { font-size: var(--size-fine); }
+.hero-role { margin-top: var(--space-5-5); font-size: var(--size-subheading); font-weight: var(--weight-medium); white-space: nowrap; }
+.header-bar-role { font-size: var(--size-small); font-weight: var(--weight-semibold); }
 
-/* Tag: rides inside a meta line, e.g. "Confidential, in flight" */
+/* Tag: rides at the end of a meta line in rose, after a middle dot, e.g. "· Confidential, in flight".
+   No outline: the site has no bordered pills. If the line runs out of room, the tag moves down whole.
+   The page puts a space before the tag. */
 .wk-tag {
     display: inline-block;
-    margin-left: var(--space-2);
-    padding: var(--space-0-5) var(--space-2-5);
-    border-radius: var(--radius-pill);
-    border: var(--border-width) solid var(--border);
-    font-size: var(--size-label);
-    color: var(--rose);
-    vertical-align: middle;
+    color: var(--rose-text);
 }
+
+.wk-tag::before { content: "·\00a0"; color: var(--muted); }
 
 
 /* ==========================================================
@@ -319,7 +303,7 @@ img { max-width: 100%; display: block; }
 
 .positioning p {
     margin: 0;
-    font-size: var(--size-statement);
+    font-size: var(--size-heading);
     line-height: var(--leading-statement);
     letter-spacing: var(--tracking-statement);
     color: var(--ink);
@@ -341,13 +325,13 @@ img { max-width: 100%; display: block; }
 
 .claim-title {
     font-family: var(--font-display);
-    font-size: var(--size-heading-xs);
+    font-size: var(--size-heading);
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-heading-sm);
 }
 
 .claim-evidence {
-    font-size: var(--size-claim);
+    font-size: var(--size-body-lg);
     line-height: var(--leading-text);
     color: var(--muted);
 }
@@ -367,9 +351,9 @@ img { max-width: 100%; display: block; }
 .wk-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: var(--size-title-lg);
+    font-size: var(--size-title);
     font-weight: var(--weight-black);
-    line-height: var(--leading-title-lg);
+    line-height: var(--leading-title);
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
 }
@@ -377,7 +361,7 @@ img { max-width: 100%; display: block; }
 .wk-lede {
     margin: var(--space-6-5) 0 0;
     max-width: var(--reading-max);
-    font-size: var(--size-lede);
+    font-size: var(--size-subheading);
     line-height: var(--leading-text);
     color: var(--muted);
     text-wrap: pretty;
@@ -413,9 +397,9 @@ img { max-width: 100%; display: block; }
 .wk-tile-title {
     margin: 0;
     font-family: var(--font-display);
-    font-size: var(--size-heading-lg);
+    font-size: var(--size-heading);
     font-weight: var(--weight-bold);
-    line-height: var(--leading-heading-lg);
+    line-height: var(--leading-heading);
     letter-spacing: var(--tracking-heading);
     text-wrap: balance;
 }
@@ -435,22 +419,24 @@ img { max-width: 100%; display: block; }
 
 .wk-meta {
     margin: 0 0 var(--space-3);
-    font-size: var(--size-meta);
-    color: var(--subtle);
+    font-size: var(--size-small);
+    color: var(--muted);
 }
 
-/* In a tile header the meta line reads larger, in muted */
+/* In a tile header the meta line sits 8px under the subheader, so the header's two gaps
+   match (about 14px) and title, subheader and meta read as one block */
 .wk-tile-title + .wk-meta,
 .wk-tile-sub + .wk-meta {
-    margin: var(--space-3-5) 0 0;
-    font-size: var(--size-ui);
+    margin: var(--space-2) 0 0;
+    font-size: var(--size-small);
     line-height: var(--leading-text);
     color: var(--muted);
 }
 
+/* An acquisition note under the meta line, read as its second line */
 .wk-role {
     margin: var(--space-3-5) 0 0;
-    font-size: var(--size-ui);
+    font-size: var(--size-small);
     line-height: var(--leading-text);
     color: var(--muted);
 }
@@ -466,9 +452,9 @@ img { max-width: 100%; display: block; }
     grid-column: 2;
     margin: calc(var(--space-2) * -1) 0 0;
     padding-left: calc(var(--fact-label) + var(--space-4));
-    font-size: var(--size-meta);
+    font-size: var(--size-small);
     line-height: var(--leading-text);
-    color: var(--subtle);
+    color: var(--muted);
 }
 
 
@@ -488,8 +474,8 @@ img { max-width: 100%; display: block; }
 .wk-hero img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 .wk-hero a { display: block; height: 100%; color: inherit; }
 
-.wk-hero--desk, .wk-hero--phones, .wk-hero--screens, .wk-hero--video, .wk-hero--recording,
-.wk-hero--film, .wk-hero--cycle, .wk-hero--compare, .wk-hero--card { background: var(--wash-gradient); }
+.wk-hero--desk, .wk-hero--screens, .wk-hero--video, .wk-hero--recording,
+.wk-hero--film, .wk-hero--compare, .wk-hero--card { background: var(--wash-gradient); }
 
 /* Desktop recording or screen, centred and running off the bottom edge */
 .wk-hero--desk .wk-desk {
@@ -536,24 +522,6 @@ img { max-width: 100%; display: block; }
     box-shadow: var(--shadow-float-strong);
 }
 
-/* Phones side by side, rising from the bottom edge */
-.wk-hero--phones {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 3%;
-    padding: 6% 8% 0;
-}
-
-.wk-hero--phones img {
-    width: 30%;
-    height: auto;
-    margin-bottom: -6%;
-    object-fit: unset;
-    border-radius: 18px 18px 0 0;
-    box-shadow: var(--shadow-float);
-}
-
 /* Three phone screens shown whole */
 .wk-hero--screens {
     display: flex;
@@ -571,7 +539,7 @@ img { max-width: 100%; display: block; }
     box-shadow: var(--shadow-float);
 }
 
-/* Before / After: two phones with caps labels */
+/* Before / After: two phones with labels */
 .wk-hero--compare {
     display: flex;
     justify-content: center;
@@ -590,11 +558,9 @@ img { max-width: 100%; display: block; }
 }
 
 .wk-hero--compare figcaption {
-    font-size: var(--size-label);
+    font-size: var(--size-small);
     font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: var(--rose);
+    color: var(--rose-text);
 }
 
 .wk-hero--compare img {
@@ -616,35 +582,6 @@ img { max-width: 100%; display: block; }
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-float);
 }
-
-/* Up to four screens that crossfade in place. A fade, not motion, so it runs under Reduce Motion too. */
-.wk-hero--cycle img {
-    position: absolute;
-    left: 5%;
-    top: 7%;
-    width: 90%;
-    height: auto;
-    border-radius: var(--radius-screen) var(--radius-screen) 0 0;
-    box-shadow: var(--shadow-float);
-    opacity: 0;
-    animation: wk-cycle 20s infinite;
-}
-.wk-hero--cycle img:nth-child(2) { animation-delay: 5s; }
-.wk-hero--cycle img:nth-child(3) { animation-delay: 10s; }
-.wk-hero--cycle img:nth-child(4) { animation-delay: 15s; }
-
-@keyframes wk-cycle {
-    0%   { opacity: 0; }
-    4%   { opacity: 1; }
-    25%  { opacity: 1; }
-    29%  { opacity: 0; }
-    100% { opacity: 0; }
-}
-
-/* A dark slide shown whole */
-.wk-hero--dark { background: var(--stage-dark); }
-.wk-hero--dark img { object-fit: contain; object-position: center; padding: 3% 4%; }
-
 
 /* ==========================================================
    10  Facts list
@@ -700,29 +637,21 @@ img { max-width: 100%; display: block; }
     row-gap: var(--space-11);
 }
 
-/* Four quotes read two by two */
-.wk-quotes--4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(36px, 6vw, 80px);
-    row-gap: var(--space-11);
-}
-
-.wk-quotes--2 .wk-quote p,
-.wk-quotes--4 .wk-quote p { max-width: 520px; }
+.wk-quotes--2 .wk-quote p { max-width: 520px; }
 
 .wk-quote { margin: 0; display: flex; flex-direction: column; gap: var(--space-3-5); }
 
 .wk-quote p {
     margin: 0;
     font-family: var(--font-display);
-    font-size: var(--size-quote);
+    font-size: var(--size-subheading);
     font-weight: var(--weight-medium);
     line-height: var(--leading-quote);
     letter-spacing: var(--tracking-sub);
     text-wrap: pretty;
 }
 
-.wk-quote cite { font-style: normal; font-size: var(--size-meta); color: var(--subtle); }
+.wk-quote cite { font-style: normal; font-size: var(--size-small); color: var(--muted); }
 
 /* A quote beside an embed (bonus tile) */
 .wk-bonus { margin-top: var(--space-tiles); }
@@ -748,7 +677,7 @@ img { max-width: 100%; display: block; }
 }
 
 .wk-bonus-quote { grid-column: 2; grid-row: 1; align-self: center; }
-.wk-bonus-quote p { font-size: var(--size-quote-lg); }
+.wk-bonus-quote p { font-size: var(--size-subheading); }
 
 
 /* ==========================================================
@@ -756,7 +685,16 @@ img { max-width: 100%; display: block; }
    Back link · eyebrow · title · facts row · hero · story, then numbered sections:
    a heading, reading text, and figures with captions.
    ========================================================== */
-.cs-back { display: inline-block; font-size: var(--size-meta); }
+/* Back link: flush with the wordmark above it. Underlines on hover, like "See the case study". */
+.cs-back {
+    display: inline-block;
+    font-size: var(--size-small);
+    color: var(--muted);
+    border-bottom: var(--border-width) solid transparent;
+    transition: color var(--dur-hover) ease, border-color var(--dur-hover) ease;
+}
+
+.cs-back:hover { color: var(--ink); border-color: currentColor; }
 
 .cs-head { padding-top: var(--space-cs-head); max-width: var(--intro-max); }
 
@@ -806,7 +744,7 @@ img { max-width: 100%; display: block; }
     max-width: var(--reading-max);
     font-size: var(--size-small);
     font-style: italic;
-    color: var(--subtle);
+    color: var(--muted);
 }
 
 .cs-section { position: relative; margin-top: var(--space-section); padding-top: var(--space-8); }
@@ -864,25 +802,14 @@ img { max-width: 100%; display: block; }
 
 .cs-phones--tall img { aspect-ratio: 375 / 812; }
 .cs-phones--3 { max-width: 760px; }
-.cs-phones--2 { max-width: 500px; }
 
 /* Screenshots side by side, on white with a hairline */
-.cs-two,
 .cs-shots { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
 
 .cs-shots img {
     width: 100%;
     height: auto;
     border-radius: var(--radius-card);
-    border: var(--border-width) solid var(--hairline);
-    background: var(--surface);
-}
-
-/* A tall page inside a scrolling frame */
-.cs-scroll {
-    max-height: 640px;
-    overflow-y: auto;
-    border-radius: var(--radius-figure);
     border: var(--border-width) solid var(--hairline);
     background: var(--surface);
 }
@@ -895,7 +822,6 @@ img { max-width: 100%; display: block; }
     background: var(--surface);
 }
 
-.cs-scroll img,
 .cs-wide img { width: 100%; height: auto; border-radius: 0; }
 
 /* A portrait video on the wash */
@@ -924,7 +850,7 @@ img { max-width: 100%; display: block; }
     border: var(--border-width-strong) dashed var(--border);
     border-radius: var(--radius-figure);
     background: var(--wash);
-    color: var(--subtle);
+    color: var(--muted);
     font-size: var(--size-small);
     text-align: center;
 }
@@ -1146,10 +1072,10 @@ img { max-width: 100%; display: block; }
 .lock-title {
     margin: var(--space-12) 0 0;
     font-family: var(--font-display);
-    font-size: var(--size-title-sm);
+    font-size: var(--size-title);
     font-weight: var(--weight-black);
     letter-spacing: var(--tracking-display);
-    line-height: var(--leading-title-sm);
+    line-height: var(--leading-title);
     text-wrap: balance;
 }
 
@@ -1164,29 +1090,29 @@ img { max-width: 100%; display: block; }
     border: var(--border-width) solid var(--border);
     background: var(--surface);
     font: inherit;
-    font-size: var(--size-ui);
+    font-size: var(--size-body);
     color: var(--ink);
     outline: none;
     transition: border-color var(--dur-hover) ease;
 }
 
-.lock-input::placeholder { color: var(--subtle); }
+.lock-input::placeholder { color: var(--muted); }
 .lock-input:focus { border-color: var(--rose); }
 
 /* Error: reserves its line so the layout doesn't jump */
 .lock-error {
     min-height: 22px;
     margin: var(--space-3-5) 0 0;
-    font-size: var(--size-meta);
+    font-size: var(--size-small);
     line-height: var(--leading-text);
-    color: var(--rose);
+    color: var(--rose-text);
 }
 
 .lock-contact {
     margin: var(--space-7) 0 0;
-    font-size: var(--size-meta);
+    font-size: var(--size-small);
     line-height: var(--leading-read);
-    color: var(--subtle);
+    color: var(--muted);
 }
 
 .lock-contact-row { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
@@ -1214,18 +1140,18 @@ img { max-width: 100%; display: block; }
 .lock-copy svg { display: block; }
 .lock-copy .lock-copy-check,
 .lock-copy .copy-toast { display: none; }
-.lock-copy.is-copied { padding: 0 var(--space-2-5) 0 7px; color: var(--rose); border-color: var(--rose); }
+.lock-copy.is-copied { padding: 0 var(--space-2-5) 0 7px; border-color: var(--rose); }
 .lock-copy.is-copied .lock-copy-icon { display: none; }
 .lock-copy.is-copied .lock-copy-check { display: block; }
 .lock-copy.is-copied .copy-toast { display: inline; opacity: 1; transform: none; line-height: 1; }
 
 /* Copied feedback for any email link (copy-email.js) */
-.is-copied { color: var(--rose) !important; }
+.is-copied { color: var(--rose-text) !important; }
 
 .copy-toast {
     font-size: var(--size-fine);
     font-weight: var(--weight-medium);
-    color: var(--rose);
+    color: var(--rose-text);
     opacity: 0;
     transform: translateX(-4px);
     transition: opacity var(--dur-hover) ease, transform var(--dur-hover) ease;
@@ -1280,11 +1206,11 @@ img { max-width: 100%; display: block; }
 
 .wk .site-footer { padding-bottom: 0; }
 
-.footer-lockup { display: flex; flex-direction: column; gap: var(--space-5); max-width: var(--gate-max); }
+.footer-lockup { display: flex; flex-direction: column; gap: var(--space-5); max-width: var(--lockup-max); }
 
 .footer-headline {
     font-family: var(--font-display);
-    font-size: var(--size-heading-sm);
+    font-size: var(--size-heading);
     line-height: var(--leading-snug);
     letter-spacing: var(--tracking-heading-sm);
     font-weight: var(--weight-semibold);
@@ -1293,7 +1219,7 @@ img { max-width: 100%; display: block; }
 
 .footer-buttons { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 
-.footer-copy { font-size: var(--size-fine); color: var(--subtle); }
+.footer-copy { font-size: var(--size-fine); color: var(--muted); }
 
 
 /* ==========================================================
@@ -1324,8 +1250,6 @@ img { max-width: 100%; display: block; }
     .wk-more { grid-column: auto; }
     .wk-quotes { grid-template-columns: 1fr; }
     .wk-hero { aspect-ratio: 4 / 3; }
-    .wk-hero--phones { padding: 8% 6% 0; gap: 3%; }
-    .wk-hero--phones img { width: 28%; margin-bottom: -8%; }
     .wk-hero--screens { padding: 5% 4%; gap: 3%; }
     .wk-hero--screens img { width: 28%; }
     .wk-hero--compare { padding: 6% 6% 0; gap: 5%; }
@@ -1334,8 +1258,6 @@ img { max-width: 100%; display: block; }
     .wk-bonus-media { grid-template-columns: 1fr; }
     .wk-bonus-media iframe, .wk-bonus-quote { grid-column: 1; grid-row: auto; }
     .wk-bonus-quote { margin-top: var(--space-4); }
-    .cs-two { grid-template-columns: 1fr; }
-    .cs-scroll { max-height: 480px; }
 
     .wk-tile::before, .wk-quotes::before, .cs-section::before, .site-footer::before {
         content: "";

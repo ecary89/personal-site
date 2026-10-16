@@ -62,7 +62,7 @@ for (const [name, v] of Object.entries(raw)) {
     if (/-rgb$/.test(name) || name.startsWith('focus-')) continue;
     if (name === 'wash-gradient') {
         add(out.gradient, 'wash', { $type: 'gradient', $value: [{ color: '{color.wash}', position: 0 }, { color: '{color.wash-deep}', position: 1 }], $extensions: { angle: '135deg' } });
-    } else if (/^#|^rgba/.test(v) || /^var\(--(border|wash)\)$/.test(v)) {
+    } else if (/^#|^rgba/.test(v) || /^var\(--(border|wash|muted)\)$/.test(v)) {
         const value = v.startsWith('var(') ? '{color.' + v.slice(6, -1) + '}' : v.startsWith('rgba') ? hexAlpha(v) : v;
         add(out.color, name, { $type: 'color', $value: value });
     } else if (name.startsWith('font-')) {
@@ -109,31 +109,25 @@ const T = (family, size, weight, leading, tracking, extra) => Object.assign({
         letterSpacing: tracking ? '{letterSpacing.' + tracking + '}' : '0em'
     }
 }, extra || {});
-const caps = { $extensions: { textCase: 'uppercase' } };
 Object.assign(out.typography, {
+    // Display
     hero: T('display', 'hero', 'black', 'hero', 'display'),
-    'title-lg': T('display', 'title-lg', 'black', 'title-lg', 'display'),
     title: T('display', 'title', 'black', 'title', 'display'),
-    'title-sm': T('display', 'title-sm', 'black', 'title-sm', 'display'),
-    'heading-lg': T('display', 'heading-lg', 'bold', 'heading-lg', 'heading'),
     heading: T('display', 'heading', 'bold', 'heading', 'heading'),
-    'heading-sm': T('display', 'heading-sm', 'semibold', 'snug', 'heading-sm'),
-    'heading-xs': T('display', 'heading-xs', 'bold', 'normal', 'heading-sm'),
+    'footer-headline': T('display', 'heading', 'semibold', 'snug', 'heading-sm'),
     subheading: T('display', 'subheading', 'medium', 'snug', 'sub'),
-    quote: T('display', 'quote', 'medium', 'quote', 'sub'),
-    'quote-lg': T('display', 'quote-lg', 'medium', 'quote', 'sub'),
+    quote: T('display', 'subheading', 'medium', 'quote', 'sub'),
     wordmark: T('display', 'wordmark', 'black', 'normal', 'display'),
-    statement: T('text', 'statement', 'regular', 'statement', 'statement'),
-    lede: T('text', 'lede', 'regular', 'text'),
+    // Text
+    statement: T('text', 'heading', 'regular', 'statement', 'statement'),
+    lede: T('text', 'subheading', 'regular', 'text'),
+    'home-role': T('text', 'subheading', 'medium', 'normal'),
     'body-lg': T('text', 'body-lg', 'regular', 'read'),
-    claim: T('text', 'claim', 'regular', 'text'),
     body: T('text', 'body', 'regular', 'relaxed'),
-    ui: T('text', 'ui', 'semibold', 'text'),
+    button: T('text', 'body', 'semibold', 'text'),
     small: T('text', 'small', 'regular', 'text'),
-    meta: T('text', 'meta', 'regular', 'text'),
-    fine: T('text', 'fine', 'regular', 'normal'),
-    label: T('text', 'label', 'semibold', 'normal', 'label', caps),
-    'label-wide': T('text', 'fine', 'medium', 'normal', 'label-wide', caps)
+    label: T('text', 'small', 'semibold', 'text'),
+    fine: T('text', 'fine', 'regular', 'normal')
 });
 
 fs.writeFileSync(path.join(DIR, 'tokens.json'), JSON.stringify(out, null, 2) + '\n');

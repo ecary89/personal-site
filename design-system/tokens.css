@@ -2,22 +2,22 @@
    The single source for color, type, space, shape, depth and motion on the portfolio
    (home page, /work gate, audience pages, case studies). Kamira is out of scope.
 
-   Values match style.css and work/work.css on main as of 2026-10-15. Names match the live
-   site where it already had one (--paper, --ink, --rose ...), so a page can link this file
-   and drop its own :root block without renaming anything. See README.md for the rules. */
+   Extracted from style.css and work/work.css on main (2026-10-15), then revised with Erika
+   (2026-10-16): text colors that reach 4.5:1, eight type sizes, no all caps. Names match the
+   live site where it already had one (--paper, --ink, --rose ...). See README.md for the rules. */
 
 :root {
     /* ---------- Color: base ---------- */
     --paper: #F9F4F6;           /* page background, warm rose-tinted */
     --surface: #FFFFFF;         /* inputs, frames and cards that sit on paper */
     --ink: #2B2130;             /* default text, primary button */
-    --muted: #6E6072;           /* reading text: ledes, story, facts, captions */
-    --subtle: #8D7E91;          /* meta, nav links, cites. 3.5:1 on paper, so not for body text */
-    --rose: #B4547E;            /* the one accent: labels, links, cursor, curtain, hover fill */
+    --muted: #6E6072;           /* every secondary text: reading text, meta, nav, captions, cites. 5.4:1 */
+    --rose: #B4547E;            /* the one accent, for fills and large text: buttons, arrows, cursor, curtain */
+    --rose-text: #A44C73;       /* rose for text under 18px: labels, links, errors. 5.0:1 on paper, 4.5:1 on the wash */
 
     /* ---------- Color: lines and washes ---------- */
     --hairline: #E2D6DC;        /* frame borders */
-    --border: #D5C4CD;          /* ghost button, input, tag, dotted dividers, chart grid */
+    --border: #D5C4CD;          /* ghost button, input, dotted dividers, chart grid */
     --wash: #F2E8ED;            /* hover wash, empty media */
     --wash-deep: #E7D6DF;       /* far end of the media gradient */
     --wash-gradient: linear-gradient(135deg, var(--wash) 0%, var(--wash-deep) 100%);
@@ -29,8 +29,7 @@
     --neutral: #7A7479;         /* de-emphasized chart label */
     --control-off-bg: #EFE9EC;  /* disabled arrow */
     --control-off-fg: #A69DA3;
-    --control-pending: #C8C2C6; /* the arrow that is about to turn the page while a carousel cycles */
-    --stage-dark: #121212;      /* behind a dark slide */
+    --control-pending: #8D7E91; /* the arrow about to turn the page while a carousel cycles. White icon: 3.8:1 */
     --stage-graphite: #2C2C2C;  /* behind dark UI screenshots that crossfade */
     --surface-veil: rgba(255, 255, 255, 0.55);  /* a placeholder sitting on the wash */
 
@@ -38,9 +37,10 @@
     --ink-rgb: 43, 33, 48;
     --rose-rgb: 180, 84, 126;
 
-    /* Old names, kept so style.css and work.css keep working */
+    /* Old names, kept so style.css, work.css and page styles keep working */
     --btn-border: var(--border);
     --btn-wash: var(--wash);
+    --subtle: var(--muted);     /* was #8D7E91, too faint for text (3.5:1) */
 
     /* ---------- Type: families and weights ---------- */
     --font-display: 'Bricolage Grotesque', sans-serif;          /* names, titles, headings, quotes */
@@ -53,38 +53,20 @@
     --weight-black: 800;
 
     /* ---------- Type: sizes ----------
-       Fluid sizes run from the min at phone width to the max on desktop.
-       Display family */
-    --size-hero: min(112px, 14vw);              /* home page name */
-    --size-title-lg: clamp(36px, 5.6vw, 64px);  /* entry page title */
-    --size-title: clamp(34px, 5vw, 56px);       /* case-study title */
-    --size-title-sm: clamp(30px, 4.4vw, 42px);  /* gate title */
-    --size-heading-lg: clamp(24px, 2.8vw, 34px);/* tile title */
-    --size-heading: clamp(22px, 2.4vw, 30px);   /* case-study section title */
-    --size-heading-sm: clamp(22px, 2.4vw, 28px);/* footer headline */
-    --size-heading-xs: clamp(21px, 2.2vw, 26px);/* home claim title */
-    --size-subheading: clamp(20px, 1.8vw, 24px);/* tile subheader */
-    --size-quote: clamp(18px, 1.7vw, 21px);     /* peer quote */
-    --size-quote-lg: clamp(19px, 1.8vw, 22px);  /* a quote that stands alone beside media */
-    --size-wordmark: 22px;                      /* "Erika Cary" in the nav */
-    /* Text family */
-    --size-statement: clamp(22px, 2.6vw, 30px); /* home positioning line */
-    --size-lede: clamp(18px, 2vw, 22px);        /* entry page intro */
-    --size-body-lg: clamp(17px, 1.6vw, 19px);   /* case-study story and section text */
-    --size-claim: clamp(16px, 1.6vw, 19px);     /* home claim evidence (body-lg with a 16px floor) */
-    --size-body: 17px;                          /* facts, gate subline, home role label */
-    --size-ui: 16px;                            /* buttons, inputs, tile meta line */
-    --size-small: 15px;                         /* nav, captions, case-study facts, fact labels */
-    --size-meta: 14px;                          /* meta, cites, back link, gate contact and error */
-    --size-fine: 13px;                          /* footer copy, "Copied", header-bar role */
-    --size-label: 12px;                         /* eyebrows, tags, Before / After */
+       Eight sizes. Fluid ones run from the min at phone width to the max on desktop. */
+    --size-hero: min(112px, 14vw);              /* the home page name */
+    --size-title: clamp(34px, 5vw, 56px);       /* page titles: audience pages, case studies, the gate */
+    --size-heading: clamp(22px, 2.4vw, 30px);   /* tile and section titles, footer headline, home claims, home statement */
+    --size-subheading: clamp(18px, 1.7vw, 21px);/* tile subheader, home role, page intro, quotes */
+    --size-body-lg: clamp(17px, 1.6vw, 19px);   /* case-study reading text, home claim evidence */
+    --size-body: 17px;                          /* facts, buttons, inputs */
+    --size-small: 15px;                         /* nav, labels, meta lines, captions, cites */
+    --size-fine: 12px;                          /* footer copy, "Copied" */
+    --size-wordmark: 21px;                      /* "Erika Cary" in the nav: the subheading size, fixed */
 
     /* ---------- Type: line height ---------- */
     --leading-hero: 0.96;
-    --leading-title-lg: 1.02;
     --leading-title: 1.04;
-    --leading-title-sm: 1.05;
-    --leading-heading-lg: 1.12;
     --leading-heading: 1.15;
     --leading-snug: 1.3;
     --leading-quote: 1.4;
@@ -99,8 +81,7 @@
     --tracking-heading-sm: -0.015em;/* footer headline, claim title */
     --tracking-statement: -0.012em; /* home positioning line */
     --tracking-sub: -0.01em;        /* subheaders, quotes, fact labels */
-    --tracking-label: 0.12em;       /* small caps labels */
-    --tracking-label-wide: 0.14em;  /* the role label on home and the gate eyebrow */
+    /* No all caps anywhere, so no wide label tracking */
 
     /* ---------- Space ----------
        A 4px grid. Half steps (6, 10, 14 ...) are optical offsets the site uses next to type. */
@@ -145,7 +126,8 @@
     --content-max: 1200px;      /* every page */
     --intro-max: 860px;         /* page intro and case-study head */
     --reading-max: 720px;       /* paragraphs */
-    --gate-max: 560px;          /* the password form and the footer lockup */
+    --gate-max: 640px;          /* the password form: room for the 56px title on two lines */
+    --lockup-max: 560px;        /* the footer lockup */
     --pad-x: clamp(24px, 6vw, 64px);
     --fact-label: 110px;        /* the label column in a facts list */
     /* Breakpoints (CSS can't read variables in media queries, so these are for reference):
@@ -154,7 +136,7 @@
        560px  fact labels sit above their text */
 
     /* ---------- Shape ---------- */
-    --radius-pill: 999px;       /* buttons, inputs, tags, hover washes */
+    --radius-pill: 999px;       /* buttons, inputs, hover washes */
     --radius-hero: 16px;        /* tile hero, wash panels */
     --radius-figure: 14px;      /* case-study figures, frames, placeholders, embeds */
     --radius-card: 12px;        /* a graphic or screenshot shown as a card */

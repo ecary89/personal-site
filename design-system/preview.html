@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Erika Cary — Design system preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="tokens.css">
+    <style>
+        /* Local tool: flips real portfolio pages between the live CSS and the design system
+           (tokens.css + components.css), so you can see what moving the site onto it changes.
+           The locked pages come from work/_src, so those screens only work on Erika's laptop. */
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; }
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-text);
+            color: var(--ink);
+            background: var(--wash);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .pv-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-3) var(--space-5);
+            padding: var(--space-3) var(--space-4);
+            background: var(--paper);
+            border-bottom: var(--border-width) solid var(--hairline);
+        }
+
+        .pv-side { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3) var(--space-4); }
+        .pv-name { font-family: var(--font-display); font-size: 18px; font-weight: var(--weight-black); letter-spacing: var(--tracking-display); }
+
+        .pv-group { display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-pill); background: var(--wash); }
+        .pv-group button {
+            font: inherit;
+            font-size: 14px;
+            border: 0;
+            padding: var(--space-1-5) var(--space-3-5);
+            border-radius: var(--radius-pill);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background var(--dur-hover) ease, color var(--dur-hover) ease;
+        }
+        .pv-group button:hover { color: var(--ink); }
+        .pv-group button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: var(--weight-semibold); box-shadow: 0 1px 3px rgba(var(--ink-rgb), 0.12); }
+        .pv-group--mode button[data-mode="system"][aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+        .pv-group button:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+        .pv-hint { font-size: 13px; color: var(--muted); }
+
+        .pv-stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+        .pv-wrap { position: absolute; top: 0; left: 50%; transform-origin: top center; }
+        .pv-wrap iframe { display: block; border: 0; background: var(--paper); }
+        .pv-stage.is-phone .pv-wrap { top: var(--space-4); }
+        .pv-stage.is-phone iframe { border-radius: 28px; box-shadow: var(--shadow-float); }
+    </style>
+</head>
+<body>
+
+<header class="pv-bar">
+    <div class="pv-side">
+        <span class="pv-name">Design system preview</span>
+        <div class="pv-group" id="pv-screens" role="group" aria-label="Screen"></div>
+    </div>
+    <div class="pv-side">
+        <div class="pv-group" id="pv-width" role="group" aria-label="Width">
+            <button type="button" data-width="desktop">Desktop</button>
+            <button type="button" data-width="phone">Phone</button>
+        </div>
+        <div class="pv-group pv-group--mode" id="pv-mode" role="group" aria-label="Version">
+            <button type="button" data-mode="current">Current site</button>
+            <button type="button" data-mode="system">Design system</button>
+        </div>
+        <span class="pv-hint">Press T to flip</span>
+    </div>
+</header>
+
+<main class="pv-stage" id="pv-stage">
+    <div class="pv-wrap" id="pv-wrap"><iframe id="pv-frame" title="Page preview"></iframe></div>
+</main>
+
+<script>
+(function () {
+    'use strict';
+    // keep: the page's own rules that stay in the page after the move (everything else is in the system)
+    var SCREENS = {
+        home:      { label: 'Home', url: '/index.html' },
+        audience:  { label: 'Audience page', url: '/work/_src/b2b/index.html' },
+        casestudy: { label: 'Case study', url: '/work/_src/the-yes/index.html', keep: /\.yq|#quiz-carousel|^html\b/ },
+        gate:      { label: 'Gate', url: '/work/index.html' }
+    };
+    var WIDTHS = { desktop: 1280, phone: 390 };
+
+    // Stand-in for carousel.js on pages whose own script fills every live arrow
+    var COMPAT = '.cs-carousel.is-playing .cs-arrow:not(:disabled) { background: var(--control-pending); }' +
+        '.cs-carousel.is-playing .cs-arrow:not(:disabled)::before { animation: cs-arrow-fill var(--cs-dwell, var(--dwell)) linear forwards; }';
+
+    var params = new URLSearchParams(location.search);
+    var state = {
+        screen: SCREENS[params.get('screen')] ? params.get('screen') : 'home',
+        width: WIDTHS[params.get('width')] ? params.get('width') : 'desktop',
+        mode: /^(system|proposed)$/.test(params.get('mode') || '') ? 'system' : 'current'
+    };
+
+    var startAt = params.get('at');   // optional: a selector to scroll to on first load (for screenshots)
+
+    var stage = document.getElementById('pv-stage');
+    var wrap = document.getElementById('pv-wrap');
+    var frame = document.getElementById('pv-frame');
+    var screensEl = document.getElementById('pv-screens');
+
+    Object.keys(SCREENS).forEach(function (key) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.screen = key;
+        b.textContent = SCREENS[key].label;
+        screensEl.appendChild(b);
+    });
+
+    function sync() {
+        document.querySelectorAll('[data-screen]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.screen === state.screen); });
+        document.querySelectorAll('[data-width]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.width === state.width); });
+        document.querySelectorAll('[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === state.mode); });
+        history.replaceState(null, '', '?screen=' + state.screen + '&width=' + state.width + '&mode=' + state.mode);
+    }
+
+    function layout() {
+        var w = WIDTHS[state.width];
+        var phone = state.width === 'phone';
+        var gutter = phone ? 32 : 0;
+        var s = Math.min(1, (stage.clientWidth - gutter) / w);
+        var h = (stage.clientHeight - (phone ? 32 : 0)) / s;
+        stage.classList.toggle('is-phone', phone);
+        frame.style.width = w + 'px';
+        frame.style.height = (phone ? Math.min(h, 844 / s) : h) + 'px';
+        wrap.style.transform = 'translateX(-50%) scale(' + s + ')';
+    }
+
+    // Rules from a stylesheet that match keep, with @media blocks rebuilt around them
+    function keepRules(rules, keep) {
+        var out = '';
+        for (var i = 0; i < rules.length; i++) {
+            var r = rules[i];
+            if (r.selectorText !== undefined) {
+                if (keep && keep.test(r.selectorText.trim())) out += r.cssText + '\n';
+            } else if (r.cssRules) {
+                var inner = keepRules(r.cssRules, keep);
+                if (inner) out += r.cssText.slice(0, r.cssText.indexOf('{')) + '{\n' + inner + '}\n';
+            }
+        }
+        return out;
+    }
+
+    // Prepare both versions inside the page once; flipping then only swaps media="not all"
+    function prepare(doc) {
+        if (doc.__pv) return doc.__pv;
+        var keep = SCREENS[state.screen].keep;
+        var live = [].slice.call(doc.querySelectorAll('link[rel="stylesheet"]')).filter(function (l) {
+            return /(^|\/)(style|work)\.css/.test(l.getAttribute('href'));
+        });
+        var anchor = live[live.length - 1] || doc.head.lastChild;
+        var loads = [];
+        var added = ['tokens.css', 'components.css'].map(function (f) {
+            var l = doc.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = '/design-system/' + f;
+            l.media = 'not all';
+            loads.push(new Promise(function (res) { l.onload = res; l.onerror = res; }));
+            anchor.after(l);
+            anchor = l;
+            return l;
+        });
+        var compat = doc.createElement('style');
+        compat.media = 'not all';
+        compat.textContent = COMPAT;
+        doc.head.appendChild(compat);
+        var pageStyles = [].slice.call(doc.querySelectorAll('style')).filter(function (s) { return s !== compat && s.sheet && s.sheet.cssRules.length; });
+        var kept = pageStyles.map(function (s) {
+            var k = doc.createElement('style');
+            k.media = 'not all';
+            k.textContent = keepRules(s.sheet.cssRules, keep);
+            s.after(k);
+            return k;
+        });
+        doc.__pv = { live: live, added: added.concat([compat], kept), page: pageStyles, ready: Promise.all(loads) };
+        return doc.__pv;
+    }
+
+    function apply() {
+        var doc = frame.contentDocument;
+        if (!doc || !doc.head) return;
+        var pv = prepare(doc);
+        var on = state.mode === 'system';
+        pv.live.forEach(function (el) { el.media = on ? 'not all' : ''; });
+        pv.page.forEach(function (el) { el.media = on ? 'not all' : ''; });
+        pv.added.forEach(function (el) { el.media = on ? '' : 'not all'; });
+    }
+
+    function flip() { state.mode = state.mode === 'current' ? 'system' : 'current'; sync(); apply(); }
+
+    function onKey(e) {
+        if (e.key !== 't' && e.key !== 'T') return;
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+        flip();
+    }
+
+    frame.addEventListener('load', function () {
+        apply();
+        var doc = frame.contentDocument;
+        try { doc.addEventListener('keydown', onKey); } catch (e) {}
+        if (startAt) {
+            var sel = startAt;
+            startAt = null;
+            doc.__pv.ready.then(function () {
+                var el = doc.querySelector(sel);
+                var win = frame.contentWindow;
+                if (el) win.scrollTo(0, el.getBoundingClientRect().top + win.scrollY - 48);
+            });
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.screen && b.dataset.screen !== state.screen) { state.screen = b.dataset.screen; sync(); frame.src = SCREENS[state.screen].url; }
+        if (b.dataset.width && b.dataset.width !== state.width) { state.width = b.dataset.width; sync(); layout(); frame.src = SCREENS[state.screen].url; }
+        if (b.dataset.mode && b.dataset.mode !== state.mode) { state.mode = b.dataset.mode; sync(); apply(); }
+    });
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', layout);
+
+    sync();
+    layout();
+    frame.src = SCREENS[state.screen].url;
+})();
+</script>
+</body>
+</html>
