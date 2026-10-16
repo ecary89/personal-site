@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" width="1600" height="520" role="img" aria-label="Placeholder journey diagram">
+  <rect width="1600" height="520" fill="#FFFFFF"/>
+  <g fill="#F2E8ED">
+    <rect x="60" y="150" width="240" height="220" rx="18"/>
+    <rect x="360" y="150" width="240" height="220" rx="18"/>
+    <rect x="660" y="150" width="240" height="220" rx="18"/>
+    <rect x="960" y="150" width="240" height="220" rx="18"/>
+    <rect x="1260" y="150" width="240" height="220" rx="18"/>
+  </g>
+  <g fill="#D5C4CD">
+    <rect x="60" y="80" width="140" height="22" rx="11"/>
+    <rect x="360" y="80" width="140" height="22" rx="11"/>
+    <rect x="660" y="80" width="140" height="22" rx="11"/>
+    <rect x="960" y="80" width="140" height="22" rx="11"/>
+    <rect x="1260" y="80" width="140" height="22" rx="11"/>
+  </g>
+  <g stroke="#B4547E" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M308 260h44M608 260h44M908 260h44M1208 260h44"/>
+  </g>
+  <g fill="#E2D6DC">
+    <rect x="60" y="410" width="200" height="16" rx="8"/>
+    <rect x="360" y="410" width="200" height="16" rx="8"/>
+    <rect x="660" y="410" width="200" height="16" rx="8"/>
+    <rect x="960" y="410" width="200" height="16" rx="8"/>
+    <rect x="1260" y="410" width="200" height="16" rx="8"/>
+  </g>
+</svg>

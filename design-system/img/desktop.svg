@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Placeholder desktop screen">
+  <rect width="1440" height="900" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="1440" height="84" fill="#F9F4F6"/>
+  <rect x="56" y="30" width="150" height="24" rx="12" fill="#D5C4CD"/>
+  <rect x="1060" y="32" width="90" height="20" rx="10" fill="#E2D6DC"/>
+  <rect x="1170" y="32" width="90" height="20" rx="10" fill="#E2D6DC"/>
+  <rect x="1280" y="26" width="104" height="32" rx="16" fill="#B4547E"/>
+  <rect x="56" y="140" width="560" height="44" rx="22" fill="#D5C4CD"/>
+  <rect x="56" y="208" width="760" height="22" rx="11" fill="#E2D6DC"/>
+  <rect x="56" y="246" width="640" height="22" rx="11" fill="#E2D6DC"/>
+  <rect x="56" y="320" width="420" height="300" rx="20" fill="#F2E8ED"/>
+  <rect x="510" y="320" width="420" height="300" rx="20" fill="#F2E8ED"/>
+  <rect x="964" y="320" width="420" height="300" rx="20" fill="#F2E8ED"/>
+  <circle cx="266" cy="470" r="44" fill="#E7D6DF"/>
+  <circle cx="720" cy="470" r="44" fill="#E7D6DF"/>
+  <circle cx="1174" cy="470" r="44" fill="#E7D6DF"/>
+  <rect x="56" y="648" width="300" height="20" rx="10" fill="#D5C4CD"/>
+  <rect x="510" y="648" width="300" height="20" rx="10" fill="#D5C4CD"/>
+  <rect x="964" y="648" width="300" height="20" rx="10" fill="#D5C4CD"/>
+  <rect x="56" y="684" width="220" height="16" rx="8" fill="#E2D6DC"/>
+  <rect x="510" y="684" width="220" height="16" rx="8" fill="#E2D6DC"/>
+  <rect x="964" y="684" width="220" height="16" rx="8" fill="#E2D6DC"/>
+  <rect x="56" y="752" width="1328" height="148" rx="20" fill="#F9F4F6"/>
+</svg>

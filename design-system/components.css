@@ -1,0 +1,1421 @@
+/* erikacary.com design system: components
+   Every reusable piece of the portfolio, built only on tokens.css. Class names are the ones
+   the live pages already use, so markup carries over unchanged. Load tokens.css first.
+
+   Contents
+     1  Base                  9  Media hero
+     2  Text styles          10  Facts list
+     3  Button               11  Quotes
+     4  Nav and links        12  Case study
+     5  Wordmark and labels  13  Carousel
+     6  Home: header bar,    14  Password gate and curtain
+        name, statement      15  Footer
+     7  Page intro           16  Divider
+     8  Project tile         17  Cursor and motion */
+
+
+/* ==========================================================
+   1  Base
+   ========================================================== */
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+}
+
+body {
+    font-family: var(--font-text);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+
+/* ==========================================================
+   2  Text styles
+   Eight sizes (tokens.css). Each style is a size plus a family, weight and color.
+   Components below use the same tokens directly.
+   ========================================================== */
+.t-hero, .t-title, .t-heading, .t-subheading, .t-quote, .t-wordmark { font-family: var(--font-display); margin: 0; }
+
+.t-hero       { font-size: var(--size-hero);       font-weight: var(--weight-black);  line-height: var(--leading-hero);    letter-spacing: var(--tracking-display); }
+.t-title      { font-size: var(--size-title);      font-weight: var(--weight-black);  line-height: var(--leading-title);   letter-spacing: var(--tracking-display); text-wrap: balance; }
+.t-heading    { font-size: var(--size-heading);    font-weight: var(--weight-bold);   line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); text-wrap: balance; }
+.t-subheading { font-size: var(--size-subheading); font-weight: var(--weight-medium); line-height: var(--leading-snug);    letter-spacing: var(--tracking-sub); text-wrap: balance; }
+.t-quote      { font-size: var(--size-subheading); font-weight: var(--weight-medium); line-height: var(--leading-quote);   letter-spacing: var(--tracking-sub); text-wrap: pretty; }
+.t-wordmark   { font-size: var(--size-wordmark);   font-weight: var(--weight-black);  letter-spacing: var(--tracking-display); white-space: nowrap; }
+
+.t-statement  { margin: 0; font-size: var(--size-heading);    line-height: var(--leading-statement); letter-spacing: var(--tracking-statement); text-wrap: pretty; }
+.t-lede       { margin: 0; font-size: var(--size-subheading); line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
+.t-body-lg    { margin: 0; font-size: var(--size-body-lg);    line-height: var(--leading-read); color: var(--muted); text-wrap: pretty; }
+.t-body       { margin: 0; font-size: var(--size-body);       line-height: var(--leading-text); color: var(--muted); text-wrap: pretty; }
+.t-small      { margin: 0; font-size: var(--size-small);      line-height: var(--leading-text); color: var(--muted); }
+.t-fine       { margin: 0; font-size: var(--size-fine);       color: var(--muted); }
+
+/* Label: names the block below it, in a few words. Sentence case. No all caps anywhere. */
+.t-label      { margin: 0; font-size: var(--size-small); font-weight: var(--weight-semibold); color: var(--rose-text); }
+
+/* Emphasis inside reading text: ink and semibold, never italic or underlined */
+.t-lede strong, .t-body-lg strong, .t-body strong { font-weight: var(--weight-semibold); color: var(--ink); }
+
+
+/* ==========================================================
+   3  Button
+   One size (54px tall pill). Primary is ink and washes to the darker rose; ghost is a 1px outline.
+   ========================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 54px;
+    padding: 0 var(--space-8);
+    border-radius: var(--radius-pill);
+    border: 0;
+    font: inherit;
+    font-size: var(--size-body);
+    cursor: pointer;
+    transition:
+        background var(--dur-hover) ease,
+        opacity var(--dur-hover) ease,
+        transform var(--dur-lift) var(--ease-out),
+        box-shadow var(--dur-lift) ease;
+}
+
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+
+.btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: var(--weight-semibold);
+}
+
+.btn-primary:hover { background: var(--rose-text); }   /* paper on it: 5.0:1 */
+.btn-primary:disabled { opacity: 0.55; cursor: default; }
+.btn-primary:disabled:hover { background: var(--ink); transform: none; box-shadow: none; }
+
+.btn-ghost {
+    background: transparent;
+    border: var(--border-width) solid var(--border);
+    color: var(--ink);
+    font-weight: var(--weight-medium);
+}
+
+.btn-ghost:hover { background: var(--wash); }
+
+
+/* ==========================================================
+   4  Nav and links
+   Every text link underlines on hover, drawn from left to right.
+   A call to action is a primary button.
+   ========================================================== */
+.nav-row {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: var(--space-11) var(--pad-x) 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.wk-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-6);
+    padding-top: var(--space-10);
+}
+
+.nav,
+.wk-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-7);
+    font-size: var(--size-small);
+    color: var(--muted);
+}
+
+/* Every text link: an underline that draws in from left to right on hover, and back out on leave.
+   It's a 1px gradient under the text, so it follows the words when a link wraps. */
+.nav a,
+.wk-links a,
+.link-pill,
+.link-inline,
+.lock-contact a,
+.wk-bonus-quote cite a,
+.cs-back {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0% var(--border-width);
+    padding-bottom: 1px;
+    transition: background-size var(--dur-underline) var(--ease-out), color var(--dur-hover) ease;
+}
+
+.nav a:hover,
+.wk-links a:hover,
+.link-pill:hover,
+.link-inline:hover,
+.lock-contact a:hover,
+.wk-bonus-quote cite a:hover,
+.cs-back:hover { background-size: 100% var(--border-width); color: var(--ink); }
+
+/* Nav and back links are muted; links inside a sentence are ink */
+.nav a, .wk-links a, .link-pill, .cs-back { color: var(--muted); }
+.link-inline, .lock-contact a { color: var(--ink); }
+
+/* Call to action ("See the case study"): a primary button. The page markup stays a plain link. */
+.wk-more {
+    grid-column: 2;
+    margin: var(--space-1) 0 0;
+}
+
+.wk-more a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 54px;
+    padding: 0 var(--space-8);
+    border-radius: var(--radius-pill);
+    background: var(--ink);
+    color: var(--paper);
+    font-size: var(--size-body);
+    font-weight: var(--weight-semibold);
+    transition:
+        background var(--dur-hover) ease,
+        transform var(--dur-lift) var(--ease-out),
+        box-shadow var(--dur-lift) ease;
+}
+
+.wk-more a:hover { background: var(--rose-text); transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+
+@media (prefers-reduced-motion: reduce) {
+    .nav a, .wk-links a, .link-pill, .link-inline, .lock-contact a, .wk-bonus-quote cite a, .cs-back { transition: color var(--dur-hover) ease; }
+}
+
+
+/* ==========================================================
+   5  Wordmark and labels
+   ========================================================== */
+.wk-brand,
+.lock-home,
+.header-bar-name {
+    font-family: var(--font-display);
+    font-size: var(--size-wordmark);
+    font-weight: var(--weight-black);
+    letter-spacing: var(--tracking-display);
+    white-space: nowrap;        /* never breaks in two, even on a 375px phone */
+    color: var(--ink);
+}
+
+/* Eyebrow: names the block below it. Sentence case, a few words. */
+.wk-eyebrow {
+    margin: 0 0 var(--space-4-5);
+    font-size: var(--size-small);
+    font-weight: var(--weight-semibold);
+    color: var(--rose-text);
+}
+
+/* The role under the home name reads as a subtitle; the sticky header bar repeats it as a label */
+.hero-role,
+.header-bar-role { color: var(--rose-text); }
+
+.hero-role { margin-top: var(--space-5-5); font-size: var(--size-subheading); font-weight: var(--weight-medium); white-space: nowrap; }
+.header-bar-role { font-size: var(--size-small); font-weight: var(--weight-semibold); }
+
+/* Tag: rides at the end of a meta line in rose, after a middle dot, e.g. "· Confidential, in flight".
+   No outline: the site has no bordered pills. If the line runs out of room, the tag moves down whole.
+   The page puts a space before the tag. */
+.wk-tag {
+    display: inline-block;
+    color: var(--rose-text);
+}
+
+.wk-tag::before { content: "·\00a0"; color: var(--muted); }
+
+
+/* ==========================================================
+   6  Home: header bar, name, statement, claims
+   ========================================================== */
+.page { min-height: 100vh; background: var(--paper); color: var(--ink); }
+
+/* Compact bar that fades in once the visitor scrolls past the name (site.js adds .is-visible) */
+.header-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-header);
+    background: var(--paper-glass);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: var(--space-3-5) var(--pad-x);
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 320ms ease, transform var(--dur-header) var(--ease-out);
+}
+
+.header-bar.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+
+.header-bar-inner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+}
+
+.hero-spacer { height: var(--space-hero-top); }
+
+.hero-wrap,
+.content {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 var(--pad-x);
+}
+
+/* The name. site.js splits it into letters that lift and blush rose under the pointer. */
+.hero-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-hero);
+    line-height: var(--leading-hero);
+    letter-spacing: var(--tracking-display);
+    font-weight: var(--weight-black);
+    color: var(--ink);
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.28em;
+}
+
+.hero-name .word { display: inline-flex; }
+
+.hero-name .letter {
+    display: inline-block;
+    cursor: default;
+    transition: transform 420ms var(--ease-spring), color 300ms ease;
+}
+
+.positioning { padding-top: var(--space-statement-top); max-width: var(--reading-max); }
+
+.positioning p {
+    margin: 0;
+    font-size: var(--size-heading);
+    line-height: var(--leading-statement);
+    letter-spacing: var(--tracking-statement);
+    color: var(--ink);
+    text-wrap: pretty;
+}
+
+/* The one italic on the site: a quoted question, in rose */
+.positioning em { font-style: italic; color: var(--rose); }
+
+.claims {
+    padding-top: var(--space-claims-top);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-11);
+    max-width: var(--reading-max);
+}
+
+.claim { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.claim-title {
+    font-family: var(--font-display);
+    font-size: var(--size-heading);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-heading-sm);
+}
+
+.claim-evidence {
+    font-size: var(--size-body-lg);
+    line-height: var(--leading-text);
+    color: var(--muted);
+}
+
+
+/* ==========================================================
+   7  Page intro (audience pages)
+   ========================================================== */
+.wk {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 var(--pad-x) var(--space-14);
+}
+
+.wk-intro { padding-top: var(--space-page-top); max-width: var(--intro-max); }
+
+.wk-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-title);
+    font-weight: var(--weight-black);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+}
+
+.wk-lede {
+    margin: var(--space-6-5) 0 0;
+    max-width: var(--reading-max);
+    font-size: var(--size-subheading);
+    line-height: var(--leading-text);
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.wk-lede strong { font-weight: var(--weight-semibold); color: var(--ink); }
+
+
+/* ==========================================================
+   8  Project tile
+   Hero on top, then a 5:7 split: header left, facts right.
+   Header order: title (project name) · subheader (first person, what I did and the outcome)
+   · meta ("Role · years") · role line only for acquisition notes.
+   ========================================================== */
+.wk-tiles {
+    margin-top: var(--space-tiles-top);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-tiles);
+}
+
+.wk-tile { position: relative; padding-top: var(--space-10); }
+
+.wk-tile-body {
+    margin-top: var(--space-tile-body);
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: var(--gap-columns);
+    row-gap: var(--space-6);
+    align-items: start;
+}
+
+.wk-tile-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-heading);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+    text-wrap: balance;
+}
+
+.wk-tile-title a { display: block; color: inherit; }
+
+.wk-tile-sub {
+    margin: var(--space-2-5) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--size-subheading);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-sub);
+    color: var(--ink);
+    text-wrap: balance;
+}
+
+.wk-meta {
+    margin: 0 0 var(--space-3);
+    font-size: var(--size-small);
+    color: var(--muted);
+}
+
+/* In a tile header the meta line sits 8px under the subheader, so the header's two gaps
+   match (about 14px) and title, subheader and meta read as one block */
+.wk-tile-title + .wk-meta,
+.wk-tile-sub + .wk-meta {
+    margin: var(--space-2) 0 0;
+    font-size: var(--size-small);
+    line-height: var(--leading-text);
+    color: var(--muted);
+}
+
+/* An acquisition note under the meta line, read as its second line */
+.wk-role {
+    margin: var(--space-3-5) 0 0;
+    font-size: var(--size-small);
+    line-height: var(--leading-text);
+    color: var(--muted);
+}
+
+.wk-meta + .wk-role { margin-top: var(--space-0-5); }
+
+.wk-tile-head .wk-more { margin: var(--space-5-5) 0 0; }
+
+.wk-tile-eyebrow { margin: 0 0 var(--space-5); }
+
+/* A small note under the facts, lined up with the fact text */
+.wk-aside {
+    grid-column: 2;
+    margin: calc(var(--space-2) * -1) 0 0;
+    padding-left: calc(var(--fact-label) + var(--space-4));
+    font-size: var(--size-small);
+    line-height: var(--leading-text);
+    color: var(--muted);
+}
+
+
+/* ==========================================================
+   9  Media hero
+   A 16:10 rounded panel. Screens float on the rose wash with a soft shadow.
+   Pick the variant by what the media is.
+   ========================================================== */
+.wk-hero {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-hero);
+    overflow: hidden;
+    background: var(--wash);
+}
+
+.wk-hero img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.wk-hero a { display: block; height: 100%; color: inherit; }
+
+.wk-hero--desk, .wk-hero--screens, .wk-hero--video, .wk-hero--recording,
+.wk-hero--film, .wk-hero--compare, .wk-hero--card { background: var(--wash-gradient); }
+
+/* Desktop recording or screen, centred and running off the bottom edge */
+.wk-hero--desk .wk-desk {
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    top: 7%;
+    bottom: 0;
+    border-radius: var(--radius-screen) var(--radius-screen) 0 0;
+    overflow: hidden;
+    background: var(--surface);
+    box-shadow: var(--shadow-float);
+}
+
+.wk-hero--desk .wk-desk video,
+.wk-hero--desk .wk-desk img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* Desktop recording shown whole, floating in the middle */
+.wk-hero--recording { display: flex; align-items: center; justify-content: center; }
+
+.wk-hero--recording video,
+.wk-hero--recording img {
+    display: block;
+    width: 90%;
+    height: auto;
+    border-radius: var(--radius-screen);
+    background: var(--surface);
+    box-shadow: var(--shadow-float);
+}
+
+/* Full-bleed film that carries its own wash */
+.wk-hero--film video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Phone recording, centred */
+.wk-hero--video { display: flex; align-items: center; justify-content: center; }
+
+.wk-hero--video video,
+.wk-hero--video img {
+    display: block;
+    height: 88%;
+    width: auto;
+    border-radius: var(--radius-phone-frame);
+    background: var(--surface);
+    box-shadow: var(--shadow-float-strong);
+}
+
+/* Three phone screens shown whole */
+.wk-hero--screens {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3.5%;
+    padding: 4% 6%;
+}
+
+.wk-hero--screens img {
+    width: 24.5%;
+    height: auto;
+    object-fit: unset;
+    border-radius: var(--radius-phone-shot);
+    box-shadow: var(--shadow-float);
+}
+
+/* Before / After: two phones with labels */
+.wk-hero--compare {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6%;
+    padding: 5% 10% 0;
+}
+
+.wk-hero--compare figure {
+    margin: 0;
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3-5);
+}
+
+.wk-hero--compare figcaption {
+    font-size: var(--size-small);
+    font-weight: var(--weight-semibold);
+    color: var(--rose-text);
+}
+
+.wk-hero--compare img {
+    width: 100%;
+    height: auto;
+    object-fit: unset;
+    border-radius: var(--radius-phone) var(--radius-phone) 0 0;
+    box-shadow: var(--shadow-float-strong);
+}
+
+/* A finished graphic shown as a card, not stretched */
+.wk-hero--card { display: flex; align-items: center; justify-content: center; padding: 6%; }
+
+.wk-hero--card img {
+    width: 100%;
+    max-width: 780px;
+    height: auto;
+    object-fit: unset;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-float);
+}
+
+/* ==========================================================
+   10  Facts list
+   A <dl>: short display-font label, muted text with ink emphasis.
+   ========================================================== */
+.wk-facts { margin: 0; display: flex; flex-direction: column; gap: var(--space-5); }
+
+.wk-facts > div {
+    display: grid;
+    grid-template-columns: var(--fact-label) minmax(0, 1fr);
+    gap: var(--space-4);
+}
+
+.wk-facts dt {
+    padding-top: var(--space-0-5);
+    font-family: var(--font-display);
+    font-size: var(--size-small);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-sub);
+    color: var(--ink);
+}
+
+.wk-facts dd {
+    margin: 0;
+    font-size: var(--size-body);
+    line-height: var(--leading-relaxed);
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.wk-facts dd strong { font-weight: var(--weight-semibold); color: var(--ink); }
+
+
+/* ==========================================================
+   11  Quotes
+   Peer quotes. Spoken to a stranger, about Erika by name. Cite by title and year only.
+   ========================================================== */
+.wk-quotes {
+    position: relative;
+    margin-top: var(--space-quotes);
+    padding-top: var(--space-10);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-9);
+}
+
+.wk-quotes .wk-eyebrow { grid-column: 1 / -1; margin-bottom: 0; }
+
+/* Two quotes sit on the tile's 5:7 split */
+.wk-quotes--2 {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: var(--gap-columns);
+    row-gap: var(--space-11);
+}
+
+.wk-quotes--2 .wk-quote p { max-width: 520px; }
+
+.wk-quote { margin: 0; display: flex; flex-direction: column; gap: var(--space-3-5); }
+
+.wk-quote p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-subheading);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-quote);
+    letter-spacing: var(--tracking-sub);
+    text-wrap: pretty;
+}
+
+.wk-quote cite { font-style: normal; font-size: var(--size-small); color: var(--muted); }
+
+/* A quote beside an embed (bonus tile) */
+.wk-bonus { margin-top: var(--space-tiles); }
+
+.wk-bonus-media {
+    margin-top: clamp(28px, 4vw, 44px);
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: var(--gap-columns);
+    row-gap: var(--space-3);
+    align-items: center;
+}
+
+.wk-bonus-media iframe {
+    grid-column: 1;
+    grid-row: 1;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 0;
+    border-radius: var(--radius-figure);
+    background: var(--wash);
+}
+
+.wk-bonus-quote { grid-column: 2; grid-row: 1; align-self: center; }
+.wk-bonus-quote p { font-size: var(--size-subheading); }
+
+
+/* ==========================================================
+   12  Case study
+   Back link · eyebrow · title · facts row · hero · story, then numbered sections:
+   a heading, reading text, and figures with captions.
+   ========================================================== */
+/* Back link: flush with the wordmark above it. Underline rules live with the other links (section 4). */
+.cs-back {
+    display: inline-block;
+    font-size: var(--size-small);
+}
+
+.cs-head { padding-top: var(--space-cs-head); max-width: var(--intro-max); }
+
+.cs-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--size-title);
+    font-weight: var(--weight-black);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-display);
+    text-wrap: balance;
+}
+
+.cs-facts {
+    margin: var(--space-5-5) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2-5) var(--space-8);
+    font-size: var(--size-small);
+    color: var(--muted);
+}
+
+.cs-facts div { display: flex; gap: var(--space-2); }
+.cs-facts dt { font-weight: var(--weight-semibold); color: var(--ink); }
+.cs-facts dd { margin: 0; }
+
+.cs-hero { margin-top: var(--space-block); }
+
+.cs-story,
+.cs-text {
+    max-width: var(--reading-max);
+    font-size: var(--size-body-lg);
+    line-height: var(--leading-read);
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+.cs-story { margin: var(--space-block) 0 0; }
+.cs-text { margin: var(--space-5) 0 0; }
+
+.cs-story strong,
+.cs-text strong { font-weight: var(--weight-semibold); color: var(--ink); }
+
+/* Credit line under the story (who else was on the team) */
+.cs-credit {
+    margin: var(--space-4-5) 0 0;
+    max-width: var(--reading-max);
+    font-size: var(--size-small);
+    font-style: italic;
+    color: var(--muted);
+}
+
+.cs-section { position: relative; margin-top: var(--space-section); padding-top: var(--space-8); }
+
+.cs-section-title {
+    margin: 0;
+    max-width: 760px;
+    font-family: var(--font-display);
+    font-size: var(--size-heading);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+    text-wrap: balance;
+}
+
+.cs-figure { margin: var(--space-7) 0 0; }
+
+/* Only media placed straight in the figure. Media inside a hero, frame or row keeps its own styles. */
+.cs-figure > img,
+.cs-figure > video,
+.cs-figure > a > img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius-figure);
+    background: var(--wash);
+}
+
+.cs-figure figcaption,
+.cs-caption {
+    margin: var(--space-3-5) 0 0;
+    max-width: var(--reading-max);
+    font-size: var(--size-small);
+    line-height: var(--leading-relaxed);
+    color: var(--muted);
+    text-wrap: pretty;
+}
+
+/* A row of phone screens */
+.cs-phones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-3-5);
+}
+
+.cs-phones img {
+    width: 100%;
+    aspect-ratio: 750 / 1300;
+    object-fit: cover;
+    object-position: top;
+    border-radius: var(--radius-phone-lg);
+    background: var(--wash);
+    box-shadow: var(--shadow-soft);
+}
+
+.cs-phones--tall img { aspect-ratio: 375 / 812; }
+.cs-phones--3 { max-width: 760px; }
+
+/* Screenshots side by side, on white with a hairline */
+.cs-shots { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+
+.cs-shots img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-card);
+    border: var(--border-width) solid var(--hairline);
+    background: var(--surface);
+}
+
+/* A wide diagram: full width on desktop, scrolls sideways on a phone so labels stay readable */
+.cs-wide {
+    overflow-x: auto;
+    border-radius: var(--radius-figure);
+    border: var(--border-width) solid var(--hairline);
+    background: var(--surface);
+}
+
+.cs-wide img { width: 100%; height: auto; border-radius: 0; }
+
+/* A portrait video on the wash */
+.cs-video--phone {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-7);
+    border-radius: var(--radius-hero);
+    background: var(--wash-gradient);
+}
+
+.cs-video--phone video {
+    width: 100%;
+    max-width: 300px;
+    border-radius: var(--radius-phone);
+    box-shadow: var(--shadow-float);
+}
+
+/* Media still to come: a labeled box that holds the space */
+.cs-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    padding: var(--space-6);
+    border: var(--border-width-strong) dashed var(--border);
+    border-radius: var(--radius-figure);
+    background: var(--wash);
+    color: var(--muted);
+    font-size: var(--size-small);
+    text-align: center;
+}
+
+
+/* Wash panel: a case-study figure on the rose wash, like a tile hero.
+   Default: a document screenshot (.cs-doc) centred and running off the bottom edge. */
+.cs-wash {
+    display: block;
+    position: relative;
+    aspect-ratio: 2 / 1;
+    border-radius: var(--radius-hero);
+    overflow: hidden;
+    background: var(--wash-gradient);
+}
+
+.cs-wash .cs-doc {
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: auto;
+    max-width: none;
+    border-radius: var(--radius-screen) var(--radius-screen) 0 0;
+    background: var(--surface);
+    box-shadow: var(--shadow-float);
+}
+
+/* Phone rules sit right after the rules they change: the modifiers below must win over them */
+@media (max-width: 640px) {
+    .cs-wash { aspect-ratio: 4 / 3; }
+    .cs-wash .cs-doc { width: 90%; }
+}
+
+/* --wide: the box fits a wide screenshot, shown whole */
+.cs-wash--wide { aspect-ratio: auto; padding: 5% 6%; }
+.cs-wash--wide .cs-doc { display: block; height: auto; position: static; transform: none; width: 100%; max-width: 100%; border-radius: var(--radius-screen); }
+
+@media (max-width: 640px) {
+    .cs-wash--wide { aspect-ratio: auto; padding: 6% 5%; }
+    .cs-wash--wide .cs-doc { width: 100%; }
+}
+
+/* In a carousel, every wash matches the tallest slide */
+.cs-carousel .cs-slide > .cs-wash--wide { height: 100%; display: flex; align-items: center; justify-content: center; }
+
+/* --fit: one shape (16:10) with the art fitted inside. Use it for slides that should not change size. */
+.cs-wash--fit {
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4% 5%;
+}
+
+.cs-wash--fit > img, .cs-wash--fit > video, .cs-wash--fit > .cs-hifi {
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+.cs-wash--fit > .cs-doc, .cs-wash--fit > .cs-hifi { border-radius: var(--radius-screen); box-shadow: var(--shadow-float); }
+.cs-wash--fit > .cs-shot { border-radius: var(--radius-screen); background: none; }
+.cs-wash--fit > .cs-hifi { width: 100%; }
+
+/* .cs-full: a document shown whole, as big as the box allows */
+.cs-wash--fit > .cs-full { position: static; transform: none; width: auto; max-width: 100%; max-height: 100%; }
+
+/* --video: the video carries its own wash, so it fills the box edge to edge */
+.cs-wash--fit.cs-wash--video { padding: 0; aspect-ratio: 16 / 10; }
+.cs-wash--video > .cs-ia { position: static; transform: none; width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; border-radius: 0; box-shadow: none; background: transparent; }
+
+/* --bleed: the art runs off the bottom edge */
+.cs-wash--fit.cs-wash--bleed { padding-top: 0; padding-bottom: 0; align-items: flex-end; }
+.cs-wash--bleed > .cs-shot { border-radius: 0; }
+
+/* --slot: a placeholder on the wash, waiting for its screenshot */
+.cs-wash--slot { display: grid; place-items: center; padding: 6%; }
+.cs-wash--slot .cs-placeholder { width: 100%; height: 100%; min-height: 0; background: var(--surface-veil); }
+
+/* A clip that can be paused shows a play badge while it is */
+.cs-carousel video { cursor: pointer; }
+
+.cs-wash.is-paused::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 64px;
+    height: 64px;
+    margin: -32px 0 0 -32px;
+    border-radius: var(--radius-round);
+    background: rgba(var(--ink-rgb), 0.72) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6.5v11l9-5.5z' fill='white'/%3E%3C/svg%3E") center / 28px no-repeat;
+    pointer-events: none;
+}
+
+/* Two screenshots that crossfade on their own (a fade, so it stops only under Reduce Motion) */
+.cs-hifi {
+    display: grid;
+    width: 100%;
+    border-radius: var(--radius-screen);
+    overflow: hidden;
+    background: var(--stage-graphite);
+    box-shadow: var(--shadow-float);
+}
+
+.cs-hifi img { grid-area: 1 / 1; display: block; width: 100%; height: auto; }
+.cs-hifi img + img { opacity: 0; animation: cs-hifi-swap 9s ease-in-out infinite; }
+
+@keyframes cs-hifi-swap {
+    0%, 40% { opacity: 0; }
+    50%, 90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Three placeholders in a row */
+.cs-placeholders-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.cs-placeholders-3 .cs-placeholder { min-height: 180px; }
+
+
+/* ==========================================================
+   13  Carousel
+   Slides crossfade in one grid cell. Caption left, arrows right.
+   While it cycles, the arrow that will turn the page fills with rose; carousel.js turns
+   the page when the fill ends. Any click or scroll inside stops the cycle for good.
+   ========================================================== */
+.cs-carousel-track { display: grid; }
+
+.cs-slide {
+    grid-area: 1 / 1;
+    min-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--dur-crossfade) ease, visibility 0s linear var(--dur-crossfade);
+}
+
+.cs-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity var(--dur-crossfade) ease, visibility 0s;
+}
+
+.cs-carousel--center .cs-carousel-track { grid-template-columns: minmax(0, 1fr); }
+.cs-carousel--center .cs-slide { align-self: center; }
+
+.cs-carousel-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-3-5);
+}
+
+.cs-carousel-bar .cs-carousel-caption { margin: 0; flex: 1 1 auto; min-width: 0; }
+
+.cs-carousel-nav { display: flex; gap: var(--space-2); flex-shrink: 0; }
+
+/* Arrow button: rose when it can go, pale when it can't */
+.cs-arrow {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--rose);
+    color: var(--surface);
+    cursor: pointer;
+    transition: background var(--dur-hover) ease, color var(--dur-hover) ease;
+}
+
+.cs-arrow svg { position: relative; z-index: 1; width: 16px; height: 16px; }
+.cs-arrow:hover:not(:disabled) { filter: brightness(0.94); }
+.cs-arrow:disabled { background: var(--control-off-bg); color: var(--control-off-fg); cursor: default; }
+
+.cs-arrow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--rose);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+}
+
+.cs-carousel.is-playing .cs-arrow.is-filling { background: var(--control-pending); }
+.cs-carousel.is-playing .cs-arrow.is-filling::before {
+    animation: cs-arrow-fill var(--cs-dwell, var(--dwell)) linear forwards;
+}
+
+/* Scale, not width: it moves in fractions of a pixel, so the fill is smooth */
+@keyframes cs-arrow-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+
+/* ==========================================================
+   14  Password gate and curtain
+   ========================================================== */
+.lock-body { min-height: 100vh; display: flex; flex-direction: column; }
+
+.lock {
+    margin: auto;
+    width: 100%;
+    max-width: var(--gate-max);
+    padding: var(--space-12) var(--pad-x);
+    transform-origin: 50% 60%;
+    transition: opacity 700ms var(--ease-settle), transform var(--dur-curtain) var(--ease-settle);
+}
+
+/* While the curtain rises, the form fades and settles back to make room */
+.lock.is-receding { opacity: 0; transform: scale(0.92) translateY(-10px); }
+
+.lock-title {
+    margin: var(--space-12) 0 0;
+    font-family: var(--font-display);
+    font-size: var(--size-title);
+    font-weight: var(--weight-black);
+    letter-spacing: var(--tracking-display);
+    line-height: var(--leading-title);
+    text-wrap: balance;
+}
+
+.lock-form { margin-top: var(--space-7); display: flex; gap: var(--space-2-5); flex-wrap: wrap; }
+
+/* Text input: same height and pill as the button, white on paper */
+.lock-input {
+    flex: 1 1 220px;
+    height: 54px;
+    padding: 0 var(--space-5-5);
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border);
+    background: var(--surface);
+    font: inherit;
+    font-size: var(--size-body);
+    color: var(--ink);
+    outline: none;
+    transition: border-color var(--dur-hover) ease;
+}
+
+.lock-input::placeholder { color: var(--muted); }
+.lock-input:focus { border-color: var(--rose); }
+
+/* Error: reserves its line so the layout doesn't jump */
+.lock-error {
+    min-height: 22px;
+    margin: var(--space-3-5) 0 0;
+    font-size: var(--size-small);
+    line-height: var(--leading-text);
+    color: var(--rose-text);
+}
+
+.lock-contact {
+    margin: var(--space-7) 0 0;
+    font-size: var(--size-small);
+    line-height: var(--leading-read);
+    color: var(--muted);
+}
+
+.lock-contact-row { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1); }
+
+/* Icon button that copies the email address; becomes a check and "Copied" */
+.lock-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1-5);
+    flex: none;
+    min-width: 28px;
+    height: 28px;
+    margin: 0;
+    padding: 0 5px;
+    border-radius: var(--radius-pill);
+    border: var(--border-width) solid var(--border);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: background var(--dur-hover) ease, color var(--dur-hover) ease;
+}
+
+.lock-copy:hover { background: var(--wash); }
+.lock-copy svg { display: block; }
+.lock-copy .lock-copy-check,
+.lock-copy .copy-toast { display: none; }
+.lock-copy.is-copied { padding: 0 var(--space-2-5) 0 7px; border-color: var(--rose); }
+.lock-copy.is-copied .lock-copy-icon { display: none; }
+.lock-copy.is-copied .lock-copy-check { display: block; }
+.lock-copy.is-copied .copy-toast { display: inline; opacity: 1; transform: none; line-height: 1; }
+
+/* Copied feedback for any email link (copy-email.js) */
+.is-copied { color: var(--rose-text) !important; }
+
+.copy-toast {
+    font-size: var(--size-fine);
+    font-weight: var(--weight-medium);
+    color: var(--rose-text);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity var(--dur-hover) ease, transform var(--dur-hover) ease;
+}
+
+.copy-toast.is-on { opacity: 1; transform: none; }
+.copy-check { display: inline-block; vertical-align: -2px; margin-right: 2px; }
+
+/* Curtain: a rose panel with a curved top. It rises while a page decrypts, sweeps up to
+   cover, then lifts off the top as the page rises in behind it. Off under Reduce Motion. */
+.lock-curtain {
+    --rest: 62%;
+    position: fixed;
+    left: -6vw;
+    right: -6vw;
+    top: 0;
+    height: 112vh;
+    z-index: var(--z-curtain);
+    background: var(--rose);
+    border-radius: 50% 50% 0 0 / 9vh 9vh 0 0;
+    transform: translateY(100%);
+    pointer-events: none;
+    will-change: transform;
+}
+
+.lock-curtain[hidden] { display: none; }
+.lock-curtain.is-rising      { animation: curtain-rise var(--dur-curtain) var(--ease-settle) forwards; }
+.lock-curtain.is-dropping    { transform: translateY(var(--rest)); animation: curtain-drop 560ms var(--ease-settle) forwards; }
+.lock-curtain.is-covering-up { transform: translateY(var(--rest)); animation: curtain-cover 420ms var(--ease-sweep) forwards; }
+.lock-curtain--leave         { transform: translateY(0); animation: curtain-leave 680ms var(--ease-leave) 80ms forwards; }
+
+@keyframes curtain-rise  { from { transform: translateY(100%); }        to { transform: translateY(var(--rest)); } }
+@keyframes curtain-drop  { from { transform: translateY(var(--rest)); } to { transform: translateY(100%); } }
+@keyframes curtain-cover { from { transform: translateY(var(--rest)); } to { transform: translateY(0); } }
+@keyframes curtain-leave { from { transform: translateY(0); }           to { transform: translateY(-112%); } }
+
+
+/* ==========================================================
+   15  Footer
+   A two-line invitation, primary + ghost buttons, copyright on the right.
+   ========================================================== */
+.site-footer {
+    position: relative;
+    margin-top: var(--space-footer);
+    padding: var(--space-11) 0 var(--space-14);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+}
+
+.wk .site-footer { padding-bottom: 0; }
+
+.footer-lockup { display: flex; flex-direction: column; gap: var(--space-5); max-width: var(--lockup-max); }
+
+.footer-headline {
+    font-family: var(--font-display);
+    font-size: var(--size-heading);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-heading-sm);
+    font-weight: var(--weight-semibold);
+    text-wrap: pretty;
+}
+
+.footer-buttons { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+
+.footer-copy { font-size: var(--size-fine); color: var(--muted); }
+
+
+/* ==========================================================
+   16  Divider
+   No rules on wide screens: the layout separates sections. Where sections stack (860px and
+   below), a fine row of dots marks each boundary. The home header bar always has one.
+   ========================================================== */
+.divider-dots,
+.header-bar::after {
+    content: "";
+    height: 2px;
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1.2px);
+    background-size: 9px 2px;
+    background-repeat: repeat-x;
+    pointer-events: none;
+}
+
+.divider-dots { display: block; }
+.header-bar::after { position: absolute; left: 0; right: 0; bottom: 0; }
+
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+@media (max-width: 860px) {
+    .wk-tile-body { grid-template-columns: 1fr; row-gap: var(--space-7); }
+    .wk-aside { grid-column: auto; padding-left: 0; }
+    .wk-more { grid-column: auto; }
+    .wk-quotes { grid-template-columns: 1fr; }
+    .wk-hero { aspect-ratio: 4 / 3; }
+    .wk-hero--screens { padding: 5% 4%; gap: 3%; }
+    .wk-hero--screens img { width: 28%; }
+    .wk-hero--compare { padding: 6% 6% 0; gap: 5%; }
+    .wk-hero--compare figure { width: 36%; }
+    .wk-hero--card { padding: 8%; }
+    .wk-bonus-media { grid-template-columns: 1fr; }
+    .wk-bonus-media iframe, .wk-bonus-quote { grid-column: 1; grid-row: auto; }
+    .wk-bonus-quote { margin-top: var(--space-4); }
+
+    .wk-tile::before, .wk-quotes::before, .cs-section::before, .site-footer::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 2px;
+        background-image: radial-gradient(circle, var(--border) 1px, transparent 1.2px);
+        background-size: 9px 2px;
+        background-repeat: repeat-x;
+        pointer-events: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .cs-wide img { width: 760px; max-width: none; }
+}
+
+@media (max-width: 640px) {
+    .cs-shots, .cs-placeholders-3 { grid-template-columns: 1fr; }
+    .cs-wash--fit { aspect-ratio: 4 / 3; padding: 5% 4%; }
+}
+
+@media (max-width: 560px) {
+    .wk-facts > div { grid-template-columns: 1fr; gap: var(--space-1-5); }
+    .wk-links { gap: var(--space-5); }
+}
+
+
+/* ==========================================================
+   17  Cursor and motion
+   ========================================================== */
+/* Rose dot + ring on fine pointers (cursor.js adds html.has-cursor). Off under Reduce Motion. */
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button,
+html.has-cursor label { cursor: none; }
+html.has-cursor input,
+html.has-cursor textarea,
+html.has-cursor select { cursor: auto; }
+
+.cur-dot, .cur-ring {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: var(--z-cursor);
+    pointer-events: none;
+    border-radius: var(--radius-round);
+    opacity: 0;
+    will-change: transform;
+    transition:
+        opacity var(--dur-micro) ease,
+        width var(--dur-cursor) var(--ease-out),
+        height var(--dur-cursor) var(--ease-out),
+        background var(--dur-micro) ease;
+}
+
+.cur-dot { width: 8px; height: 8px; background: var(--rose); }
+.cur-ring { width: 34px; height: 34px; border: var(--border-width-strong) solid var(--rose); }
+
+html.cur-visible .cur-dot { opacity: 1; }
+html.cur-visible .cur-ring { opacity: 0.55; }
+html.cur-active .cur-ring { width: 54px; height: 54px; opacity: 0.9; }
+html.cur-active .cur-dot { width: 5px; height: 5px; }
+html.cur-down .cur-ring { width: 40px; height: 40px; }
+html.cur-text .cur-dot, html.cur-text .cur-ring { opacity: 0; }
+
+/* Entrance: each block fades in and rises, one beat apart */
+@keyframes rise {
+    from { opacity: 0; transform: translateY(var(--rise)); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes fade-only {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* .enter on any container; .wk and .lock are the work pages' names for the same thing */
+.enter > *, .wk > *, .lock { animation: rise var(--dur-entrance) var(--ease-out) both; }
+.enter > :nth-child(2), .wk > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+.enter > :nth-child(3), .wk > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+.enter > :nth-child(4), .wk > :nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+.enter > :nth-child(5), .wk > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
+.enter > :nth-child(6), .wk > :nth-child(6) { animation-delay: calc(var(--stagger) * 5); }
+.enter > :nth-child(n + 7), .wk > :nth-child(n + 7) { animation-delay: calc(var(--stagger) * 6); }
+
+/* The gate form's entrance must not keep its fill, or .lock.is-receding could never take over */
+.lock { animation-fill-mode: backwards; }
+
+/* Home: nav, name, then each content block, 80ms apart */
+.nav-row, .hero-wrap, .content > * { animation: rise var(--dur-entrance) var(--ease-out) both; }
+.hero-wrap { animation-delay: 60ms; }
+.content > :nth-child(1) { animation-delay: 140ms; }
+.content > :nth-child(2) { animation-delay: 220ms; }
+.content > :nth-child(3) { animation-delay: 300ms; }
+.content > :nth-child(n + 4) { animation-delay: 380ms; }
+
+/* Behind the curtain, the page rises further and a beat later, as if pulled up by it */
+@keyframes rise-far {
+    from { opacity: 0; transform: translateY(56px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.has-curtain .wk > * { animation: rise-far var(--dur-reveal) var(--ease-out) both; }
+.has-curtain .wk > :nth-child(1) { animation-delay: 260ms; }
+.has-curtain .wk > :nth-child(2) { animation-delay: 320ms; }
+.has-curtain .wk > :nth-child(3) { animation-delay: 380ms; }
+.has-curtain .wk > :nth-child(4) { animation-delay: 440ms; }
+.has-curtain .wk > :nth-child(5) { animation-delay: 500ms; }
+.has-curtain .wk > :nth-child(6) { animation-delay: 560ms; }
+.has-curtain .wk > :nth-child(n + 7) { animation-delay: 620ms; }
+
+/* Scroll reveal (reveal.js adds .reveal below the fold, then .is-in on screen). Runs once. */
+.reveal {
+    animation: none !important;
+    opacity: 0;
+    transform: translateY(var(--rise-reveal));
+    transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-out);
+}
+
+.reveal.is-in { opacity: 1; transform: none; }
+
+/* Inside a revealing tile the hero lands first, then the header, then the facts */
+.wk-tile.reveal .wk-tile-head,
+.wk-tile.reveal .wk-facts,
+.wk-tile.reveal .wk-aside,
+.wk-tile.reveal .wk-bonus-media {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity var(--dur-reveal-child) var(--ease-out), transform var(--dur-reveal-child) var(--ease-out);
+}
+.wk-tile.reveal.is-in .wk-tile-head,
+.wk-tile.reveal.is-in .wk-facts,
+.wk-tile.reveal.is-in .wk-aside,
+.wk-tile.reveal.is-in .wk-bonus-media { opacity: 1; transform: none; }
+.wk-tile.reveal.is-in .wk-tile-head { transition-delay: 140ms; }
+.wk-tile.reveal.is-in .wk-facts { transition-delay: 240ms; }
+.wk-tile.reveal.is-in .wk-aside { transition-delay: 320ms; }
+.wk-tile.reveal.is-in .wk-bonus-media { transition-delay: 360ms; }
+
+/* Reduced motion: keep fades, drop movement */
+@media (prefers-reduced-motion: reduce) {
+    .enter > *, .wk > *, .lock, .has-curtain .wk > *,
+    .nav-row, .hero-wrap, .content > * { animation-name: fade-only; }
+    .wk-tile.reveal .wk-tile-head, .wk-tile.reveal .wk-facts,
+    .wk-tile.reveal .wk-aside, .wk-tile.reveal .wk-bonus-media { transform: none; }
+    .reveal { transform: none; transition: opacity 500ms ease; }
+    .hero-name .letter, .header-bar { transition: none; }
+    .lock-curtain { display: none !important; }
+    .cs-hifi img + img { animation: none; }
+}
